@@ -38,10 +38,11 @@ enum enum_mysql_completiontype {
 #define INCEPTION_COM_DESC_TABLE        3
 #define INCEPTION_COM_TABLE_DEF         4
 
-#define INCEPTION_NOERR                 0x00
-#define INCEPTION_RULES                 0x01
-#define INCEPTION_PARSE                 0x02
-#define INCEPTION_MANUAL                0x03
+#define INCEPTION_NOERR                 0
+#define INCEPTION_WARRING               1
+#define INCEPTION_PREFLIGHT             2
+#define INCEPTION_MANUAL                3
+#define INCEPTION_ERROR                 4
 
 #define INCEPTION_STATE_INIT            1
 #define INCEPTION_STATE_CHECKING        2

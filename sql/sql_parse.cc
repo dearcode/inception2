@@ -583,8 +583,7 @@ int mysql_cache_one_sql(THD * thd)
 		errmsg_len = truncate_inception_commit(sql_with_charset.ptr(), errmsg_len);
 
 	if (mysql_is_remote_show(thd))
-		sql_cache_node->sql_statement = (char *)my_malloc(sql_with_charset.length() +
-								  str_get_len(thd->show_result) + 10, MY_ZEROFILL);
+		sql_cache_node->sql_statement = (char *)my_malloc(sql_with_charset.length() + str_get_len(thd->show_result) + 10, MY_ZEROFILL);
 	else
 		sql_cache_node->sql_statement = (char *)my_malloc(sql_with_charset.length() + 10, MY_ZEROFILL);
 
@@ -614,8 +613,7 @@ int mysql_cache_one_sql(THD * thd)
 		sprintf(sql_cache_node->backup_dbname, "None");
 
 	sql_cache_node->errlevel = thd->err_level;
-	//sql_cache_node->errlevel = thd->err_level > INCEPTION_PARSE ? INCEPTION_PARSE : thd->err_level;
-	if (sql_cache_node->errlevel == INCEPTION_PARSE)
+	if (sql_cache_node->errlevel == INCEPTION_ERROR)
 		thd->thd_sinfo->ignore_warnings = 0;
 
 	sql_cache_node->rt_lst = thd->rt_lst;
@@ -875,7 +873,7 @@ int mysql_send_all_results(THD * thd)
 		protocol->store(id++);
 		protocol->store("NONE", thd->charset());
 
-		protocol->store(INCEPTION_PARSE);
+		protocol->store(INCEPTION_ERROR);
 		protocol->store("None", thd->charset());
 
 		protocol->store(thd->get_stmt_da()->message(), thd->charset());
@@ -1753,20 +1751,18 @@ int mysql_get_err_level_by_errno(THD * thd)
 	case ER_WITH_DEFAULT_ADD_COLUMN:
 	case ER_NOT_SUPPORTED_YET:
 	case ER_NOT_SUPPORTED_ALTER_OPTION:
-	case ER_COLUMN_HAVE_NO_COMMENT:
-	case ER_TABLE_MUST_HAVE_COMMENT:
 	case ER_WITH_LIMIT_CONDITION:
 	case ER_INDEX_NAME_IDX_PREFIX:
 	case ER_INDEX_NAME_UNIQ_PREFIX:
 	case ER_AUTOINC_UNSIGNED:
 	case ER_PARTITION_NOT_ALLOWED:
-	case ER_TABLE_MUST_HAVE_PK:
 	case ER_TOO_LONG_INDEX_COMMENT:
-	case ER_TABLE_MUST_INNODB:
 	case ER_NAMES_MUST_UTF8:
 	case ER_TEXT_NOT_NULLABLE_ERROR:
 	case ER_INVALID_IDENT:
-		return INCEPTION_RULES;
+		return INCEPTION_WARRING;
+
+
 
 	case ER_CONFLICTING_DECLARATIONS:
 	case ER_NO_DB_ERROR:
@@ -1815,13 +1811,21 @@ int mysql_get_err_level_by_errno(THD * thd)
 	case ER_VIEW_SELECT_CLAUSE:
 	case ER_NOT_SUPPORTED_ITEM_TYPE:
 	case ER_INCEPTION_EMPTY_QUERY:
-		return INCEPTION_PARSE;
+		return INCEPTION_PREFLIGHT;
 
 	case ER_FOREIGN_KEY:
 		return INCEPTION_MANUAL;
 
+    //自定义ERROR
+	case ER_TABLE_MUST_INNODB:
+	case ER_COLUMN_HAVE_NO_COMMENT:
+	case ER_TABLE_MUST_HAVE_COMMENT:
+	case ER_TABLE_MUST_HAVE_PK:
+		return INCEPTION_ERROR;
+
+    //mysql原生ERROR
 	default:
-		return INCEPTION_PARSE;
+		return INCEPTION_ERROR;
 	}
 }
 
@@ -1829,25 +1833,13 @@ int mysql_check_inception_variables(THD * thd)
 {
 	switch (thd->get_stmt_da()->sql_errno()) {
 	case ER_WITH_INSERT_FIELD:
-		if (inception_check_insert_field)
-			return true;
-		else
-			return false;
-		break;
+		return inception_check_insert_field;
 
 	case ER_NO_WHERE_CONDITION:
-		if (inception_check_dml_where)
-			return true;
-		else
-			return false;
-		break;
+		return inception_check_dml_where;
 
 	case ER_WITH_LIMIT_CONDITION:
-		if (inception_check_dml_limit)
-			return true;
-		else
-			return false;
-		break;
+		return inception_check_dml_limit;
 
 	case ER_WITH_ORDERBY_CONDITION:
 		if (inception_check_dml_orderby)
@@ -2025,7 +2017,7 @@ void mysql_errmsg_append_without_errno_osc(THD * thd, sql_cache_node_t * sql_cac
 	str_append(sql_cache_node->errmsg, "\n");
 	//如果执行出错，这里直接报为错误，而不是警告, 但如果是正常完成了，则不报错
 	if (sql_cache_node->oscpercent != 100)
-		sql_cache_node->errlevel = INCEPTION_PARSE;
+		sql_cache_node->errlevel = INCEPTION_ERROR;
 	thd->clear_error();
 }
 
@@ -2039,9 +2031,11 @@ void mysql_errmsg_append(THD * thd)
 			}
 			str_append(thd->errmsg, thd->get_stmt_da()->message());
 			str_append(thd->errmsg, "\n");
-			thd->err_level |= mysql_get_err_level_by_errno(thd);
+
+            int err_level = mysql_get_err_level_by_errno(thd);
+			thd->err_level = err_level > thd->err_level ? err_level : thd->err_level;
+
 			thd->check_error_before = TRUE;
-			printf("msg:%s, level:%d\n", thd->get_stmt_da()->message(), thd->err_level);
 		}
 
 		thd->clear_error();
@@ -2068,7 +2062,7 @@ void mysql_sqlcachenode_errmsg_append(THD * thd, sql_cache_node_t * node, int ty
 		str_append(node->errmsg, thd->get_stmt_da()->message());
 		str_append(node->errmsg, "\n");
 		//如果执行出错，这里直接报为错误，而不是警告
-		node->errlevel = INCEPTION_PARSE;
+		node->errlevel = INCEPTION_ERROR;
 		thd->clear_error();
 	}
 }
@@ -3171,9 +3165,7 @@ char **mysql_parse_possible_keys(char *possible_keys)
 	DBUG_RETURN(keys);
 }
 
-uint
-mysql_get_explain_info(THD * thd,
-		       MYSQL * mysql, char *select_sql, explain_info_t ** explain_ret, int report_err, char *dbname)
+uint mysql_get_explain_info(THD * thd, MYSQL * mysql, char *select_sql, explain_info_t ** explain_ret, int report_err, char *dbname)
 {
 	explain_info_t *explain = NULL;
 	MYSQL_RES *source_res;
@@ -5873,7 +5865,6 @@ int mysql_print_subselect(THD * thd,
 			  str_t * print_str, st_select_lex * select_lex, bool top)
 {
 	Item *item;
-	ORDER *order;
 	TABLE_LIST *tables;
 
 	if (mysql_load_tables(thd, &query_node->rt_lst, select_lex))
@@ -6312,7 +6303,6 @@ int mysql_print_select(THD * thd)
 {
 	query_print_cache_node_t *query_node;
 	query_print_cache_t *query_cache;
-	check_rt_t *rt;
 	SELECT_LEX *select_lex = &thd->lex->select_lex;
 
 	query_cache = thd->query_print_cache;
@@ -6555,34 +6545,28 @@ int mysql_print_not_support(THD * thd)
 int mysql_print_command(THD * thd)
 {
 	thd->thread_state = INCEPTION_STATE_EXECUTING;
-	int err;
+
 	switch (thd->lex->sql_command) {
 	case SQLCOM_CHANGE_DB:
-		err = mysql_check_change_db(thd);
-		break;
+		return mysql_check_change_db(thd);
 
 	case SQLCOM_INSERT:
 	case SQLCOM_INSERT_SELECT:
-		err = mysql_print_insert(thd);
-		break;
+		return mysql_print_insert(thd);
 
 	case SQLCOM_DELETE:
 	case SQLCOM_DELETE_MULTI:
-		err = mysql_print_delete(thd);
-		break;
+		return mysql_print_delete(thd);
 
 	case SQLCOM_UPDATE:
 	case SQLCOM_UPDATE_MULTI:
-		err = mysql_print_update(thd);
-		break;
+		return mysql_print_update(thd);
 
 	case SQLCOM_SELECT:
-		err = mysql_print_select(thd);
-		break;
+		return mysql_print_select(thd);
 
 	default:
-		mysql_print_not_support(thd);
-		break;
+		return mysql_print_not_support(thd);
 	}
 
 	return 0;
@@ -7056,8 +7040,6 @@ int mysql_sql_cache_is_valid(sql_cache_node_t * sql_cache_node)
 
 int mysql_get_statistic_table_sql(String * create_sql)
 {
-	char sql_tmp[100];
-
 	create_sql->truncate();
 	create_sql->append("create table ");
 	create_sql->append("inception.statistic");
@@ -8274,8 +8256,7 @@ int mysql_execute_backup_info_insert_sql(Master_info * mi, sql_cache_node_t * sq
 	DBUG_RETURN(false);
 }
 
-int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
-						    int optype, String * backup_sql, char *dbname, char *tablename)
+int mysql_generate_field_insert_values_for_rollback(Master_info * mi, int optype, String * backup_sql, char *dbname, char *tablename)
 {
 	field_info_t *field_node;
 	char tmp_buf[256];
@@ -8295,8 +8276,7 @@ int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
 				sprintf(tmp_buf, "%s=", field_node->field_name);
 				backup_sql->append(tmp_buf);
 
-				err = mysql_get_field_string(field_node->conv_field,
-							     backup_sql, mi->table_info->null_arr, field_index);
+				err = mysql_get_field_string(field_node->conv_field, backup_sql, mi->table_info->null_arr, field_index);
 				pkcount++;
 			}
 			field_node = LIST_GET_NEXT(link, field_node);
@@ -8318,8 +8298,7 @@ int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
 		backup_sql->append(") values( ");
 		field_node = LIST_GET_FIRST(mi->table_info->field_lst);
 		while (field_node != NULL) {
-			err = mysql_get_field_string(field_node->conv_field,
-						     backup_sql, mi->table_info->null_arr, field_index);
+			err = mysql_get_field_string(field_node->conv_field, backup_sql, mi->table_info->null_arr, field_index);
 			if (LIST_GET_LAST(mi->table_info->field_lst) != field_node)
 				backup_sql->append(",");
 
@@ -8335,8 +8314,7 @@ int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
 		while (field_node != NULL) {
 			sprintf(tmp_buf, "%s=", field_node->field_name);
 			backup_sql->append(tmp_buf);
-			err = mysql_get_field_string(field_node->conv_field,
-						     backup_sql, mi->table_info->null_arr, field_index);
+			err = mysql_get_field_string(field_node->conv_field, backup_sql, mi->table_info->null_arr, field_index);
 
 			if (LIST_GET_LAST(mi->table_info->field_lst) != field_node)
 				backup_sql->append(",");
@@ -8356,8 +8334,7 @@ int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
 				sprintf(tmp_buf, "%s=", field_node->field_name);
 				backup_sql->append(tmp_buf);
 
-				err = mysql_get_field_string(field_node->conv_field,
-							     backup_sql, mi->table_info->null_arr, field_index);
+				err = mysql_get_field_string(field_node->conv_field, backup_sql, mi->table_info->null_arr, field_index);
 				pkcount++;
 			}
 			field_node = LIST_GET_NEXT(link, field_node);
@@ -8367,7 +8344,7 @@ int mysql_generate_field_insert_values_for_rollback(Master_info * mi,
 		backup_sql->append(";");
 	}
 
-	return 0;
+	return err;
 }
 
 int mysql_generate_field_insert_values(Master_info * mi, int optype, String * backup_sql, String * rollback_sql)
@@ -9421,7 +9398,7 @@ static void print_warnings(THD * thd, MYSQL * mysql, sql_cache_node_t * sql_cach
 	} while ((cur = mysql_fetch_row(result)));
 
 	//set to warnings
-	sql_cache_node->errlevel = INCEPTION_RULES;
+	sql_cache_node->errlevel = INCEPTION_WARRING;
 
       end:
 	mysql_free_result(result);
@@ -9842,26 +9819,24 @@ int get_sql_mode(THD * thd, char *sqlmode)
 {
 	char *sql_mode;
 	char *strToken;
-	int ret;
 
 	if (!strlen(sqlmode))
 		return false;
 
 	sql_mode = (char *)my_malloc(strlen(sqlmode) + 1, MY_ZEROFILL);
 	strcpy(sql_mode, sqlmode);
-	if ((strToken = strtok(sql_mode, ",")) == NULL) {
-		ret = false;
-		goto err;
+
+	if (!(strToken = strtok(sql_mode, ","))) {
+        my_free(sql_mode);
+		return false;
 	}
 
 	while (strToken) {
 		thd->variables.sql_mode |= get_sql_mode_from_str(strToken);
 		strToken = strtok(NULL, ",");
 	}
-
-      err:
-	my_free(sql_mode);
-	return false;
+    my_free(sql_mode);
+	return true;
 }
 
 int mysql_get_remote_variables(THD * thd)
@@ -10079,7 +10054,6 @@ int mysql_deinit_sql_cache(THD * thd)
 	split_table_t *split_table_next;
 	check_rt_t *query_rt;
 	check_rt_t *query_rt_next;
-	query_print_cache_t *query_print_cache;
 	query_print_cache_node_t *query_print_cache_node;
 	query_print_cache_node_t *query_print_cache_node_next;
 	table_rt_t *table_rt;
@@ -10242,13 +10216,13 @@ int mysql_parse_and_check_valid(THD * thd, Parser_state * parser_state)
 {
 	DBUG_ENTER("mysql_parse_and_check_valid");
 
-	const char *found_semicolon = parser_state->m_lip.found_semicolon;
-
     if (parse_sql(thd, parser_state, NULL)) {
 		thd->parse_error = TRUE;
 		mysql_errmsg_append(thd);
 		DBUG_RETURN(TRUE);
     }
+
+	const char *found_semicolon = parser_state->m_lip.found_semicolon;
 
     if (found_semicolon && (ulong) (found_semicolon - thd->query()))
         thd->set_query_inner(thd->query(), (uint32) (found_semicolon - thd->query() - 1), thd->charset());
