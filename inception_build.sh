@@ -33,7 +33,7 @@ else
   # cmake && make && make install
   cmake -DWITH_DEBUG=ON -DCMAKE_INSTALL_PREFIX=./mysql  -DMYSQL_DATADIR=./mysql/data -DCMAKE_C_FLAGS_DEBUG="-DDBUG_ON" \
     -DWITH_SSL=bundled -DCMAKE_BUILD_TYPE=Debug -DWITH_ZLIB=bundled \
-    -DMY_MAINTAINER_CXX_WARNINGS="-Wall -Wextra -Wunused -Wno-dev -Wwrite-strings -Wno-strict-aliasing  -Wno-unused-parameter -Woverloaded-virtual" \
+    -DMY_MAINTAINER_CXX_WARNINGS="-Wall -Wextra -Wunused -Wno-dev -Wwrite-strings -Wno-strict-aliasing  -Wno-unused-parameter -Woverloaded-virtual -Wsizeof-pointer-memaccess" \
     -DMY_MAINTAINER_C_WARNINGS="-Wall -Wextra -Wno-dev -Wunused -Wwrite-strings -Wno-strict-aliasing -Wdeclaration-after-statement" \
     $Gplatform\
     ..
