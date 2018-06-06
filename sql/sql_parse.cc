@@ -10240,35 +10240,32 @@ int mysql_show_print_and_execute_simple(THD * thd)
 
 int mysql_parse_and_check_valid(THD * thd, Parser_state * parser_state)
 {
-	int err;
 	DBUG_ENTER("mysql_parse_and_check_valid");
 
-	err = parse_sql(thd, parser_state, NULL);
 	const char *found_semicolon = parser_state->m_lip.found_semicolon;
 
-	if (!err) {
-		if (found_semicolon && (ulong) (found_semicolon - thd->query()))
-			thd->set_query_inner(thd->query(), (uint32)
-					     (found_semicolon - thd->query() - 1), thd->charset());
-
-		//直接执行的命令不做这些操作了
-		if (mysql_not_need_data_source(thd))
-			DBUG_RETURN(FALSE);
-
-		if (found_semicolon && thd->lex->sql_command == SQLCOM_INCEPTION_COMMIT) {
-			my_error(ER_END_WITH_COMMIT, MYF(0));
-			DBUG_RETURN(ER_NO);
-		}
-
-		if (!found_semicolon && thd->lex->sql_command != SQLCOM_INCEPTION_COMMIT && thd->have_begin) {
-			my_error(ER_END_WITH_COMMIT, MYF(0));
-			DBUG_RETURN(ER_NO);
-		}
-	} else {
+    if (parse_sql(thd, parser_state, NULL)) {
 		thd->parse_error = TRUE;
 		mysql_errmsg_append(thd);
 		DBUG_RETURN(TRUE);
-	}
+    }
+
+    if (found_semicolon && (ulong) (found_semicolon - thd->query()))
+        thd->set_query_inner(thd->query(), (uint32) (found_semicolon - thd->query() - 1), thd->charset());
+
+    //直接执行的命令不做这些操作了
+    if (mysql_not_need_data_source(thd))
+        DBUG_RETURN(FALSE);
+
+    if (found_semicolon && thd->lex->sql_command == SQLCOM_INCEPTION_COMMIT) {
+        my_error(ER_END_WITH_COMMIT, MYF(0));
+        DBUG_RETURN(ER_NO);
+    }
+
+    if (!found_semicolon && thd->lex->sql_command != SQLCOM_INCEPTION_COMMIT && thd->have_begin) {
+        my_error(ER_END_WITH_COMMIT, MYF(0));
+        DBUG_RETURN(ER_NO);
+    }
 
 	if ((sql_command_flags[thd->lex->sql_command] & CF_DIAGNOSTIC_STMT) != 0)
 		thd->get_stmt_da()->set_warning_info_read_only(TRUE);
@@ -11712,11 +11709,9 @@ bool parse_sql(THD * thd, Parser_state * parser_state, Object_creation_ctx * cre
 	   handler might be for other errors than parsing one).
 	 */
 
-	DBUG_ASSERT(!mysql_parse_status ||
-		    (mysql_parse_status && thd->is_error()) || (mysql_parse_status && thd->get_internal_handler()));
+	DBUG_ASSERT(!mysql_parse_status || (mysql_parse_status && thd->is_error()) || (mysql_parse_status && thd->get_internal_handler()));
 
-	if (mysql_parse_status &&
-	    strncasecmp(thd->m_parser_state->m_lip.get_tok_start(), INCEPTION_COMMIT, INCEPTION_COMMIT_LEN) == 0) {
+	if (mysql_parse_status && strncasecmp(thd->m_parser_state->m_lip.get_tok_start(), INCEPTION_COMMIT, INCEPTION_COMMIT_LEN) == 0) {
 		thd->clear_error();
 		my_error(ER_END_WITH_SEMICOLON, MYF(0));
 	}
