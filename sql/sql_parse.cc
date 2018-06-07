@@ -804,6 +804,8 @@ int mysql_send_all_results(THD * thd)
     field_list.push_back(new Item_empty_string("backup_dbname", FN_REFLEN));
     field_list.push_back(new Item_empty_string("execute_time", FN_REFLEN));
     field_list.push_back(new Item_empty_string("sqlsha1", FN_REFLEN));
+    field_list.push_back(new Item_empty_string("table", FN_REFLEN));
+    field_list.push_back(new Item_return_int("type", 20, MYSQL_TYPE_LONG));
 
     if (protocol->send_result_set_metadata(&field_list, Protocol::SEND_NUM_ROWS | Protocol::SEND_EOF)) {
         DBUG_RETURN(true);
@@ -848,6 +850,8 @@ int mysql_send_all_results(THD * thd)
             protocol->store(sql_cache_node->backup_dbname, system_charset_info);
             protocol->store(sql_cache_node->execute_time, system_charset_info);
             protocol->store(sql_cache_node->sqlsha1, system_charset_info);
+            protocol->store(sql_cache_node->tablename, system_charset_info);
+            protocol->store(sql_cache_node->optype);
 
             if (protocol->write())
                 break;
