@@ -23,90 +23,90 @@
 struct Host_errors
 {
 public:
-  Host_errors();
-  ~Host_errors();
+    Host_errors();
+    ~Host_errors();
 
-  void reset();
-  void aggregate(const Host_errors *errors);
+    void reset();
+    void aggregate(const Host_errors *errors);
 
-  /** Number of connect errors. */
-  ulong m_connect;
+    /** Number of connect errors. */
+    ulong m_connect;
 
-  /** Number of host blocked errors. */
-  ulong m_host_blocked;
-  /** Number of transient errors from getnameinfo(). */
-  ulong m_nameinfo_transient;
-  /** Number of permanent errors from getnameinfo(). */
-  ulong m_nameinfo_permanent;
-  /** Number of errors from is_hostname_valid(). */
-  ulong m_format;
-  /** Number of transient errors from getaddrinfo(). */
-  ulong m_addrinfo_transient;
-  /** Number of permanent errors from getaddrinfo(). */
-  ulong m_addrinfo_permanent;
-  /** Number of errors from Forward-Confirmed reverse DNS checks. */
-  ulong m_FCrDNS;
-  /** Number of errors from host grants. */
-  ulong m_host_acl;
-  /** Number of errors from missing auth plugin. */
-  ulong m_no_auth_plugin;
-  /** Number of errors from auth plugin. */
-  ulong m_auth_plugin;
-  /** Number of errors from authentication plugins. */
-  ulong m_handshake;
-  /** Number of errors from proxy user. */
-  ulong m_proxy_user;
-  /** Number of errors from proxy user acl. */
-  ulong m_proxy_user_acl;
-  /** Number of errors from authentication. */
-  ulong m_authentication;
-  /** Number of errors from ssl. */
-  ulong m_ssl;
-  /** Number of errors from max user connection. */
-  ulong m_max_user_connection;
-  /** Number of errors from max user connection per hour. */
-  ulong m_max_user_connection_per_hour;
-  /** Number of errors from the default database. */
-  ulong m_default_database;
-  /** Number of errors from init_connect. */
-  ulong m_init_connect;
-  /** Number of errors from the server itself. */
-  ulong m_local;
+    /** Number of host blocked errors. */
+    ulong m_host_blocked;
+    /** Number of transient errors from getnameinfo(). */
+    ulong m_nameinfo_transient;
+    /** Number of permanent errors from getnameinfo(). */
+    ulong m_nameinfo_permanent;
+    /** Number of errors from is_hostname_valid(). */
+    ulong m_format;
+    /** Number of transient errors from getaddrinfo(). */
+    ulong m_addrinfo_transient;
+    /** Number of permanent errors from getaddrinfo(). */
+    ulong m_addrinfo_permanent;
+    /** Number of errors from Forward-Confirmed reverse DNS checks. */
+    ulong m_FCrDNS;
+    /** Number of errors from host grants. */
+    ulong m_host_acl;
+    /** Number of errors from missing auth plugin. */
+    ulong m_no_auth_plugin;
+    /** Number of errors from auth plugin. */
+    ulong m_auth_plugin;
+    /** Number of errors from authentication plugins. */
+    ulong m_handshake;
+    /** Number of errors from proxy user. */
+    ulong m_proxy_user;
+    /** Number of errors from proxy user acl. */
+    ulong m_proxy_user_acl;
+    /** Number of errors from authentication. */
+    ulong m_authentication;
+    /** Number of errors from ssl. */
+    ulong m_ssl;
+    /** Number of errors from max user connection. */
+    ulong m_max_user_connection;
+    /** Number of errors from max user connection per hour. */
+    ulong m_max_user_connection_per_hour;
+    /** Number of errors from the default database. */
+    ulong m_default_database;
+    /** Number of errors from init_connect. */
+    ulong m_init_connect;
+    /** Number of errors from the server itself. */
+    ulong m_local;
 
-  bool has_error() const
-  {
-    return ((m_host_blocked != 0)
-      || (m_nameinfo_transient != 0)
-      || (m_nameinfo_permanent != 0)
-      || (m_format != 0)
-      || (m_addrinfo_transient != 0)
-      || (m_addrinfo_permanent != 0)
-      || (m_FCrDNS != 0)
-      || (m_host_acl != 0)
-      || (m_no_auth_plugin != 0)
-      || (m_auth_plugin != 0)
-      || (m_handshake != 0)
-      || (m_proxy_user != 0)
-      || (m_proxy_user_acl != 0)
-      || (m_authentication != 0)
-      || (m_ssl != 0)
-      || (m_max_user_connection != 0)
-      || (m_max_user_connection_per_hour != 0)
-      || (m_default_database != 0)
-      || (m_init_connect != 0)
-      || (m_local != 0));
-  }
+    bool has_error() const
+    {
+        return ((m_host_blocked != 0)
+                || (m_nameinfo_transient != 0)
+                || (m_nameinfo_permanent != 0)
+                || (m_format != 0)
+                || (m_addrinfo_transient != 0)
+                || (m_addrinfo_permanent != 0)
+                || (m_FCrDNS != 0)
+                || (m_host_acl != 0)
+                || (m_no_auth_plugin != 0)
+                || (m_auth_plugin != 0)
+                || (m_handshake != 0)
+                || (m_proxy_user != 0)
+                || (m_proxy_user_acl != 0)
+                || (m_authentication != 0)
+                || (m_ssl != 0)
+                || (m_max_user_connection != 0)
+                || (m_max_user_connection_per_hour != 0)
+                || (m_default_database != 0)
+                || (m_init_connect != 0)
+                || (m_local != 0));
+    }
 
-  void sum_connect_errors()
-  {
-    /* Current (historical) behavior: */
-    m_connect= m_handshake;
-  }
+    void sum_connect_errors()
+    {
+        /* Current (historical) behavior: */
+        m_connect= m_handshake;
+    }
 
-  void clear_connect_errors()
-  {
-    m_connect= 0;
-  }
+    void clear_connect_errors()
+    {
+        m_connect= 0;
+    }
 };
 
 /** Size of IP address string in the hash cache. */
@@ -125,40 +125,42 @@ public:
 class Host_entry : public hash_filo_element
 {
 public:
-  Host_entry *next()
-  { return (Host_entry*) hash_filo_element::next(); }
+    Host_entry *next()
+    {
+        return (Host_entry*) hash_filo_element::next();
+    }
 
-  /**
-    Client IP address. This is the key used with the hash table.
+    /**
+      Client IP address. This is the key used with the hash table.
 
-    The client IP address is always expressed in IPv6, even when the
-    network IPv6 stack is not present.
+      The client IP address is always expressed in IPv6, even when the
+      network IPv6 stack is not present.
 
-    This IP address is never used to connect to a socket.
-  */
-  char ip_key[HOST_ENTRY_KEY_SIZE];
+      This IP address is never used to connect to a socket.
+    */
+    char ip_key[HOST_ENTRY_KEY_SIZE];
 
-  /**
-    One of the host names for the IP address. May be a zero length string.
-  */
-  char m_hostname[HOSTNAME_LENGTH + 1];
-  /** Length in bytes of @c m_hostname. */
-  uint m_hostname_length;
-  /** The hostname is validated and used for authorization. */
-  bool m_host_validated;
-  ulonglong m_first_seen;
-  ulonglong m_last_seen;
-  ulonglong m_first_error_seen;
-  ulonglong m_last_error_seen;
-  /** Error statistics. */
-  Host_errors m_errors;
+    /**
+      One of the host names for the IP address. May be a zero length string.
+    */
+    char m_hostname[HOSTNAME_LENGTH + 1];
+    /** Length in bytes of @c m_hostname. */
+    uint m_hostname_length;
+    /** The hostname is validated and used for authorization. */
+    bool m_host_validated;
+    ulonglong m_first_seen;
+    ulonglong m_last_seen;
+    ulonglong m_first_error_seen;
+    ulonglong m_last_error_seen;
+    /** Error statistics. */
+    Host_errors m_errors;
 
-  void set_error_timestamps(ulonglong now)
-  {
-    if (m_first_error_seen == 0)
-      m_first_error_seen= now;
-    m_last_error_seen= now;
-  }
+    void set_error_timestamps(ulonglong now)
+    {
+        if (m_first_error_seen == 0)
+            m_first_error_seen= now;
+        m_last_error_seen= now;
+    }
 };
 
 /** The size of the host_cache. */

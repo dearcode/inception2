@@ -23,9 +23,9 @@ String temp_str;
 /* mysql_string_itrerator structure to provide service to plugins */
 typedef struct st_string_iterator
 {
-  String *iterator_str;
-  const char *iterator_ptr;
-  int ctype;
+    String *iterator_str;
+    const char *iterator_ptr;
+    int ctype;
 } string_iterator;
 
 #endif /* MY_STRING_SERVICE_INCLUDED */

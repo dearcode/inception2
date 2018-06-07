@@ -56,27 +56,27 @@ template <typename T> class SQL_I_List;
 /* DB storage of Stored PROCEDUREs and FUNCTIONs */
 enum
 {
-  MYSQL_PROC_FIELD_DB = 0,
-  MYSQL_PROC_FIELD_NAME,
-  MYSQL_PROC_MYSQL_TYPE,
-  MYSQL_PROC_FIELD_SPECIFIC_NAME,
-  MYSQL_PROC_FIELD_LANGUAGE,
-  MYSQL_PROC_FIELD_ACCESS,
-  MYSQL_PROC_FIELD_DETERMINISTIC,
-  MYSQL_PROC_FIELD_SECURITY_TYPE,
-  MYSQL_PROC_FIELD_PARAM_LIST,
-  MYSQL_PROC_FIELD_RETURNS,
-  MYSQL_PROC_FIELD_BODY,
-  MYSQL_PROC_FIELD_DEFINER,
-  MYSQL_PROC_FIELD_CREATED,
-  MYSQL_PROC_FIELD_MODIFIED,
-  MYSQL_PROC_FIELD_SQL_MODE,
-  MYSQL_PROC_FIELD_COMMENT,
-  MYSQL_PROC_FIELD_CHARACTER_SET_CLIENT,
-  MYSQL_PROC_FIELD_COLLATION_CONNECTION,
-  MYSQL_PROC_FIELD_DB_COLLATION,
-  MYSQL_PROC_FIELD_BODY_UTF8,
-  MYSQL_PROC_FIELD_COUNT
+    MYSQL_PROC_FIELD_DB = 0,
+    MYSQL_PROC_FIELD_NAME,
+    MYSQL_PROC_MYSQL_TYPE,
+    MYSQL_PROC_FIELD_SPECIFIC_NAME,
+    MYSQL_PROC_FIELD_LANGUAGE,
+    MYSQL_PROC_FIELD_ACCESS,
+    MYSQL_PROC_FIELD_DETERMINISTIC,
+    MYSQL_PROC_FIELD_SECURITY_TYPE,
+    MYSQL_PROC_FIELD_PARAM_LIST,
+    MYSQL_PROC_FIELD_RETURNS,
+    MYSQL_PROC_FIELD_BODY,
+    MYSQL_PROC_FIELD_DEFINER,
+    MYSQL_PROC_FIELD_CREATED,
+    MYSQL_PROC_FIELD_MODIFIED,
+    MYSQL_PROC_FIELD_SQL_MODE,
+    MYSQL_PROC_FIELD_COMMENT,
+    MYSQL_PROC_FIELD_CHARACTER_SET_CLIENT,
+    MYSQL_PROC_FIELD_COLLATION_CONNECTION,
+    MYSQL_PROC_FIELD_DB_COLLATION,
+    MYSQL_PROC_FIELD_BODY_UTF8,
+    MYSQL_PROC_FIELD_COUNT
 };
 
 /* Drop all routines in database 'db' */
@@ -123,32 +123,32 @@ int sp_drop_routine(THD *thd, enum_sp_type type, sp_name *name);
 class Sroutine_hash_entry
 {
 public:
-  /**
-    Metadata lock request for routine.
-    MDL_key in this request is also used as a key for set.
-  */
-  MDL_request mdl_request;
-  /**
-    Next element in list linking all routines in set. See also comments
-    for LEX::sroutine/sroutine_list and sp_head::m_sroutines.
-  */
-  Sroutine_hash_entry *next;
-  /**
-    Uppermost view which directly or indirectly uses this routine.
-    0 if routine is not used in view. Note that it also can be 0 if
-    statement uses routine both via view and directly.
-  */
-  TABLE_LIST *belong_to_view;
-  /**
-    This is for prepared statement validation purposes.
-    A statement looks up and pre-loads all its stored functions
-    at prepare. Later on, if a function is gone from the cache,
-    execute may fail.
-    Remember the version of sp_head at prepare to be able to
-    invalidate the prepared statement at execute if it
-    changes.
-  */
-  ulong m_sp_cache_version;
+    /**
+      Metadata lock request for routine.
+      MDL_key in this request is also used as a key for set.
+    */
+    MDL_request mdl_request;
+    /**
+      Next element in list linking all routines in set. See also comments
+      for LEX::sroutine/sroutine_list and sp_head::m_sroutines.
+    */
+    Sroutine_hash_entry *next;
+    /**
+      Uppermost view which directly or indirectly uses this routine.
+      0 if routine is not used in view. Note that it also can be 0 if
+      statement uses routine both via view and directly.
+    */
+    TABLE_LIST *belong_to_view;
+    /**
+      This is for prepared statement validation purposes.
+      A statement looks up and pre-loads all its stored functions
+      at prepare. Later on, if a function is gone from the cache,
+      execute may fail.
+      Remember the version of sp_head at prepare to be able to
+      invalidate the prepared statement at execute if it
+      changes.
+    */
+    ulong m_sp_cache_version;
 };
 
 

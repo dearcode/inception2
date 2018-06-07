@@ -55,106 +55,103 @@ class PROFILING;
 
 /**
   Implements a persistent FIFO using server List method names.  Not
-  thread-safe.  Intended to be used on thread-local data only.  
+  thread-safe.  Intended to be used on thread-local data only.
 */
 template <class T> class Queue
 {
 private:
 
-  struct queue_item
-  {
-    T *payload;
-    struct queue_item *next, *previous;
-  };
+    struct queue_item
+    {
+        T *payload;
+        struct queue_item *next, *previous;
+    };
 
-  struct queue_item *first, *last;
+    struct queue_item *first, *last;
 
 public:
-  Queue()
-  {
-    elements= 0;
-    first= last= NULL;
-  }
-
-  void empty()
-  {
-    struct queue_item *i, *after_i;
-    for (i= first; i != NULL; i= after_i)
+    Queue()
     {
-      after_i= i->next;
-      my_free(i);
-    }
-    elements= 0;
-  }
-
-  ulong elements;                       /* The count of items in the Queue */
-
-  void push_back(T *payload)
-  {
-    struct queue_item *new_item;
-
-    new_item= (struct queue_item *) my_malloc(sizeof(struct queue_item), MYF(0));
-
-    new_item->payload= payload;
-
-    if (first == NULL)
-      first= new_item;
-    if (last != NULL)
-    {
-      DBUG_ASSERT(last->next == NULL);
-      last->next= new_item;
-    }
-    new_item->previous= last;
-    new_item->next= NULL;
-    last= new_item;
-
-    elements++;
-  }
-
-  T *pop()
-  {
-    struct queue_item *old_item= first;
-    T *ret= NULL;
-
-    if (first == NULL)
-    {
-      DBUG_PRINT("warning", ("tried to pop nonexistent item from Queue"));
-      return NULL;
+        elements= 0;
+        first= last= NULL;
     }
 
-    ret= old_item->payload;
-    if (first->next != NULL)
-      first->next->previous= NULL;
-    else
-      last= NULL;
-    first= first->next;
+    void empty()
+    {
+        struct queue_item *i, *after_i;
+        for (i= first; i != NULL; i= after_i) {
+            after_i= i->next;
+            my_free(i);
+        }
+        elements= 0;
+    }
 
-    my_free(old_item);
-    elements--;
+    ulong elements;                       /* The count of items in the Queue */
 
-    return ret;
-  }
+    void push_back(T *payload)
+    {
+        struct queue_item *new_item;
 
-  bool is_empty()
-  {
-    DBUG_ASSERT(((elements > 0) && (first != NULL)) || ((elements == 0) || (first == NULL)));
-    return (elements == 0);
-  }
+        new_item= (struct queue_item *) my_malloc(sizeof(struct queue_item), MYF(0));
 
-  void *new_iterator()
-  {
-    return first;
-  }
+        new_item->payload= payload;
 
-  void *iterator_next(void *current)
-  {
-    return ((struct queue_item *) current)->next;
-  }
+        if (first == NULL)
+            first= new_item;
+        if (last != NULL) {
+            DBUG_ASSERT(last->next == NULL);
+            last->next= new_item;
+        }
+        new_item->previous= last;
+        new_item->next= NULL;
+        last= new_item;
 
-  T *iterator_value(void *current)
-  {
-    return ((struct queue_item *) current)->payload;
-  }
+        elements++;
+    }
+
+    T *pop()
+    {
+        struct queue_item *old_item= first;
+        T *ret= NULL;
+
+        if (first == NULL) {
+            DBUG_PRINT("warning", ("tried to pop nonexistent item from Queue"));
+            return NULL;
+        }
+
+        ret= old_item->payload;
+        if (first->next != NULL)
+            first->next->previous= NULL;
+        else
+            last= NULL;
+        first= first->next;
+
+        my_free(old_item);
+        elements--;
+
+        return ret;
+    }
+
+    bool is_empty()
+    {
+        DBUG_ASSERT(((elements > 0) && (first != NULL)) || ((elements == 0) || (first == NULL)));
+        return (elements == 0);
+    }
+
+    void *new_iterator()
+    {
+        return first;
+    }
+
+    void *iterator_next(void *current)
+    {
+        return ((struct queue_item *) current)->next;
+    }
+
+    T *iterator_value(void *current)
+    {
+        return ((struct queue_item *) current)->payload;
+    }
 
 };
 
@@ -165,36 +162,36 @@ public:
 class PROF_MEASUREMENT
 {
 private:
-  friend class QUERY_PROFILE;
-  friend class PROFILING;
+    friend class QUERY_PROFILE;
+    friend class PROFILING;
 
-  QUERY_PROFILE *profile;
-  char *status;
+    QUERY_PROFILE *profile;
+    char *status;
 #ifdef HAVE_GETRUSAGE
-  struct rusage rusage;
+    struct rusage rusage;
 #elif defined(_WIN32)
-  FILETIME ftKernel, ftUser;
+    FILETIME ftKernel, ftUser;
 #endif
 
-  char *function;
-  char *file;
-  unsigned int line;
+    char *function;
+    char *file;
+    unsigned int line;
 
-  ulong m_seq;
-  double time_usecs;
-  char *allocated_status_memory;
+    ulong m_seq;
+    double time_usecs;
+    char *allocated_status_memory;
 
-  void set_label(const char *status_arg, const char *function_arg, 
-                  const char *file_arg, unsigned int line_arg);
-  void clean_up();
-  
-  PROF_MEASUREMENT();
-  PROF_MEASUREMENT(QUERY_PROFILE *profile_arg, const char *status_arg);
-  PROF_MEASUREMENT(QUERY_PROFILE *profile_arg, const char *status_arg,
-                const char *function_arg,
-                const char *file_arg, unsigned int line_arg);
-  ~PROF_MEASUREMENT();
-  void collect();
+    void set_label(const char *status_arg, const char *function_arg,
+                   const char *file_arg, unsigned int line_arg);
+    void clean_up();
+
+    PROF_MEASUREMENT();
+    PROF_MEASUREMENT(QUERY_PROFILE *profile_arg, const char *status_arg);
+    PROF_MEASUREMENT(QUERY_PROFILE *profile_arg, const char *status_arg,
+                     const char *function_arg,
+                     const char *file_arg, unsigned int line_arg);
+    ~PROF_MEASUREMENT();
+    void collect();
 };
 
 
@@ -205,34 +202,34 @@ private:
 class QUERY_PROFILE
 {
 private:
-  friend class PROFILING;
+    friend class PROFILING;
 
-  PROFILING *profiling;
+    PROFILING *profiling;
 
-  query_id_t profiling_query_id;        /* Session-specific id. */
-  char *query_source;
+    query_id_t profiling_query_id;        /* Session-specific id. */
+    char *query_source;
 
-  double m_start_time_usecs;
-  double m_end_time_usecs;
-  ulong m_seq_counter;
-  Queue<PROF_MEASUREMENT> entries;
+    double m_start_time_usecs;
+    double m_end_time_usecs;
+    ulong m_seq_counter;
+    Queue<PROF_MEASUREMENT> entries;
 
 
-  QUERY_PROFILE(PROFILING *profiling_arg, const char *status_arg);
-  ~QUERY_PROFILE();
+    QUERY_PROFILE(PROFILING *profiling_arg, const char *status_arg);
+    ~QUERY_PROFILE();
 
-  void set_query_source(char *query_source_arg, uint query_length_arg);
+    void set_query_source(char *query_source_arg, uint query_length_arg);
 
-  /* Add a profile status change to the current profile. */
-  void new_status(const char *status_arg,
-              const char *function_arg,
-              const char *file_arg, unsigned int line_arg);
+    /* Add a profile status change to the current profile. */
+    void new_status(const char *status_arg,
+                    const char *function_arg,
+                    const char *file_arg, unsigned int line_arg);
 
-  /* Reset the contents of this profile entry. */
-  void reset();
+    /* Reset the contents of this profile entry. */
+    void reset();
 
-  /* Show this profile.  This is called by PROFILING. */
-  bool show(uint options);
+    /* Show this profile.  This is called by PROFILING. */
+    bool show(uint options);
 };
 
 
@@ -242,45 +239,51 @@ private:
 class PROFILING
 {
 private:
-  friend class PROF_MEASUREMENT;
-  friend class QUERY_PROFILE;
+    friend class PROF_MEASUREMENT;
+    friend class QUERY_PROFILE;
 
-  /* 
-    Not the system query_id, but a counter unique to profiling. 
-  */
-  query_id_t profile_id_counter;     
-  THD *thd;
-  bool keeping;
-  bool enabled;
+    /*
+      Not the system query_id, but a counter unique to profiling.
+    */
+    query_id_t profile_id_counter;
+    THD *thd;
+    bool keeping;
+    bool enabled;
 
-  QUERY_PROFILE *current;
-  QUERY_PROFILE *last;
-  Queue<QUERY_PROFILE> history;
- 
-  query_id_t next_profile_id() { return(profile_id_counter++); }
+    QUERY_PROFILE *current;
+    QUERY_PROFILE *last;
+    Queue<QUERY_PROFILE> history;
+
+    query_id_t next_profile_id()
+    {
+        return(profile_id_counter++);
+    }
 
 public:
-  PROFILING();
-  ~PROFILING();
-  void set_query_source(char *query_source_arg, uint query_length_arg);
+    PROFILING();
+    ~PROFILING();
+    void set_query_source(char *query_source_arg, uint query_length_arg);
 
-  void start_new_query(const char *initial_state= "starting");
+    void start_new_query(const char *initial_state= "starting");
 
-  void discard_current_query();
+    void discard_current_query();
 
-  void finish_current_query();
+    void finish_current_query();
 
-  void status_change(const char *status_arg,
-                     const char *function_arg,
-                     const char *file_arg, unsigned int line_arg);
+    void status_change(const char *status_arg,
+                       const char *function_arg,
+                       const char *file_arg, unsigned int line_arg);
 
-  inline void set_thd(THD *thd_arg) { thd= thd_arg; };
+    inline void set_thd(THD *thd_arg)
+    {
+        thd= thd_arg;
+    };
 
-  /* SHOW PROFILES */
-  bool show_profiles();
+    /* SHOW PROFILES */
+    bool show_profiles();
 
-  /* ... from INFORMATION_SCHEMA.PROFILING ... */
-  int fill_statistics_info(THD *thd, TABLE_LIST *tables, Item *cond);
+    /* ... from INFORMATION_SCHEMA.PROFILING ... */
+    int fill_statistics_info(THD *thd, TABLE_LIST *tables, Item *cond);
 };
 
 #  endif /* HAVE_PROFILING */

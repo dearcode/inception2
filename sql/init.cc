@@ -31,22 +31,24 @@
 
 void unireg_init(ulong options)
 {
-  DBUG_ENTER("unireg_init");
+    DBUG_ENTER("unireg_init");
 
-  error_handler_hook = my_message_stderr;
-  abort_loop=0;
+    error_handler_hook = my_message_stderr;
+    abort_loop=0;
 
-  my_disable_async_io=1;		/* aioread is only in shared library */
-  wild_many='%'; wild_one='_'; wild_prefix='\\'; /* Change to sql syntax */
+    my_disable_async_io=1;		/* aioread is only in shared library */
+    wild_many='%';
+    wild_one='_';
+    wild_prefix='\\'; /* Change to sql syntax */
 
-  current_pid=(ulong) getpid();		/* Save for later ref */
-  my_init_time();			/* Init time-functions (read zone) */
+    current_pid=(ulong) getpid();		/* Save for later ref */
+    my_init_time();			/* Init time-functions (read zone) */
 #ifndef EMBEDDED_LIBRARY
-  my_abort_hook=unireg_abort;		/* Abort with close of databases */
+    my_abort_hook=unireg_abort;		/* Abort with close of databases */
 #endif
 
-  (void) strmov(reg_ext,".frm");
-  reg_ext_length= 4;
-  specialflag=SPECIAL_SAME_DB_NAME | options;  /* Set options from argv */
-  DBUG_VOID_RETURN;
+    (void) strmov(reg_ext,".frm");
+    reg_ext_length= 4;
+    specialflag=SPECIAL_SAME_DB_NAME | options;  /* Set options from argv */
+    DBUG_VOID_RETURN;
 }

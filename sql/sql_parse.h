@@ -28,9 +28,10 @@ class THD;
 class Table_ident;
 struct LEX;
 
-enum enum_mysql_completiontype {
-  ROLLBACK_RELEASE=-2, ROLLBACK=1,  ROLLBACK_AND_CHAIN=7,
-  COMMIT_RELEASE=-1,   COMMIT=0,    COMMIT_AND_CHAIN=6
+enum enum_mysql_completiontype
+{
+    ROLLBACK_RELEASE=-2, ROLLBACK=1,  ROLLBACK_AND_CHAIN=7,
+    COMMIT_RELEASE=-1,   COMMIT=0,    COMMIT_AND_CHAIN=6
 };
 
 #define INCEPTION_COM_DATABASES         1
@@ -94,10 +95,10 @@ bool check_string_char_length(LEX_STRING *str, const char *err_mg,
                               uint max_char_length, const CHARSET_INFO *cs,
                               bool no_error);
 bool check_string_char_with_length(char* str, size_t length, const char *err_msg,
-	uint max_char_length, const CHARSET_INFO *cs,
-	bool no_error);
+                                   uint max_char_length, const CHARSET_INFO *cs,
+                                   bool no_error);
 const CHARSET_INFO* merge_charset_and_collation(const CHARSET_INFO *cs,
-                                                const CHARSET_INFO *cl);
+        const CHARSET_INFO *cl);
 bool check_host_name(LEX_STRING *str);
 bool check_identifier_name(LEX_STRING *str, uint max_char_length,
                            uint err_code, const char *param_for_err_msg);
@@ -119,7 +120,7 @@ int mysql_execute_command(THD *thd);
 bool do_command(THD *thd);
 void do_handle_bootstrap(THD *thd);
 bool dispatch_command(enum enum_server_command command, THD *thd,
-		      char* packet, uint packet_length);
+                      char* packet, uint packet_length);
 void log_slow_statement(THD *thd);
 bool log_slow_applicable(THD *thd);
 void log_slow_do(THD *thd);
@@ -130,13 +131,13 @@ bool append_file_to_dir(THD *thd, const char **filename_ptr,
 void execute_init_command(THD *thd, LEX_STRING *init_command,
                           mysql_rwlock_t *var_lock);
 bool add_field_to_list(THD *thd, LEX_STRING *field_name, enum enum_field_types type,
-		       char *length, char *decimal,
-		       uint type_modifier,
-		       Item *default_value, Item *on_update_value,
-		       LEX_STRING *comment,
-		       char *change, List<String> *interval_list,
-		       const CHARSET_INFO *cs,
-		       uint uint_geom_type);
+                       char *length, char *decimal,
+                       uint type_modifier,
+                       Item *default_value, Item *on_update_value,
+                       LEX_STRING *comment,
+                       char *change, List<String> *interval_list,
+                       const CHARSET_INFO *cs,
+                       uint uint_geom_type);
 bool add_to_list(THD *thd, SQL_I_List<ORDER> &list, Item *group, bool asc);
 void add_join_on(TABLE_LIST *b,Item *expr);
 void add_join_natural(TABLE_LIST *a,TABLE_LIST *b,List<String> *using_fields,
@@ -161,12 +162,12 @@ extern uint server_command_flags[];
 /* Inline functions */
 inline bool check_identifier_name(LEX_STRING *str, uint err_code)
 {
-  return check_identifier_name(str, NAME_CHAR_LEN, err_code, "");
+    return check_identifier_name(str, NAME_CHAR_LEN, err_code, "");
 }
 
 inline bool check_identifier_name(LEX_STRING *str)
 {
-  return check_identifier_name(str, NAME_CHAR_LEN, 0, "");
+    return check_identifier_name(str, NAME_CHAR_LEN, 0, "");
 }
 
 /* These were under the INNODB_COMPATIBILITY_HOOKS */
@@ -175,7 +176,7 @@ bool check_global_access(THD *thd, ulong want_access);
 
 inline bool is_supported_parser_charset(const CHARSET_INFO *cs)
 {
-  return (cs->mbminlen == 1);
+    return (cs->mbminlen == 1);
 }
 
 int mysql_check_column_default(

@@ -180,9 +180,9 @@
 
 /*
   For sequential disk seeks the cost formula is:
-    DISK_SEEK_BASE_COST + DISK_SEEK_PROP_COST * #blocks_to_skip  
-  
-  The cost of average seek 
+    DISK_SEEK_BASE_COST + DISK_SEEK_PROP_COST * #blocks_to_skip
+
+  The cost of average seek
     DISK_SEEK_BASE_COST + DISK_SEEK_PROP_COST*BLOCKS_IN_AVG_SEEK =1.0.
 */
 #define DISK_SEEK_BASE_COST ((double)0.9)

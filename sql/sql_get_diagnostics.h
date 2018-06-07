@@ -30,25 +30,25 @@ class Diagnostics_information;
 class Sql_cmd_get_diagnostics : public Sql_cmd
 {
 public:
-  /**
-    Constructor, used to represent a GET DIAGNOSTICS statement.
+    /**
+      Constructor, used to represent a GET DIAGNOSTICS statement.
 
-    @param info Diagnostics information to be obtained.
-  */
-  Sql_cmd_get_diagnostics(Diagnostics_information *info)
-    : m_info(info)
-  {}
+      @param info Diagnostics information to be obtained.
+    */
+    Sql_cmd_get_diagnostics(Diagnostics_information *info)
+        : m_info(info)
+    {}
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_GET_DIAGNOSTICS;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_GET_DIAGNOSTICS;
+    }
 
-  virtual bool execute(THD *thd);
+    virtual bool execute(THD *thd);
 
 private:
-  /** The information to be obtained. */
-  Diagnostics_information *m_info;
+    /** The information to be obtained. */
+    Diagnostics_information *m_info;
 };
 
 
@@ -61,71 +61,75 @@ private:
 class Diagnostics_information : public Sql_alloc
 {
 public:
-  /**
-    Which diagnostics area to access.
-    Only CURRENT is supported for now.
-  */
-  enum Which_area
-  {
-    /** Access the first diagnostics area. */
-    CURRENT_AREA
-  };
+    /**
+      Which diagnostics area to access.
+      Only CURRENT is supported for now.
+    */
+    enum Which_area
+    {
+        /** Access the first diagnostics area. */
+        CURRENT_AREA
+    };
 
-  /** Set which diagnostics area to access. */
-  void set_which_da(Which_area area)
-  { m_area= area; }
+    /** Set which diagnostics area to access. */
+    void set_which_da(Which_area area)
+    {
+        m_area= area;
+    }
 
-  /** Get which diagnostics area to access. */
-  Which_area get_which_da(void) const
-  { return m_area; }
+    /** Get which diagnostics area to access. */
+    Which_area get_which_da(void) const
+    {
+        return m_area;
+    }
 
-  /**
-    Aggregate diagnostics information.
+    /**
+      Aggregate diagnostics information.
 
-    @param thd  The current thread.
-    @param da   The diagnostics area.
+      @param thd  The current thread.
+      @param da   The diagnostics area.
 
-    @retval false on success.
-    @retval true on error
-  */
-  virtual bool aggregate(THD *thd, const Diagnostics_area *da) = 0;
+      @retval false on success.
+      @retval true on error
+    */
+    virtual bool aggregate(THD *thd, const Diagnostics_area *da) = 0;
 
 protected:
-  /**
-    Diagnostics_information objects are allocated in thd->mem_root.
-    Do not rely on the destructor for any cleanup.
-  */
-  virtual ~Diagnostics_information()
-  {
-    DBUG_ASSERT(false);
-  }
+    /**
+      Diagnostics_information objects are allocated in thd->mem_root.
+      Do not rely on the destructor for any cleanup.
+    */
+    virtual ~Diagnostics_information()
+    {
+        DBUG_ASSERT(false);
+    }
 
-  /**
-    Evaluate a diagnostics information item in a specific context.
+    /**
+      Evaluate a diagnostics information item in a specific context.
 
-    @param thd        The current thread.
-    @param diag_item  The diagnostics information item.
-    @param ctx        The context to evaluate the item.
+      @param thd        The current thread.
+      @param diag_item  The diagnostics information item.
+      @param ctx        The context to evaluate the item.
 
-    @retval false on success.
-    @retval true on error.
-  */
-  template <typename Diag_item, typename Context>
-  bool evaluate(THD *thd, Diag_item *diag_item, Context ctx)
-  {
-    Item *value;
+      @retval false on success.
+      @retval true on error.
+    */
+    template <typename Diag_item, typename Context>
+    bool evaluate(THD *thd, Diag_item *diag_item, Context ctx)
+    {
+        Item *value;
 
-    /* Get this item's value. */
-    if (! (value= diag_item->get_value(thd, ctx)))
-      return true;
+        /* Get this item's value. */
+        if (! (value= diag_item->get_value(thd, ctx)))
+            return true;
 
-    /* Set variable/parameter value. */
-    return diag_item->set_value(thd, &value);
-  }
+        /* Set variable/parameter value. */
+        return diag_item->set_value(thd, &value);
+    }
 
 private:
-  /** Which diagnostics area to access. */
-  Which_area m_area;
+    /** Which diagnostics area to access. */
+    Which_area m_area;
 };
 
 
@@ -136,39 +140,39 @@ private:
 class Diagnostics_information_item : public Sql_alloc
 {
 public:
-  /**
-    Set a value for this item.
+    /**
+      Set a value for this item.
 
-    @param thd    The current thread.
-    @param value  The obtained value.
+      @param thd    The current thread.
+      @param value  The obtained value.
 
-    @retval false on success.
-    @retval true on error.
-  */
-  bool set_value(THD *thd, Item **value);
+      @retval false on success.
+      @retval true on error.
+    */
+    bool set_value(THD *thd, Item **value);
 
 protected:
-  /**
-    Constructor, used to represent a diagnostics information item.
+    /**
+      Constructor, used to represent a diagnostics information item.
 
-    @param target A target that gets the value of this item.
-  */
-  Diagnostics_information_item(Item *target)
-    : m_target(target)
-  {}
+      @param target A target that gets the value of this item.
+    */
+    Diagnostics_information_item(Item *target)
+        : m_target(target)
+    {}
 
-  /**
-    Diagnostics_information_item objects are allocated in thd->mem_root.
-    Do not rely on the destructor for any cleanup.
-  */
-  virtual ~Diagnostics_information_item()
-  {
-    DBUG_ASSERT(false);
-  }
+    /**
+      Diagnostics_information_item objects are allocated in thd->mem_root.
+      Do not rely on the destructor for any cleanup.
+    */
+    virtual ~Diagnostics_information_item()
+    {
+        DBUG_ASSERT(false);
+    }
 
 private:
-  /** The target variable that will receive the value of this item. */
-  Item *m_target;
+    /** The target variable that will receive the value of this item. */
+    Item *m_target;
 };
 
 
@@ -178,29 +182,29 @@ private:
 class Statement_information_item : public Diagnostics_information_item
 {
 public:
-  /** The name of a statement information item. */
-  enum Name
-  {
-    NUMBER,
-    ROW_COUNT
-  };
+    /** The name of a statement information item. */
+    enum Name
+    {
+        NUMBER,
+        ROW_COUNT
+    };
 
-  /**
-    Constructor, used to represent a statement information item.
+    /**
+      Constructor, used to represent a statement information item.
 
-    @param name   The name of this item.
-    @param target A target that gets the value of this item.
-  */
-  Statement_information_item(Name name, Item *target)
-    : Diagnostics_information_item(target), m_name(name)
-  {}
+      @param name   The name of this item.
+      @param target A target that gets the value of this item.
+    */
+    Statement_information_item(Name name, Item *target)
+        : Diagnostics_information_item(target), m_name(name)
+    {}
 
-  /** Obtain value of this statement information item. */
-  Item *get_value(THD *thd, const Diagnostics_area *da);
+    /** Obtain value of this statement information item. */
+    Item *get_value(THD *thd, const Diagnostics_area *da);
 
 private:
-  /** The name of this statement information item. */
-  Name m_name;
+    /** The name of this statement information item. */
+    Name m_name;
 };
 
 
@@ -212,22 +216,22 @@ private:
 class Statement_information : public Diagnostics_information
 {
 public:
-  /**
-    Constructor, used to represent the statement information of a
-    GET DIAGNOSTICS statement.
+    /**
+      Constructor, used to represent the statement information of a
+      GET DIAGNOSTICS statement.
 
-    @param items  List of requested statement information items.
-  */
-  Statement_information(List<Statement_information_item> *items)
-    : m_items(items)
-  {}
+      @param items  List of requested statement information items.
+    */
+    Statement_information(List<Statement_information_item> *items)
+        : m_items(items)
+    {}
 
-  /** Obtain statement information in the context of a diagnostics area. */
-  bool aggregate(THD *thd, const Diagnostics_area *da);
+    /** Obtain statement information in the context of a diagnostics area. */
+    bool aggregate(THD *thd, const Diagnostics_area *da);
 
 private:
-  /* List of statement information items. */
-  List<Statement_information_item> *m_items;
+    /* List of statement information items. */
+    List<Statement_information_item> *m_items;
 };
 
 
@@ -237,45 +241,45 @@ private:
 class Condition_information_item : public Diagnostics_information_item
 {
 public:
-  /**
-    The name of a condition information item.
-  */
-  enum Name
-  {
-    CLASS_ORIGIN,
-    SUBCLASS_ORIGIN,
-    CONSTRAINT_CATALOG,
-    CONSTRAINT_SCHEMA,
-    CONSTRAINT_NAME,
-    CATALOG_NAME,
-    SCHEMA_NAME,
-    TABLE_NAME,
-    COLUMN_NAME,
-    CURSOR_NAME,
-    MESSAGE_TEXT,
-    MYSQL_ERRNO,
-    RETURNED_SQLSTATE
-  };
+    /**
+      The name of a condition information item.
+    */
+    enum Name
+    {
+        CLASS_ORIGIN,
+        SUBCLASS_ORIGIN,
+        CONSTRAINT_CATALOG,
+        CONSTRAINT_SCHEMA,
+        CONSTRAINT_NAME,
+        CATALOG_NAME,
+        SCHEMA_NAME,
+        TABLE_NAME,
+        COLUMN_NAME,
+        CURSOR_NAME,
+        MESSAGE_TEXT,
+        MYSQL_ERRNO,
+        RETURNED_SQLSTATE
+    };
 
-  /**
-    Constructor, used to represent a condition information item.
+    /**
+      Constructor, used to represent a condition information item.
 
-    @param name   The name of this item.
-    @param target A target that gets the value of this item.
-  */
-  Condition_information_item(Name name, Item *target)
-    : Diagnostics_information_item(target), m_name(name)
-  {}
+      @param name   The name of this item.
+      @param target A target that gets the value of this item.
+    */
+    Condition_information_item(Name name, Item *target)
+        : Diagnostics_information_item(target), m_name(name)
+    {}
 
-  /** Obtain value of this condition information item. */
-  Item *get_value(THD *thd, const Sql_condition *cond);
+    /** Obtain value of this condition information item. */
+    Item *get_value(THD *thd, const Sql_condition *cond);
 
 private:
-  /** The name of this condition information item. */
-  Name m_name;
+    /** The name of this condition information item. */
+    Name m_name;
 
-  /** Create an string item to represent a condition item string. */
-  Item *make_utf8_string_item(THD *thd, const String *str);
+    /** Create an string item to represent a condition item string. */
+    Item *make_utf8_string_item(THD *thd, const String *str);
 };
 
 
@@ -288,30 +292,30 @@ private:
 class Condition_information : public Diagnostics_information
 {
 public:
-  /**
-    Constructor, used to represent the condition information of a
-    GET DIAGNOSTICS statement.
+    /**
+      Constructor, used to represent the condition information of a
+      GET DIAGNOSTICS statement.
 
-    @param cond_number_expr Number that identifies the diagnostic condition.
-    @param items List of requested condition information items.
-  */
-  Condition_information(Item *cond_number_expr,
-                        List<Condition_information_item> *items)
-    : m_cond_number_expr(cond_number_expr), m_items(items)
-  {}
+      @param cond_number_expr Number that identifies the diagnostic condition.
+      @param items List of requested condition information items.
+    */
+    Condition_information(Item *cond_number_expr,
+                          List<Condition_information_item> *items)
+        : m_cond_number_expr(cond_number_expr), m_items(items)
+    {}
 
-  /** Obtain condition information in the context of a diagnostics area. */
-  bool aggregate(THD *thd, const Diagnostics_area *da);
+    /** Obtain condition information in the context of a diagnostics area. */
+    bool aggregate(THD *thd, const Diagnostics_area *da);
 
 private:
-  /**
-    Number that identifies the diagnostic condition for which
-    information is to be obtained.
-  */
-  Item *m_cond_number_expr;
+    /**
+      Number that identifies the diagnostic condition for which
+      information is to be obtained.
+    */
+    Item *m_cond_number_expr;
 
-  /** List of condition information items. */
-  List<Condition_information_item> *m_items;
+    /** List of condition information items. */
+    List<Condition_information_item> *m_items;
 };
 
 #endif

@@ -33,29 +33,29 @@
 
 enum enum_events_table_field
 {
-  ET_FIELD_DB = 0, 
-  ET_FIELD_NAME,
-  ET_FIELD_BODY,
-  ET_FIELD_DEFINER,
-  ET_FIELD_EXECUTE_AT,
-  ET_FIELD_INTERVAL_EXPR,
-  ET_FIELD_TRANSIENT_INTERVAL,
-  ET_FIELD_CREATED,
-  ET_FIELD_MODIFIED,
-  ET_FIELD_LAST_EXECUTED,
-  ET_FIELD_STARTS,
-  ET_FIELD_ENDS,
-  ET_FIELD_STATUS,
-  ET_FIELD_ON_COMPLETION,
-  ET_FIELD_SQL_MODE,
-  ET_FIELD_COMMENT,
-  ET_FIELD_ORIGINATOR,
-  ET_FIELD_TIME_ZONE,
-  ET_FIELD_CHARACTER_SET_CLIENT,
-  ET_FIELD_COLLATION_CONNECTION,
-  ET_FIELD_DB_COLLATION,
-  ET_FIELD_BODY_UTF8,
-  ET_FIELD_COUNT /* a cool trick to count the number of fields :) */
+    ET_FIELD_DB = 0,
+    ET_FIELD_NAME,
+    ET_FIELD_BODY,
+    ET_FIELD_DEFINER,
+    ET_FIELD_EXECUTE_AT,
+    ET_FIELD_INTERVAL_EXPR,
+    ET_FIELD_TRANSIENT_INTERVAL,
+    ET_FIELD_CREATED,
+    ET_FIELD_MODIFIED,
+    ET_FIELD_LAST_EXECUTED,
+    ET_FIELD_STARTS,
+    ET_FIELD_ENDS,
+    ET_FIELD_STATUS,
+    ET_FIELD_ON_COMPLETION,
+    ET_FIELD_SQL_MODE,
+    ET_FIELD_COMMENT,
+    ET_FIELD_ORIGINATOR,
+    ET_FIELD_TIME_ZONE,
+    ET_FIELD_CHARACTER_SET_CLIENT,
+    ET_FIELD_COLLATION_CONNECTION,
+    ET_FIELD_DB_COLLATION,
+    ET_FIELD_BODY_UTF8,
+    ET_FIELD_COUNT /* a cool trick to count the number of fields :) */
 };
 
 
@@ -73,55 +73,55 @@ class Event_parse_data;
 class Event_db_repository
 {
 public:
-  Event_db_repository(){}
+    Event_db_repository() {}
 
-  bool
-  create_event(THD *thd, Event_parse_data *parse_data, bool create_if_not,
-               bool *event_already_exists);
+    bool
+    create_event(THD *thd, Event_parse_data *parse_data, bool create_if_not,
+                 bool *event_already_exists);
 
-  bool
-  update_event(THD *thd, Event_parse_data *parse_data, LEX_STRING *new_dbname,
-               LEX_STRING *new_name);
+    bool
+    update_event(THD *thd, Event_parse_data *parse_data, LEX_STRING *new_dbname,
+                 LEX_STRING *new_name);
 
-  bool
-  drop_event(THD *thd, LEX_STRING db, LEX_STRING name, bool drop_if_exists);
+    bool
+    drop_event(THD *thd, LEX_STRING db, LEX_STRING name, bool drop_if_exists);
 
-  void
-  drop_schema_events(THD *thd, LEX_STRING schema);
+    void
+    drop_schema_events(THD *thd, LEX_STRING schema);
 
-  bool
-  find_named_event(LEX_STRING db, LEX_STRING name, TABLE *table);
+    bool
+    find_named_event(LEX_STRING db, LEX_STRING name, TABLE *table);
 
-  bool
-  load_named_event(THD *thd, LEX_STRING dbname, LEX_STRING name, Event_basic *et);
+    bool
+    load_named_event(THD *thd, LEX_STRING dbname, LEX_STRING name, Event_basic *et);
 
-  static bool
-  open_event_table(THD *thd, enum thr_lock_type lock_type, TABLE **table);
+    static bool
+    open_event_table(THD *thd, enum thr_lock_type lock_type, TABLE **table);
 
-  bool
-  fill_schema_events(THD *thd, TABLE_LIST *tables, const char *db);
+    bool
+    fill_schema_events(THD *thd, TABLE_LIST *tables, const char *db);
 
-  bool
-  update_timing_fields_for_event(THD *thd,
-                                 LEX_STRING event_db_name,
-                                 LEX_STRING event_name,
-                                 my_time_t last_executed,
-                                 ulonglong status);
+    bool
+    update_timing_fields_for_event(THD *thd,
+                                   LEX_STRING event_db_name,
+                                   LEX_STRING event_name,
+                                   my_time_t last_executed,
+                                   ulonglong status);
 public:
-  static bool
-  check_system_tables(THD *thd);
+    static bool
+    check_system_tables(THD *thd);
 private:
-  bool
-  index_read_for_db_for_i_s(THD *thd, TABLE *schema_table, TABLE *event_table,
-                            const char *db);
+    bool
+    index_read_for_db_for_i_s(THD *thd, TABLE *schema_table, TABLE *event_table,
+                              const char *db);
 
-  bool
-  table_scan_all_for_i_s(THD *thd, TABLE *schema_table, TABLE *event_table);
+    bool
+    table_scan_all_for_i_s(THD *thd, TABLE *schema_table, TABLE *event_table);
 
 private:
-  /* Prevent use of these */
-  Event_db_repository(const Event_db_repository &);
-  void operator=(Event_db_repository &);
+    /* Prevent use of these */
+    Event_db_repository(const Event_db_repository &);
+    void operator=(Event_db_repository &);
 };
 
 /**

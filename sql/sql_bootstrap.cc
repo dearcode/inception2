@@ -23,98 +23,93 @@
 int read_bootstrap_query(char *query, int *query_length,
                          fgets_input_t input, fgets_fn_t fgets_fn, int *error)
 {
-  char line_buffer[MAX_BOOTSTRAP_LINE_SIZE];
-  const char *line;
-  int len;
-  int query_len= 0;
-  int fgets_error= 0;
-  *error= 0;
+    char line_buffer[MAX_BOOTSTRAP_LINE_SIZE];
+    const char *line;
+    int len;
+    int query_len= 0;
+    int fgets_error= 0;
+    *error= 0;
 
-  for ( ; ; )
-  {
-    line= (*fgets_fn)(line_buffer, sizeof(line_buffer), input, &fgets_error);
-    
-    if (error)
-      *error= fgets_error;
+    for ( ; ; ) {
+        line= (*fgets_fn)(line_buffer, sizeof(line_buffer), input, &fgets_error);
 
-    if (fgets_error != 0)
-      return READ_BOOTSTRAP_ERROR;
-      
-    if (line == NULL)
-      return (query_len == 0) ? READ_BOOTSTRAP_EOF : READ_BOOTSTRAP_ERROR;
+        if (error)
+            *error= fgets_error;
 
-    len= strlen(line);
+        if (fgets_error != 0)
+            return READ_BOOTSTRAP_ERROR;
 
-    /*
-      Remove trailing whitespace characters.
-      This assumes:
-      - no multibyte encoded character can be found at the very end of a line,
-      - whitespace characters from the "C" locale only.
-     which is sufficient for the kind of queries found
-     in the bootstrap scripts.
-    */
-    while (len && (isspace(line[len - 1])))
-      len--;
-    /*
-      Cleanly end the string, so we don't have to test len > x
-      all the time before reading line[x], in the code below.
-    */
-    line_buffer[len]= '\0';
+        if (line == NULL)
+            return (query_len == 0) ? READ_BOOTSTRAP_EOF : READ_BOOTSTRAP_ERROR;
 
-    /* Skip blank lines */
-    if (len == 0)
-      continue;
+        len= strlen(line);
 
-    /* Skip # comments */
-    if (line[0] == '#')
-      continue;
-    
-    /* Skip -- comments */
-    if ((line[0] == '-') && (line[1] == '-'))
-      continue;
+        /*
+          Remove trailing whitespace characters.
+          This assumes:
+          - no multibyte encoded character can be found at the very end of a line,
+          - whitespace characters from the "C" locale only.
+         which is sufficient for the kind of queries found
+         in the bootstrap scripts.
+        */
+        while (len && (isspace(line[len - 1])))
+            len--;
+        /*
+          Cleanly end the string, so we don't have to test len > x
+          all the time before reading line[x], in the code below.
+        */
+        line_buffer[len]= '\0';
 
-    /* Skip delimiter, ignored. */
-    if (strncmp(line, "delimiter", 9) == 0)
-      continue;
+        /* Skip blank lines */
+        if (len == 0)
+            continue;
 
-    /* Append the current line to a multi line query. If the new line will make
-       the query too long, preserve the partial line to provide context for the
-       error message.
-    */
-    if (query_len + len + 1 >= MAX_BOOTSTRAP_QUERY_SIZE)
-    {
-      int new_len= MAX_BOOTSTRAP_QUERY_SIZE - query_len - 1;
-      if ((new_len > 0) && (query_len < MAX_BOOTSTRAP_QUERY_SIZE))
-      {
-        memcpy(query + query_len, line, new_len);
-        query_len+= new_len;
-      }
-      query[query_len]= '\0';
-      *query_length= query_len;
-      return READ_BOOTSTRAP_QUERY_SIZE;
+        /* Skip # comments */
+        if (line[0] == '#')
+            continue;
+
+        /* Skip -- comments */
+        if ((line[0] == '-') && (line[1] == '-'))
+            continue;
+
+        /* Skip delimiter, ignored. */
+        if (strncmp(line, "delimiter", 9) == 0)
+            continue;
+
+        /* Append the current line to a multi line query. If the new line will make
+           the query too long, preserve the partial line to provide context for the
+           error message.
+        */
+        if (query_len + len + 1 >= MAX_BOOTSTRAP_QUERY_SIZE) {
+            int new_len= MAX_BOOTSTRAP_QUERY_SIZE - query_len - 1;
+            if ((new_len > 0) && (query_len < MAX_BOOTSTRAP_QUERY_SIZE)) {
+                memcpy(query + query_len, line, new_len);
+                query_len+= new_len;
+            }
+            query[query_len]= '\0';
+            *query_length= query_len;
+            return READ_BOOTSTRAP_QUERY_SIZE;
+        }
+
+        if (query_len != 0) {
+            /*
+              Append a \n to the current line, if any,
+              to preserve the intended presentation.
+             */
+            query[query_len++]= '\n';
+        }
+        memcpy(query + query_len, line, len);
+        query_len+= len;
+
+        if (line[len - 1] == ';') {
+            /*
+              The last line is terminated by ';'.
+              Return the query found.
+            */
+            query[query_len]= '\0';
+            *query_length= query_len;
+            return READ_BOOTSTRAP_SUCCESS;
+        }
     }
-
-    if (query_len != 0)
-    {
-      /*
-        Append a \n to the current line, if any,
-        to preserve the intended presentation.
-       */
-      query[query_len++]= '\n';
-    }
-    memcpy(query + query_len, line, len);
-    query_len+= len;
-
-    if (line[len - 1] == ';')
-    {
-      /*
-        The last line is terminated by ';'.
-        Return the query found.
-      */
-      query[query_len]= '\0';
-      *query_length= query_len;
-      return READ_BOOTSTRAP_SUCCESS;
-    }
-  }
 }
 

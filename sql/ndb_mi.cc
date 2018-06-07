@@ -28,58 +28,58 @@ extern Master_info *active_mi;
 
 uint32 ndb_mi_get_master_server_id()
 {
-  return (uint32) active_mi->master_id;
+    return (uint32) active_mi->master_id;
 }
 
 const char* ndb_mi_get_group_master_log_name()
 {
 #if MYSQL_VERSION_ID < 50600
-  return active_mi->rli.group_master_log_name;
+    return active_mi->rli.group_master_log_name;
 #else
-  return active_mi->rli->get_group_master_log_name();
+    return active_mi->rli->get_group_master_log_name();
 #endif
 }
 
 uint64 ndb_mi_get_group_master_log_pos()
 {
 #if MYSQL_VERSION_ID < 50600
-  return (uint64) active_mi->rli.group_master_log_pos;
+    return (uint64) active_mi->rli.group_master_log_pos;
 #else
-  return (uint64) active_mi->rli->get_group_master_log_pos();
+    return (uint64) active_mi->rli->get_group_master_log_pos();
 #endif
 }
 
 uint64 ndb_mi_get_future_event_relay_log_pos()
 {
 #if MYSQL_VERSION_ID < 50600
-  return (uint64) active_mi->rli.future_event_relay_log_pos;
+    return (uint64) active_mi->rli.future_event_relay_log_pos;
 #else
-  return (uint64) active_mi->rli->get_future_event_relay_log_pos();
+    return (uint64) active_mi->rli->get_future_event_relay_log_pos();
 #endif
 }
 
 uint64 ndb_mi_get_group_relay_log_pos()
 {
 #if MYSQL_VERSION_ID < 50600
-  return (uint64) active_mi->rli.group_relay_log_pos;
+    return (uint64) active_mi->rli.group_relay_log_pos;
 #else
-  return (uint64) active_mi->rli->get_group_relay_log_pos();
+    return (uint64) active_mi->rli->get_group_relay_log_pos();
 #endif
 }
 
 bool ndb_mi_get_ignore_server_id(uint32 server_id)
 {
-  return (active_mi->shall_ignore_server_id(server_id) != 0);
+    return (active_mi->shall_ignore_server_id(server_id) != 0);
 }
 
 uint32 ndb_mi_get_slave_run_id()
 {
-  return active_mi->rli->slave_run_id;
+    return active_mi->rli->slave_run_id;
 }
 
 bool ndb_mi_get_in_relay_log_statement(Relay_log_info* rli)
 {
-  return (rli->get_flag(Relay_log_info::IN_STMT) != 0);
+    return (rli->get_flag(Relay_log_info::IN_STMT) != 0);
 }
 
 /* #ifdef HAVE_NDB_BINLOG */

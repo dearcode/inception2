@@ -25,26 +25,25 @@
 
 bool mysql_do(THD *thd, List<Item> &values)
 {
-  List_iterator<Item> li(values);
-  Item *value;
-  DBUG_ENTER("mysql_do");
-  if (setup_fields(thd, Ref_ptr_array(), values, MARK_COLUMNS_NONE, 0, 0))
-    DBUG_RETURN(TRUE);
-  while ((value = li++))
-    value->val_int();
-  free_underlaid_joins(thd, &thd->lex->select_lex);
+    List_iterator<Item> li(values);
+    Item *value;
+    DBUG_ENTER("mysql_do");
+    if (setup_fields(thd, Ref_ptr_array(), values, MARK_COLUMNS_NONE, 0, 0))
+        DBUG_RETURN(TRUE);
+    while ((value = li++))
+        value->val_int();
+    free_underlaid_joins(thd, &thd->lex->select_lex);
 
-  if (thd->is_error())
-  {
-    /*
-      Rollback the effect of the statement, since next instruction
-      will clear the error and the rollback in the end of
-      mysql_execute_command() won't work.
-    */
+    if (thd->is_error()) {
+        /*
+          Rollback the effect of the statement, since next instruction
+          will clear the error and the rollback in the end of
+          mysql_execute_command() won't work.
+        */
 //     if (! thd->in_sub_stmt)
 //       trans_rollback_stmt(thd);
-    thd->clear_error(); // DO always is OK
-  }
-  my_ok(thd);
-  DBUG_RETURN(FALSE);
+        thd->clear_error(); // DO always is OK
+    }
+    my_ok(thd);
+    DBUG_RETURN(FALSE);
 }

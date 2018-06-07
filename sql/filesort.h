@@ -34,33 +34,36 @@ typedef struct st_order ORDER;
 class Filesort: public Sql_alloc
 {
 public:
-  /** List of expressions to order the table by */
-  ORDER *order;
-  /** Number of records to return */
-  ha_rows limit;
-  /** ORDER BY list with some precalculated info for filesort */
-  SORT_FIELD *sortorder;
-  /** select to use for getting records */
-  SQL_SELECT *select;
-  /** TRUE <=> free select on destruction */
-  bool own_select;
+    /** List of expressions to order the table by */
+    ORDER *order;
+    /** Number of records to return */
+    ha_rows limit;
+    /** ORDER BY list with some precalculated info for filesort */
+    SORT_FIELD *sortorder;
+    /** select to use for getting records */
+    SQL_SELECT *select;
+    /** TRUE <=> free select on destruction */
+    bool own_select;
 
-  Filesort(ORDER *order_arg, ha_rows limit_arg, SQL_SELECT *select_arg):
-    order(order_arg),
-    limit(limit_arg),
-    sortorder(NULL),
-    select(select_arg),
-    own_select(false)
-  {
-    DBUG_ASSERT(order);
-  };
+    Filesort(ORDER *order_arg, ha_rows limit_arg, SQL_SELECT *select_arg):
+        order(order_arg),
+        limit(limit_arg),
+        sortorder(NULL),
+        select(select_arg),
+        own_select(false)
+    {
+        DBUG_ASSERT(order);
+    };
 
-  ~Filesort() { cleanup(); }
-  /* Prepare ORDER BY list for sorting. */
-  uint make_sortorder();
+    ~Filesort()
+    {
+        cleanup();
+    }
+    /* Prepare ORDER BY list for sorting. */
+    uint make_sortorder();
 
 private:
-  void cleanup();
+    void cleanup();
 };
 
 ha_rows filesort(THD *thd, TABLE *table, Filesort *fsort, bool sort_positions,

@@ -45,31 +45,33 @@ typedef struct st_key_range key_range;
 
 typedef struct st_lock_param_type
 {
-  TABLE_LIST *table_list;
-  ulonglong copied;
-  ulonglong deleted;
-  THD *thd;
-  HA_CREATE_INFO *create_info;
-  Alter_info *alter_info;
-  TABLE *table;
-  KEY *key_info_buffer;
-  const char *db;
-  const char *table_name;
-  uchar *pack_frm_data;
-  uint key_count;
-  uint db_options;
-  size_t pack_frm_len;
-  partition_info *part_info;
+    TABLE_LIST *table_list;
+    ulonglong copied;
+    ulonglong deleted;
+    THD *thd;
+    HA_CREATE_INFO *create_info;
+    Alter_info *alter_info;
+    TABLE *table;
+    KEY *key_info_buffer;
+    const char *db;
+    const char *table_name;
+    uchar *pack_frm_data;
+    uint key_count;
+    uint db_options;
+    size_t pack_frm_len;
+    partition_info *part_info;
 } ALTER_PARTITION_PARAM_TYPE;
 
-typedef struct {
-  longlong list_value;
-  uint32 partition_id;
+typedef struct
+{
+    longlong list_value;
+    uint32 partition_id;
 } LIST_PART_ENTRY;
 
-typedef struct {
-  uint32 start_part;
-  uint32 end_part;
+typedef struct
+{
+    uint32 start_part;
+    uint32 end_part;
 } part_id_range;
 
 struct st_partition_iter;
@@ -96,11 +98,11 @@ void get_partition_set(const TABLE *table, uchar *buf, const uint index,
                        part_id_range *part_spec);
 uint get_partition_field_store_length(Field *field);
 int get_cs_converted_part_value_from_string(THD *thd,
-                                            Item *item,
-                                            String *input_str,
-                                            String *output_str,
-                                            const CHARSET_INFO *cs,
-                                            bool use_hex);
+        Item *item,
+        String *input_str,
+        String *output_str,
+        const CHARSET_INFO *cs,
+        bool use_hex);
 void get_full_part_id_from_key(const TABLE *table, uchar *buf,
                                KEY *key_info,
                                const key_range *key_spec,
@@ -116,8 +118,8 @@ uint32 get_list_array_idx_for_endpoint(partition_info *part_info,
                                        bool left_endpoint,
                                        bool include_endpoint);
 uint32 get_partition_id_range_for_endpoint(partition_info *part_info,
-                                           bool left_endpoint,
-                                           bool include_endpoint);
+        bool left_endpoint,
+        bool include_endpoint);
 bool check_part_func_fields(Field **ptr, bool ok_with_charsets);
 bool field_is_partition_charset(Field *field);
 Item* convert_charset_partition_constant(Item *item, const CHARSET_INFO *cs);
@@ -136,11 +138,11 @@ void truncate_partition_filename(char *path);
     function returns next subpartition id/partition number. The sequence of
     returned numbers is not ordered and may contain duplicates.
 
-    When the end of sequence is reached, NOT_A_PARTITION_ID is returned, and 
-    the iterator resets itself (so next get_next() call will start to 
+    When the end of sequence is reached, NOT_A_PARTITION_ID is returned, and
+    the iterator resets itself (so next get_next() call will start to
     enumerate the set all over again).
 
-  RETURN 
+  RETURN
     NOT_A_PARTITION_ID if there are no more partitions.
     [sub]partition_id  of the next partition
 */
@@ -155,7 +157,7 @@ typedef uint32 (*partition_iter_func)(st_partition_iter* part_iter);
   For the user, the only meaningful field is get_next, which may be used as
   follows:
              part_iterator.get_next(&part_iterator);
-  
+
   Initialization is done by any of the following calls:
     - get_partitions_in_range_iter-type function call
     - init_single_partition_iterator()
@@ -165,32 +167,31 @@ typedef uint32 (*partition_iter_func)(st_partition_iter* part_iter);
 
 typedef struct st_partition_iter
 {
-  partition_iter_func get_next;
-  /* 
-    Valid for "Interval mapping" in LIST partitioning: if true, let the
-    iterator also produce id of the partition that contains NULL value.
-  */
-  bool ret_null_part, ret_null_part_orig;
-  struct st_part_num_range
-  {
-    uint32 start;
-    uint32 cur;
-    uint32 end;
-  };
+    partition_iter_func get_next;
+    /*
+      Valid for "Interval mapping" in LIST partitioning: if true, let the
+      iterator also produce id of the partition that contains NULL value.
+    */
+    bool ret_null_part, ret_null_part_orig;
+    struct st_part_num_range
+    {
+        uint32 start;
+        uint32 cur;
+        uint32 end;
+    };
 
-  struct st_field_value_range
-  {
-    longlong start;
-    longlong cur;
-    longlong end;
-  };
+    struct st_field_value_range
+    {
+        longlong start;
+        longlong cur;
+        longlong end;
+    };
 
-  union
-  {
-    struct st_part_num_range     part_nums;
-    struct st_field_value_range  field_vals;
-  };
-  partition_info *part_info;
+    union {
+        struct st_part_num_range     part_nums;
+        struct st_field_value_range  field_vals;
+    };
+    partition_info *part_info;
 } PARTITION_ITERATOR;
 
 
@@ -212,7 +213,7 @@ typedef struct st_partition_iter
 
   DESCRIPTION
     Functions with this signature are used to perform "Partitioning Interval
-    Analysis". This analysis is applicable for any type of [sub]partitioning 
+    Analysis". This analysis is applicable for any type of [sub]partitioning
     by some function of a single fieldX. The idea is as follows:
     Given an interval "const1 <=? fieldX <=? const2", find a set of partitions
     that may contain records with value of fieldX within the given interval.
@@ -226,19 +227,19 @@ typedef struct st_partition_iter
      - get_part_iter_for_interval_cols_via_map
      - get_part_iter_for_interval_via_mapping
 
-  RETURN 
+  RETURN
     0 - No matching partitions, iterator not initialized
     1 - Some partitions would match, iterator intialized for traversing them
    -1 - All partitions would match, iterator not initialized
 */
 
 typedef int (*get_partitions_in_range_iter)(partition_info *part_info,
-                                            bool is_subpart,
-                                            uint32 *store_length_array,
-                                            uchar *min_val, uchar *max_val,
-                                            uint min_len, uint max_len,
-                                            uint flags,
-                                            PARTITION_ITERATOR *part_iter);
+        bool is_subpart,
+        uint32 *store_length_array,
+        uchar *min_val, uchar *max_val,
+        uint min_len, uint max_len,
+        uint flags,
+        PARTITION_ITERATOR *part_iter);
 
 #include "partition_info.h"
 

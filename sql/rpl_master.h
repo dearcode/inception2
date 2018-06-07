@@ -27,13 +27,13 @@ extern my_bool opt_show_slave_auth_info;
 
 typedef struct st_slave_info
 {
-  uint32 server_id;
-  uint32 rpl_recovery_rank, master_id;
-  char host[HOSTNAME_LENGTH+1];
-  char user[USERNAME_LENGTH+1];
-  char password[MAX_PASSWORD_LENGTH+1];
-  uint16 port;
-  THD* thd;
+    uint32 server_id;
+    uint32 rpl_recovery_rank, master_id;
+    char host[HOSTNAME_LENGTH+1];
+    char user[USERNAME_LENGTH+1];
+    char password[MAX_PASSWORD_LENGTH+1];
+    uint16 port;
+    THD* thd;
 } SLAVE_INFO;
 
 void init_slave_list();

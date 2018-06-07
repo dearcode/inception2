@@ -31,102 +31,102 @@ class sp_name;
 class Event_parse_data : public Sql_alloc
 {
 public:
-  /*
-    ENABLED = feature can function normally (is turned on)
-    SLAVESIDE_DISABLED = feature is turned off on slave
-    DISABLED = feature is turned off
-  */
-  enum enum_status
-  {
-    ENABLED = 1,
-    DISABLED,
-    SLAVESIDE_DISABLED  
-  };
-
-  enum enum_on_completion
-  {
     /*
-      On CREATE EVENT, DROP is the DEFAULT as per the docs.
-      On ALTER  EVENT, "no change" is the DEFAULT.
+      ENABLED = feature can function normally (is turned on)
+      SLAVESIDE_DISABLED = feature is turned off on slave
+      DISABLED = feature is turned off
     */
-    ON_COMPLETION_DEFAULT = 0,
-    ON_COMPLETION_DROP,
-    ON_COMPLETION_PRESERVE
-  };
+    enum enum_status
+    {
+        ENABLED = 1,
+        DISABLED,
+        SLAVESIDE_DISABLED
+    };
 
-  int on_completion;
-  int status;
-  bool status_changed;
-  longlong originator;
-  /*
-    do_not_create will be set if STARTS time is in the past and
-    on_completion == ON_COMPLETION_DROP.
-  */
-  bool do_not_create;
+    enum enum_on_completion
+    {
+        /*
+          On CREATE EVENT, DROP is the DEFAULT as per the docs.
+          On ALTER  EVENT, "no change" is the DEFAULT.
+        */
+        ON_COMPLETION_DEFAULT = 0,
+        ON_COMPLETION_DROP,
+        ON_COMPLETION_PRESERVE
+    };
 
-  bool body_changed;
+    int on_completion;
+    int status;
+    bool status_changed;
+    longlong originator;
+    /*
+      do_not_create will be set if STARTS time is in the past and
+      on_completion == ON_COMPLETION_DROP.
+    */
+    bool do_not_create;
 
-  LEX_STRING dbname;
-  LEX_STRING name;
-  LEX_STRING definer;// combination of user and host
-  LEX_STRING comment;
+    bool body_changed;
 
-  Item* item_starts;
-  Item* item_ends;
-  Item* item_execute_at;
+    LEX_STRING dbname;
+    LEX_STRING name;
+    LEX_STRING definer;// combination of user and host
+    LEX_STRING comment;
 
-  my_time_t starts;
-  my_time_t ends;
-  my_time_t execute_at;
-  my_bool starts_null;
-  my_bool ends_null;
-  my_bool execute_at_null;
+    Item* item_starts;
+    Item* item_ends;
+    Item* item_execute_at;
 
-  sp_name *identifier;
-  Item* item_expression;
-  longlong expression;
-  interval_type interval;
+    my_time_t starts;
+    my_time_t ends;
+    my_time_t execute_at;
+    my_bool starts_null;
+    my_bool ends_null;
+    my_bool execute_at_null;
 
-  static Event_parse_data *
-  new_instance(THD *thd);
+    sp_name *identifier;
+    Item* item_expression;
+    longlong expression;
+    interval_type interval;
 
-  bool
-  check_parse_data(THD *thd);
+    static Event_parse_data *
+    new_instance(THD *thd);
 
-  bool
-  check_dates(THD *thd, int previous_on_completion);
+    bool
+    check_parse_data(THD *thd);
+
+    bool
+    check_dates(THD *thd, int previous_on_completion);
 
 private:
 
-  void
-  init_definer(THD *thd);
+    void
+    init_definer(THD *thd);
 
-  void
-  init_name(THD *thd, sp_name *spn);
+    void
+    init_name(THD *thd, sp_name *spn);
 
-  int
-  init_execute_at(THD *thd);
+    int
+    init_execute_at(THD *thd);
 
-  int
-  init_interval(THD *thd);
+    int
+    init_interval(THD *thd);
 
-  int
-  init_starts(THD *thd);
+    int
+    init_starts(THD *thd);
 
-  int
-  init_ends(THD *thd);
+    int
+    init_ends(THD *thd);
 
-  Event_parse_data();
-  ~Event_parse_data();
+    Event_parse_data();
+    ~Event_parse_data();
 
-  void
-  report_bad_value(const char *item_name, Item *bad_item);
+    void
+    report_bad_value(const char *item_name, Item *bad_item);
 
-  void
-  check_if_in_the_past(THD *thd, my_time_t ltime_utc);
+    void
+    check_if_in_the_past(THD *thd, my_time_t ltime_utc);
 
-  Event_parse_data(const Event_parse_data &);	/* Prevent use of these */
-  void check_originator_id(THD *thd);
-  void operator=(Event_parse_data &);
+    Event_parse_data(const Event_parse_data &);	/* Prevent use of these */
+    void check_originator_id(THD *thd);
+    void operator=(Event_parse_data &);
 };
 #endif

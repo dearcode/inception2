@@ -17,9 +17,9 @@
 #ifndef OPT_EXPLAIN_INCLUDED
 #define OPT_EXPLAIN_INCLUDED
 
-/** @file "EXPLAIN <command>" 
+/** @file "EXPLAIN <command>"
 
-Single table UPDATE/DELETE commands are explained by the 
+Single table UPDATE/DELETE commands are explained by the
 explain_single_table_modification() function.
 
 A query expression (complete SELECT query possibly including
@@ -42,7 +42,7 @@ UNION); each JOIN explain (JOIN::exec()) calls explain_query_specification()
 Is for a single SELECT_LEX (fake or not). It needs a prepared and
 optimized JOIN, for which it builds the EXPLAIN rows. But it also
 launches the EXPLAIN process for "inner units" (==subqueries of this
-SELECT_LEX), by calling explain_unit() for each of them. 
+SELECT_LEX), by calling explain_unit() for each of them.
 */
 
 #include <my_base.h>

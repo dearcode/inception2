@@ -32,26 +32,26 @@ typedef struct st_position POSITION;
 */
 enum enum_nested_loop_state
 {
-  /**
-     Thread shutdown was requested while processing the record
-     @todo could it be merged with NESTED_LOOP_ERROR? Why two distinct states?
-  */
-  NESTED_LOOP_KILLED= -2,
-  /// A fatal error (like table corruption) was detected
-  NESTED_LOOP_ERROR= -1,
-  /// Record has been successfully handled
-  NESTED_LOOP_OK= 0,
-  /**
-     Record has been successfully handled; additionally, the nested loop
-     produced the number of rows specified in the LIMIT clause for the query.
-  */
-  NESTED_LOOP_QUERY_LIMIT= 3,
-  /**
-     Record has been successfully handled; additionally, there is a cursor and
-     the nested loop algorithm produced the number of rows that is specified
-     for current cursor fetch operation.
-  */
-  NESTED_LOOP_CURSOR_LIMIT= 4
+    /**
+       Thread shutdown was requested while processing the record
+       @todo could it be merged with NESTED_LOOP_ERROR? Why two distinct states?
+    */
+    NESTED_LOOP_KILLED= -2,
+    /// A fatal error (like table corruption) was detected
+    NESTED_LOOP_ERROR= -1,
+    /// Record has been successfully handled
+    NESTED_LOOP_OK= 0,
+    /**
+       Record has been successfully handled; additionally, the nested loop
+       produced the number of rows specified in the LIMIT clause for the query.
+    */
+    NESTED_LOOP_QUERY_LIMIT= 3,
+    /**
+       Record has been successfully handled; additionally, there is a cursor and
+       the nested loop algorithm produced the number of rows that is specified
+       for current cursor fetch operation.
+    */
+    NESTED_LOOP_CURSOR_LIMIT= 4
 };
 
 
@@ -78,79 +78,79 @@ typedef enum_nested_loop_state
 class SJ_TMP_TABLE : public Sql_alloc
 {
 public:
-  /*
-    Array of pointers to tables whose rowids compose the temporary table
-    record.
-  */
-  class TAB
-  {
-  public:
-    JOIN_TAB *join_tab;
-    uint rowid_offset;
-    ushort null_byte;
-    uchar null_bit;
-  };
-  TAB *tabs;
-  TAB *tabs_end;
-  
-  /* 
-    is_confluent==TRUE means this is a special case where the temptable record
-    has zero length (and presence of a unique key means that the temptable can
-    have either 0 or 1 records). 
-    In this case we don't create the physical temptable but instead record
-    its state in SJ_TMP_TABLE::have_confluent_record.
-  */
-  bool is_confluent;
+    /*
+      Array of pointers to tables whose rowids compose the temporary table
+      record.
+    */
+    class TAB
+    {
+    public:
+        JOIN_TAB *join_tab;
+        uint rowid_offset;
+        ushort null_byte;
+        uchar null_bit;
+    };
+    TAB *tabs;
+    TAB *tabs_end;
 
-  /* 
-    When is_confluent==TRUE: the contents of the table (whether it has the
-    record or not).
-  */
-  bool have_confluent_row;
-  
-  /* table record parameters */
-  uint null_bits;
-  uint null_bytes;
-  uint rowid_len;
+    /*
+      is_confluent==TRUE means this is a special case where the temptable record
+      has zero length (and presence of a unique key means that the temptable can
+      have either 0 or 1 records).
+      In this case we don't create the physical temptable but instead record
+      its state in SJ_TMP_TABLE::have_confluent_record.
+    */
+    bool is_confluent;
 
-  /* The temporary table itself (NULL means not created yet) */
-  TABLE *tmp_table;
+    /*
+      When is_confluent==TRUE: the contents of the table (whether it has the
+      record or not).
+    */
+    bool have_confluent_row;
 
-  /*
-    These are the members we got from temptable creation code. We'll need
-    them if we'll need to convert table from HEAP to MyISAM/Maria.
-  */
-  MI_COLUMNDEF *start_recinfo;
-  MI_COLUMNDEF *recinfo;
+    /* table record parameters */
+    uint null_bits;
+    uint null_bytes;
+    uint rowid_len;
 
-  /* Pointer to next table (next->start_idx > this->end_idx) */
-  SJ_TMP_TABLE *next; 
+    /* The temporary table itself (NULL means not created yet) */
+    TABLE *tmp_table;
+
+    /*
+      These are the members we got from temptable creation code. We'll need
+      them if we'll need to convert table from HEAP to MyISAM/Maria.
+    */
+    MI_COLUMNDEF *start_recinfo;
+    MI_COLUMNDEF *recinfo;
+
+    /* Pointer to next table (next->start_idx > this->end_idx) */
+    SJ_TMP_TABLE *next;
 };
 
 
- /**
-  Executor structure for the materialized semi-join info, which contains
-   - Description of expressions selected from subquery
-   - The sj-materialization temporary table
+/**
+ Executor structure for the materialized semi-join info, which contains
+  - Description of expressions selected from subquery
+  - The sj-materialization temporary table
 */
 class Semijoin_mat_exec : public Sql_alloc
 {
 public:
-  Semijoin_mat_exec(TABLE_LIST *sj_nest, bool is_scan, uint table_count,
-                    uint mat_table_index, uint inner_table_index)
-    :sj_nest(sj_nest), is_scan(is_scan), table_count(table_count),
-     mat_table_index(mat_table_index), inner_table_index(inner_table_index),
-    table_param(), table(NULL)
-  {}
-  ~Semijoin_mat_exec()
-  {}
-  TABLE_LIST *const sj_nest;    ///< Semi-join nest for this materialization
-  const bool is_scan;           ///< TRUE if executing a scan, FALSE if lookup
-  const uint table_count;       ///< Number of tables in the sj-nest
-  const uint mat_table_index;   ///< Index in join_tab for materialized table
-  const uint inner_table_index; ///< Index in join_tab for first inner table
-  TMP_TABLE_PARAM table_param;  ///< The temptable and its related info
-  TABLE *table;                 ///< Reference to temporary table
+    Semijoin_mat_exec(TABLE_LIST *sj_nest, bool is_scan, uint table_count,
+                      uint mat_table_index, uint inner_table_index)
+        :sj_nest(sj_nest), is_scan(is_scan), table_count(table_count),
+         mat_table_index(mat_table_index), inner_table_index(inner_table_index),
+         table_param(), table(NULL)
+    {}
+    ~Semijoin_mat_exec()
+    {}
+    TABLE_LIST *const sj_nest;    ///< Semi-join nest for this materialization
+    const bool is_scan;           ///< TRUE if executing a scan, FALSE if lookup
+    const uint table_count;       ///< Number of tables in the sj-nest
+    const uint mat_table_index;   ///< Index in join_tab for materialized table
+    const uint inner_table_index; ///< Index in join_tab for first inner table
+    TMP_TABLE_PARAM table_param;  ///< The temptable and its related info
+    TABLE *table;                 ///< Reference to temporary table
 };
 
 
@@ -176,37 +176,41 @@ public:
 class QEP_operation :public Sql_alloc
 {
 public:
-  // Type of the operation
-  enum enum_op_type { OT_CACHE, OT_TMP_TABLE };
-  /**
-    For JOIN_CACHE : Table to be joined with the partial join records from
-                     the cache
-    For JOIN_TMP_BUFFER : join_tab of tmp table
-  */
-  JOIN_TAB *join_tab;
+    // Type of the operation
+    enum enum_op_type
+    { OT_CACHE, OT_TMP_TABLE };
+    /**
+      For JOIN_CACHE : Table to be joined with the partial join records from
+                       the cache
+      For JOIN_TMP_BUFFER : join_tab of tmp table
+    */
+    JOIN_TAB *join_tab;
 
-  QEP_operation(): join_tab(NULL) {};
-  QEP_operation(JOIN_TAB *tab): join_tab(tab) {};
-  virtual ~QEP_operation() {};
-  virtual enum_op_type type()= 0;
-  /**
-    Initialize operation's internal state.  Called once per query execution.
-  */
-  virtual int init() { return 0; };
-  /**
-    Put a new record into the operation's buffer
-    @return
-      return one of enum_nested_loop_state values.
-  */
-  virtual enum_nested_loop_state put_record()= 0;
-  /**
-    Finalize records sending.
-  */
-  virtual enum_nested_loop_state end_send()= 0;
-  /**
-    Internal state cleanup.
-  */
-  virtual void free() {};
+    QEP_operation(): join_tab(NULL) {};
+    QEP_operation(JOIN_TAB *tab): join_tab(tab) {};
+    virtual ~QEP_operation() {};
+    virtual enum_op_type type()= 0;
+    /**
+      Initialize operation's internal state.  Called once per query execution.
+    */
+    virtual int init()
+    {
+        return 0;
+    };
+    /**
+      Put a new record into the operation's buffer
+      @return
+        return one of enum_nested_loop_state values.
+    */
+    virtual enum_nested_loop_state put_record()= 0;
+    /**
+      Finalize records sending.
+    */
+    virtual enum_nested_loop_state end_send()= 0;
+    /**
+      Internal state cleanup.
+    */
+    virtual void free() {};
 };
 
 
@@ -234,36 +238,42 @@ public:
 class QEP_tmp_table :public QEP_operation
 {
 public:
-  QEP_tmp_table(JOIN_TAB *tab) : QEP_operation(tab),
-    write_func(NULL)
-  {};
-  enum_op_type type() { return OT_TMP_TABLE; }
-  enum_nested_loop_state put_record() { return put_record(false); };
-  /*
-    Send the result of operation further (to a next operation/client)
-    This function is called after all records were put into the buffer
-    (determined by the caller).
+    QEP_tmp_table(JOIN_TAB *tab) : QEP_operation(tab),
+        write_func(NULL)
+    {};
+    enum_op_type type()
+    {
+        return OT_TMP_TABLE;
+    }
+    enum_nested_loop_state put_record()
+    {
+        return put_record(false);
+    };
+    /*
+      Send the result of operation further (to a next operation/client)
+      This function is called after all records were put into the buffer
+      (determined by the caller).
 
-    @return return one of enum_nested_loop_state values.
-  */
-  enum_nested_loop_state end_send();
-  /** write_func setter */
-  void set_write_func(Next_select_func new_write_func)
-  {
-    write_func= new_write_func;
-  }
+      @return return one of enum_nested_loop_state values.
+    */
+    enum_nested_loop_state end_send();
+    /** write_func setter */
+    void set_write_func(Next_select_func new_write_func)
+    {
+        write_func= new_write_func;
+    }
 
 private:
-  /** Write function that would be used for saving records in tmp table. */
-  Next_select_func write_func;
-  enum_nested_loop_state put_record(bool end_of_records);
-  bool prepare_tmp_table();
+    /** Write function that would be used for saving records in tmp table. */
+    Next_select_func write_func;
+    enum_nested_loop_state put_record(bool end_of_records);
+    bool prepare_tmp_table();
 };
 
 void setup_tmptable_write_func(JOIN_TAB *tab);
 Next_select_func setup_end_select_func(JOIN *join, JOIN_TAB *tab);
 enum_nested_loop_state sub_select_op(JOIN *join, JOIN_TAB *join_tab, bool
-                                        end_of_records);
+                                     end_of_records);
 enum_nested_loop_state end_send_group(JOIN *join, JOIN_TAB *join_tab,
                                       bool end_of_records);
 enum_nested_loop_state end_write_group(JOIN *join, JOIN_TAB *join_tab,
@@ -284,7 +294,7 @@ int report_handler_error(TABLE *table, int error);
 
 int safe_index_read(JOIN_TAB *tab);
 SORT_FIELD * make_unireg_sortorder(ORDER *order, uint *length,
-                                  SORT_FIELD *sortorder);
+                                   SORT_FIELD *sortorder);
 void pick_table_access_method(JOIN_TAB *tab);
 
 int join_read_const_table(JOIN_TAB *tab, POSITION *pos);
@@ -303,21 +313,21 @@ int test_if_item_cache_changed(List<Cached_item> &list);
 
 // Create list for using with tempory table
 bool change_to_use_tmp_fields(THD *thd, Ref_ptr_array ref_pointer_array,
-				     List<Item> &new_list1,
-				     List<Item> &new_list2,
-				     uint elements, List<Item> &items);
+                              List<Item> &new_list1,
+                              List<Item> &new_list2,
+                              uint elements, List<Item> &items);
 // Create list for using with tempory table
 bool change_refs_to_tmp_fields(THD *thd, Ref_ptr_array ref_pointer_array,
-				      List<Item> &new_list1,
-				      List<Item> &new_list2,
-				      uint elements, List<Item> &items);
+                               List<Item> &new_list1,
+                               List<Item> &new_list2,
+                               uint elements, List<Item> &items);
 bool alloc_group_fields(JOIN *join, ORDER *group);
 bool prepare_sum_aggregators(Item_sum **func_ptr, bool need_distinct);
 bool setup_sum_funcs(THD *thd, Item_sum **func_ptr);
 bool make_group_fields(JOIN *main_join, JOIN *curr_join);
 void disable_sorted_access(JOIN_TAB* join_tab);
 bool setup_copy_fields(THD *thd, TMP_TABLE_PARAM *param,
-		  Ref_ptr_array ref_pointer_array,
-		  List<Item> &res_selected_fields, List<Item> &res_all_fields,
-		  uint elements, List<Item> &all_fields);
+                       Ref_ptr_array ref_pointer_array,
+                       List<Item> &res_selected_fields, List<Item> &res_all_fields,
+                       uint elements, List<Item> &all_fields);
 #endif /* SQL_EXECUTOR_INCLUDED */

@@ -18,53 +18,58 @@
 #ifndef NDB_DIST_PRIV_UTIL_H
 #define NDB_DIST_PRIV_UTIL_H
 
-class Ndb_dist_priv_util {
-  size_t m_iter_curr_table;
+class Ndb_dist_priv_util
+{
+    size_t m_iter_curr_table;
 public:
-  Ndb_dist_priv_util()
-  {
-    iter_reset();
-  }
-
-  const char* database() const { return "mysql"; }
-
-  // Iterator for distributed priv tables name
-  const char* iter_next_table()
-  {
-    static const char* tables[] =
-      { "user", "db", "tables_priv", "columns_priv", "procs_priv", "host",
-        "proxies_priv" };
-
-    if (m_iter_curr_table >= (sizeof(tables) / sizeof(tables[0])))
-      return NULL;
-    m_iter_curr_table++;
-    return tables[m_iter_curr_table-1];
-  }
-
-  // Reset iterator to start at first table name
-  void iter_reset() { m_iter_curr_table = 0; }
-
-  // Determine if a given table name is in the list
-  // of distributed priv tables
-  static
-  bool
-  is_distributed_priv_table(const char *db, const char *table)
-  {
-    Ndb_dist_priv_util dist_priv;
-    if (strcmp(db, dist_priv.database()))
+    Ndb_dist_priv_util()
     {
-      return false; // Ignore tables not in dist_priv database
+        iter_reset();
     }
-    const char* priv_table_name;
-    while((priv_table_name= dist_priv.iter_next_table()))
+
+    const char* database() const
     {
-      if (strcmp(table, priv_table_name) == 0)
-      {
-        return true;
-      }
+        return "mysql";
     }
-    return false;
-  }
+
+    // Iterator for distributed priv tables name
+    const char* iter_next_table()
+    {
+        static const char* tables[] = {
+            "user", "db", "tables_priv", "columns_priv", "procs_priv", "host",
+            "proxies_priv"
+        };
+
+        if (m_iter_curr_table >= (sizeof(tables) / sizeof(tables[0])))
+            return NULL;
+        m_iter_curr_table++;
+        return tables[m_iter_curr_table-1];
+    }
+
+    // Reset iterator to start at first table name
+    void iter_reset()
+    {
+        m_iter_curr_table = 0;
+    }
+
+    // Determine if a given table name is in the list
+    // of distributed priv tables
+    static
+    bool
+    is_distributed_priv_table(const char *db, const char *table)
+    {
+        Ndb_dist_priv_util dist_priv;
+        if (strcmp(db, dist_priv.database())) {
+            return false; // Ignore tables not in dist_priv database
+        }
+        const char* priv_table_name;
+        while((priv_table_name= dist_priv.iter_next_table())) {
+            if (strcmp(table, priv_table_name) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 };
 

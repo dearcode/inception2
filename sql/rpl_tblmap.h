@@ -54,59 +54,65 @@ void free_table_map_log_event(TABLE *table);
 
 #include "hash.h"                               /* HASH */
 
-class table_mapping {
+class table_mapping
+{
 
 private:
-  MEM_ROOT m_mem_root;
+    MEM_ROOT m_mem_root;
 
 public:
 
-  enum enum_error {
-      ERR_NO_ERROR = 0,
-      ERR_LIMIT_EXCEEDED,
-      ERR_MEMORY_ALLOCATION
-  };
+    enum enum_error
+    {
+        ERR_NO_ERROR = 0,
+        ERR_LIMIT_EXCEEDED,
+        ERR_MEMORY_ALLOCATION
+    };
 
-  table_mapping();
-  ~table_mapping();
+    table_mapping();
+    ~table_mapping();
 
-  TABLE* get_table(ulong table_id);
+    TABLE* get_table(ulong table_id);
 
-  int       set_table(ulong table_id, TABLE* table);
-  int       remove_table(ulong table_id);
-  void      clear_tables();
-  ulong     count() const { return m_table_ids.records; }
+    int       set_table(ulong table_id, TABLE* table);
+    int       remove_table(ulong table_id);
+    void      clear_tables();
+    ulong     count() const
+    {
+        return m_table_ids.records;
+    }
 
 private:
-  /*
-    This is a POD (Plain Old Data).  Keep it that way (we apply offsetof() to
-    it, which only works for PODs)
-  */
-  struct entry { 
-    ulong table_id;
-    union {
-      TABLE *table;
-      entry *next;
+    /*
+      This is a POD (Plain Old Data).  Keep it that way (we apply offsetof() to
+      it, which only works for PODs)
+    */
+    struct entry
+    {
+        ulong table_id;
+        union {
+            TABLE *table;
+            entry *next;
+        };
     };
-  };
 
-  entry *find_entry(ulong table_id)
-  {
-    return (entry *) my_hash_search(&m_table_ids,
-                                    (uchar*)&table_id,
-                                    sizeof(table_id));
-  }
-  int expand();
+    entry *find_entry(ulong table_id)
+    {
+        return (entry *) my_hash_search(&m_table_ids,
+                                        (uchar*)&table_id,
+                                        sizeof(table_id));
+    }
+    int expand();
 
-  /*
-    Head of the list of free entries; "free" in the sense that it's an
-    allocated entry free for use, NOT in the sense that it's freed
-    memory.
-  */
-  entry *m_free;
+    /*
+      Head of the list of free entries; "free" in the sense that it's an
+      allocated entry free for use, NOT in the sense that it's freed
+      memory.
+    */
+    entry *m_free;
 
-  /* Correspondance between an id (a number) and a TABLE object */
-  HASH m_table_ids;
+    /* Correspondance between an id (a number) and a TABLE object */
+    HASH m_table_ids;
 };
 
 #endif

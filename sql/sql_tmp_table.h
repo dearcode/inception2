@@ -39,9 +39,9 @@ typedef struct st_columndef MI_COLUMNDEF;
 
 TABLE *
 create_tmp_table(THD *thd,TMP_TABLE_PARAM *param,List<Item> &fields,
-		 ORDER *group, bool distinct, bool save_sum_fields,
-		 ulonglong select_options, ha_rows rows_limit,
-		 const char *table_alias);
+                 ORDER *group, bool distinct, bool save_sum_fields,
+                 ulonglong select_options, ha_rows rows_limit,
+                 const char *table_alias);
 /**
   General routine to change field->ptr of a NULL-terminated array of Field
   objects. Useful when needed to call val_int, val_str or similar and the
@@ -53,13 +53,13 @@ create_tmp_table(THD *thd,TMP_TABLE_PARAM *param,List<Item> &fields,
 TABLE *create_virtual_tmp_table(THD *thd, List<Create_field> &field_list,  MEM_ROOT *mem_root);
 bool create_myisam_from_heap(THD *thd, TABLE *table,
                              MI_COLUMNDEF *start_recinfo,
-                             MI_COLUMNDEF **recinfo, 
-			     int error, bool ignore_last_dup,
+                             MI_COLUMNDEF **recinfo,
+                             int error, bool ignore_last_dup,
                              bool *is_duplicate);
 void free_tmp_table(THD *thd, TABLE *entry);
-TABLE *create_duplicate_weedout_tmp_table(THD *thd, 
-                                          uint uniq_tuple_length_arg,
-                                          SJ_TMP_TABLE *sjtbl);
+TABLE *create_duplicate_weedout_tmp_table(THD *thd,
+        uint uniq_tuple_length_arg,
+        SJ_TMP_TABLE *sjtbl);
 bool instantiate_tmp_table(TABLE *table, KEY *keyinfo,
                            MI_COLUMNDEF *start_recinfo,
                            MI_COLUMNDEF **recinfo,

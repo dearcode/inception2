@@ -21,7 +21,7 @@
 
 extern "C"
 {
-  typedef int (*process_key_cache_t) (const char *, KEY_CACHE *);
+    typedef int (*process_key_cache_t) (const char *, KEY_CACHE *);
 }
 
 /**
@@ -30,33 +30,33 @@ extern "C"
 class NAMED_ILINK :public ilink<NAMED_ILINK>
 {
 public:
-  const char *name;
-  uint name_length;
-  uchar* data;
+    const char *name;
+    uint name_length;
+    uchar* data;
 
-  NAMED_ILINK(I_List<NAMED_ILINK> *links, const char *name_arg,
-             uint name_length_arg, uchar* data_arg)
-    :name_length(name_length_arg), data(data_arg)
-  {
-    name= my_strndup(name_arg, name_length, MYF(MY_WME));
-    links->push_back(this);
-  }
+    NAMED_ILINK(I_List<NAMED_ILINK> *links, const char *name_arg,
+                uint name_length_arg, uchar* data_arg)
+        :name_length(name_length_arg), data(data_arg)
+    {
+        name= my_strndup(name_arg, name_length, MYF(MY_WME));
+        links->push_back(this);
+    }
 
-  bool cmp(const char *name_cmp, uint length)
-  {
-    return length == name_length && !memcmp(name, name_cmp, length);
-  }
+    bool cmp(const char *name_cmp, uint length)
+    {
+        return length == name_length && !memcmp(name, name_cmp, length);
+    }
 
-  ~NAMED_ILINK()
-  {
-    my_free((void *) name);
-  }
+    ~NAMED_ILINK()
+    {
+        my_free((void *) name);
+    }
 };
 
 class NAMED_ILIST: public I_List<NAMED_ILINK>
 {
-  public:
-  void delete_elements(void (*free_element)(const char*, uchar*));
+public:
+    void delete_elements(void (*free_element)(const char*, uchar*));
 };
 
 extern LEX_STRING default_key_cache_base;

@@ -29,14 +29,14 @@
 #ifndef MYSQL_CLIENT
 
 /*
-  Generates a warning that a feature is deprecated. 
+  Generates a warning that a feature is deprecated.
 
   Using it as
 
   WARN_DEPRECATED(thd, "BAD", "'GOOD'");
 
   Will result in a warning
- 
+
   "The syntax 'BAD' is deprecated and will be removed in a
    future release. Please use 'GOOD' instead"
 
@@ -160,7 +160,7 @@ template <class T> T available_buffer(const char* buf_start,
                                       const char* buf_current,
                                       T buf_len)
 {
-  return buf_len - (buf_current - buf_start);
+    return buf_len - (buf_current - buf_start);
 }
 
 /*
@@ -175,11 +175,11 @@ template <class T> T available_buffer(const char* buf_start,
                False  Otherwise.
 */
 template <class T> bool valid_buffer_range(T jump,
-                                           const char* buf_start,
-                                           const char* buf_current,
-                                           T buf_len)
+        const char* buf_start,
+        const char* buf_current,
+        T buf_len)
 {
-  return (jump <= available_buffer(buf_start, buf_current, buf_len));
+    return (jump <= available_buffer(buf_start, buf_current, buf_len));
 }
 
 /* The rest of the file is included in the server only */
@@ -212,13 +212,13 @@ template <class T> bool valid_buffer_range(T jump,
 #define OPTIMIZER_SWITCH_LAST                      (1ULL << 16)
 
 /**
-   If OPTIMIZER_SWITCH_ALL is defined, optimizer_switch flags for newer 
+   If OPTIMIZER_SWITCH_ALL is defined, optimizer_switch flags for newer
    optimizer features (semijoin) will be available.
  */
 #define OPTIMIZER_SWITCH_ALL 1
 
-/* 
-  The following must be kept in sync with optimizer_switch string in 
+/*
+  The following must be kept in sync with optimizer_switch string in
   sys_vars.cc.
 */
 #ifdef OPTIMIZER_SWITCH_ALL
@@ -272,7 +272,7 @@ template <class T> bool valid_buffer_range(T jump,
   Don't evaluate this subquery during statement prepare even if
   it's a constant one. The flag is switched off in the end of
   mysqld_stmt_prepare.
-*/ 
+*/
 #define CONTEXT_ANALYSIS_ONLY_PREPARE 1
 /*
   Special JOIN::prepare mode: changing of query is prohibited.
@@ -280,7 +280,7 @@ template <class T> bool valid_buffer_range(T jump,
   any optimizations: afterwards definition of the view will be
   reconstructed by means of ::print() methods and written to
   to an .frm file. We need this definition to stay untouched.
-*/ 
+*/
 #define CONTEXT_ANALYSIS_ONLY_VIEW    2
 /*
   Don't evaluate this subquery during derived table prepare even if
@@ -307,24 +307,24 @@ template <class T> bool valid_buffer_range(T jump,
 
 enum enum_parsing_place
 {
-  NO_MATTER,
-  IN_HAVING,
-  SELECT_LIST,
-  IN_WHERE,
-  IN_ON
+    NO_MATTER,
+    IN_HAVING,
+    SELECT_LIST,
+    IN_WHERE,
+    IN_ON
 };
 
 
 enum enum_var_type
 {
-  OPT_DEFAULT= 0, OPT_SESSION, OPT_GLOBAL
+    OPT_DEFAULT= 0, OPT_SESSION, OPT_GLOBAL
 };
 
 class sys_var;
 
 enum enum_yes_no_unknown
 {
-  TVL_YES, TVL_NO, TVL_UNKNOWN
+    TVL_YES, TVL_NO, TVL_UNKNOWN
 };
 
 #ifdef MYSQL_SERVER
@@ -348,12 +348,12 @@ extern void turn_parser_debug_on();
 
 inline int hexchar_to_int(char c)
 {
-  if (c <= '9' && c >= '0')
-    return c-'0';
-  c|=32;
-  if (c <= 'f' && c >= 'a')
-    return c-'a'+10;
-  return -1;
+    if (c <= '9' && c >= '0')
+        return c-'0';
+    c|=32;
+    if (c <= 'f' && c >= 'a')
+        return c-'a'+10;
+    return -1;
 }
 
 /* This must match the path length limit in the ER_NOT_RW_DIR error msg. */

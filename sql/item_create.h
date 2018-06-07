@@ -34,34 +34,34 @@ typedef struct st_udf_func udf_func;
 class Create_func
 {
 public:
-  /**
-    The builder create method.
-    Given the function name and list or arguments, this method creates
-    an <code>Item</code> that represents the function call.
-    In case or errors, a NULL item is returned, and an error is reported.
-    Note that the <code>thd</code> object may be modified by the builder.
-    In particular, the following members/methods can be set/called,
-    depending on the function called and the function possible side effects.
-    <ul>
-      <li><code>thd->lex->binlog_row_based_if_mixed</code></li>
-      <li><code>thd->lex->current_context()</code></li>
-      <li><code>thd->lex->safe_to_cache_query</code></li>
-      <li><code>thd->lex->uncacheable(UNCACHEABLE_SIDEEFFECT)</code></li>
-      <li><code>thd->lex->uncacheable(UNCACHEABLE_RAND)</code></li>
-      <li><code>thd->lex->add_time_zone_tables_to_query_tables(thd)</code></li>
-    </ul>
-    @param thd The current thread
-    @param name The function name
-    @param item_list The list of arguments to the function, can be NULL
-    @return An item representing the parsed function call, or NULL
-  */
-  virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list) = 0;
+    /**
+      The builder create method.
+      Given the function name and list or arguments, this method creates
+      an <code>Item</code> that represents the function call.
+      In case or errors, a NULL item is returned, and an error is reported.
+      Note that the <code>thd</code> object may be modified by the builder.
+      In particular, the following members/methods can be set/called,
+      depending on the function called and the function possible side effects.
+      <ul>
+        <li><code>thd->lex->binlog_row_based_if_mixed</code></li>
+        <li><code>thd->lex->current_context()</code></li>
+        <li><code>thd->lex->safe_to_cache_query</code></li>
+        <li><code>thd->lex->uncacheable(UNCACHEABLE_SIDEEFFECT)</code></li>
+        <li><code>thd->lex->uncacheable(UNCACHEABLE_RAND)</code></li>
+        <li><code>thd->lex->add_time_zone_tables_to_query_tables(thd)</code></li>
+      </ul>
+      @param thd The current thread
+      @param name The function name
+      @param item_list The list of arguments to the function, can be NULL
+      @return An item representing the parsed function call, or NULL
+    */
+    virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list) = 0;
 
 protected:
-  /** Constructor */
-  Create_func() {}
-  /** Destructor */
-  virtual ~Create_func() {}
+    /** Constructor */
+    Create_func() {}
+    /** Destructor */
+    virtual ~Create_func() {}
 };
 
 
@@ -74,33 +74,33 @@ protected:
 class Create_qfunc : public Create_func
 {
 public:
-  /**
-    The builder create method, for unqualified functions.
-    This builder will use the current database for the database name.
-    @param thd The current thread
-    @param name The function name
-    @param item_list The list of arguments to the function, can be NULL
-    @return An item representing the parsed function call
-  */
-  virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list);
+    /**
+      The builder create method, for unqualified functions.
+      This builder will use the current database for the database name.
+      @param thd The current thread
+      @param name The function name
+      @param item_list The list of arguments to the function, can be NULL
+      @return An item representing the parsed function call
+    */
+    virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list);
 
-  /**
-    The builder create method, for qualified functions.
-    @param thd The current thread
-    @param db The database name
-    @param name The function name
-    @param use_explicit_name Should the function be represented as 'db.name'?
-    @param item_list The list of arguments to the function, can be NULL
-    @return An item representing the parsed function call
-  */
-  virtual Item* create(THD *thd, LEX_STRING db, LEX_STRING name,
-                       bool use_explicit_name, List<Item> *item_list) = 0;
+    /**
+      The builder create method, for qualified functions.
+      @param thd The current thread
+      @param db The database name
+      @param name The function name
+      @param use_explicit_name Should the function be represented as 'db.name'?
+      @param item_list The list of arguments to the function, can be NULL
+      @return An item representing the parsed function call
+    */
+    virtual Item* create(THD *thd, LEX_STRING db, LEX_STRING name,
+                         bool use_explicit_name, List<Item> *item_list) = 0;
 
 protected:
-  /** Constructor. */
-  Create_qfunc() {}
-  /** Destructor. */
-  virtual ~Create_qfunc() {}
+    /** Constructor. */
+    Create_qfunc() {}
+    /** Destructor. */
+    virtual ~Create_qfunc() {}
 };
 
 
@@ -129,25 +129,25 @@ extern Create_qfunc * find_qualified_function_builder(THD *thd);
 class Create_udf_func : public Create_func
 {
 public:
-  virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list);
+    virtual Item *create_func(THD *thd, LEX_STRING name, List<Item> *item_list);
 
-  /**
-    The builder create method, for User Defined Functions.
-    @param thd The current thread
-    @param fct The User Defined Function metadata
-    @param item_list The list of arguments to the function, can be NULL
-    @return An item representing the parsed function call
-  */
-  Item *create(THD *thd, udf_func *fct, List<Item> *item_list);
+    /**
+      The builder create method, for User Defined Functions.
+      @param thd The current thread
+      @param fct The User Defined Function metadata
+      @param item_list The list of arguments to the function, can be NULL
+      @return An item representing the parsed function call
+    */
+    Item *create(THD *thd, udf_func *fct, List<Item> *item_list);
 
-  /** Singleton. */
-  static Create_udf_func s_singleton;
+    /** Singleton. */
+    static Create_udf_func s_singleton;
 
 protected:
-  /** Constructor. */
-  Create_udf_func() {}
-  /** Destructor. */
-  virtual ~Create_udf_func() {}
+    /** Constructor. */
+    Create_udf_func() {}
+    /** Destructor. */
+    virtual ~Create_udf_func() {}
 };
 #endif
 

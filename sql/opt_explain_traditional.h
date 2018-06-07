@@ -25,26 +25,35 @@
 
 class Explain_format_traditional : public Explain_format
 {
-  class Item_null *nil;
-  qep_row column_buffer; ///< buffer for the current output row
+    class Item_null *nil;
+    qep_row column_buffer; ///< buffer for the current output row
 
 public:
-  Explain_format_traditional() : nil(NULL) {}
+    Explain_format_traditional() : nil(NULL) {}
 
-  virtual bool is_hierarchical() const { return false; }
-  virtual bool send_headers(select_result *result);
-  virtual bool begin_context(Explain_context_enum,
-                             SELECT_LEX_UNIT *subquery,
-                             const Explain_format_flags *flags)
-  {
-    return false;
-  }
-  virtual bool end_context(Explain_context_enum) { return false; }
-  virtual bool flush_entry();
-  virtual qep_row *entry() { return &column_buffer; }
+    virtual bool is_hierarchical() const
+    {
+        return false;
+    }
+    virtual bool send_headers(select_result *result);
+    virtual bool begin_context(Explain_context_enum,
+                               SELECT_LEX_UNIT *subquery,
+                               const Explain_format_flags *flags)
+    {
+        return false;
+    }
+    virtual bool end_context(Explain_context_enum)
+    {
+        return false;
+    }
+    virtual bool flush_entry();
+    virtual qep_row *entry()
+    {
+        return &column_buffer;
+    }
 
 private:
-  bool push_select_type(List<Item> *items);
+    bool push_select_type(List<Item> *items);
 };
 
 #endif//OPT_EXPLAIN_FORMAT_TRADITIONAL_INCLUDED

@@ -25,17 +25,17 @@ extern handlerton* ndbcluster_hton;
 /* Get Thd_ndb pointer from THD */
 static inline
 class Thd_ndb*
-thd_get_thd_ndb(THD* thd)
+    thd_get_thd_ndb(THD* thd)
 {
-  return (class Thd_ndb *) thd_get_ha_data(thd, ndbcluster_hton);
+    return (class Thd_ndb *) thd_get_ha_data(thd, ndbcluster_hton);
 }
-  
+
 /* Backward compatibility alias for 'thd_get_thd_ndb'  */
 static inline
 class Thd_ndb*
-get_thd_ndb(THD* thd)
+    get_thd_ndb(THD* thd)
 {
-  return thd_get_thd_ndb(thd);
+    return thd_get_thd_ndb(thd);
 }
 
 
@@ -44,7 +44,7 @@ static inline
 void
 thd_set_thd_ndb(THD *thd, class Thd_ndb *thd_ndb)
 {
-  thd_set_ha_data(thd, ndbcluster_hton, thd_ndb);
+    thd_set_ha_data(thd, ndbcluster_hton, thd_ndb);
 }
 
 

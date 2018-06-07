@@ -17,10 +17,10 @@
    along with this program; if not, write to the Free Software Foundation,
    51 Franklin Street, Suite 500, Boston, MA 02110-1335 USA */
 
-/* 
+/*
    This file is based on public domain code from ftp://elsie.ncih.nist.gov/
    Initial source code is in the public domain, so clarified as of
-   1996-06-05 by Arthur David Olson (arthur_david_olson@nih.gov). 
+   1996-06-05 by Arthur David Olson (arthur_david_olson@nih.gov).
 */
 
 /*
@@ -37,20 +37,21 @@
 
 #define	TZ_MAGIC	"TZif"
 
-struct tzhead {
- 	uchar	tzh_magic[4];		/* TZ_MAGIC */
-	uchar	tzh_reserved[16];	/* reserved for future use */
-	uchar	tzh_ttisgmtcnt[4];	/* coded number of trans. time flags */
-	uchar	tzh_ttisstdcnt[4];	/* coded number of trans. time flags */
-	uchar	tzh_leapcnt[4];		/* coded number of leap seconds */
-	uchar	tzh_timecnt[4];		/* coded number of transition times */
-	uchar	tzh_typecnt[4];		/* coded number of local time types */
-	uchar	tzh_charcnt[4];		/* coded number of abbr. chars */
+struct tzhead
+{
+    uchar	tzh_magic[4];		/* TZ_MAGIC */
+    uchar	tzh_reserved[16];	/* reserved for future use */
+    uchar	tzh_ttisgmtcnt[4];	/* coded number of trans. time flags */
+    uchar	tzh_ttisstdcnt[4];	/* coded number of trans. time flags */
+    uchar	tzh_leapcnt[4];		/* coded number of leap seconds */
+    uchar	tzh_timecnt[4];		/* coded number of transition times */
+    uchar	tzh_typecnt[4];		/* coded number of local time types */
+    uchar	tzh_charcnt[4];		/* coded number of abbr. chars */
 };
 
 /*
   . . .followed by. . .
-  
+
   tzh_timecnt (char [4])s               coded transition times a la time(2)
   tzh_timecnt (unsigned char)s          types of local time starting at above
   tzh_typecnt repetitions of
@@ -102,7 +103,7 @@ struct tzhead {
 
 #ifndef TZ_MAX_CHARS
 #define TZ_MAX_CHARS	50	/* Maximum number of abbreviation characters */
-				/* (limited by what unsigned chars can hold) */
+/* (limited by what unsigned chars can hold) */
 #endif /* !defined TZ_MAX_CHARS */
 
 #ifndef TZ_MAX_LEAPS

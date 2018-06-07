@@ -20,7 +20,7 @@
 /**
   @file
 
-  @brief 
+  @brief
   Merge sort and insert sort implementations. These sorting functions
   are primarily intended for sorting of JOIN_TABs before the greedy
   search algorithm is applied. Since the JOIN_TAB comparison functions
@@ -45,36 +45,34 @@
  using insertion sort.
 
  @param first   First element in an array of pointers to be sorted
- @param last    Element after the last element in an array of pointers 
+ @param last    Element after the last element in an array of pointers
                 to be sorted
- @param comp    Comparison function object that, taking two pointers 
-                of the same type as those contained in the range, 
-                returns true if the first argument goes before the 
+ @param comp    Comparison function object that, taking two pointers
+                of the same type as those contained in the range,
+                returns true if the first argument goes before the
                 second argument in the specific strict weak ordering
                 it defines, and false otherwise.
 
  In our case comp should be a function object with an operator:
- 
+
  bool operator()(Element_type*, Element_type*)
 */
 
 template<typename Element_type, typename Comp_func>
 void insert_sort(Element_type **first, Element_type **last, Comp_func comp)
 {
-  for (Element_type **high_water_mark= first+1;
-       high_water_mark < last;
-       high_water_mark++)
-  {
-    for (Element_type **cur= high_water_mark; cur > first ; cur--)
-    {
-      if (comp(*(cur-1), *cur))
-        break;
+    for (Element_type **high_water_mark= first+1;
+            high_water_mark < last;
+            high_water_mark++) {
+        for (Element_type **cur= high_water_mark; cur > first ; cur--) {
+            if (comp(*(cur-1), *cur))
+                break;
 
-      Element_type *tmp= *(cur-1);
-      *(cur-1)= *cur;
-      *cur= tmp;
+            Element_type *tmp= *(cur-1);
+            *(cur-1)= *cur;
+            *cur= tmp;
+        }
     }
-  }
 }
 
 
@@ -83,63 +81,60 @@ void insert_sort(Element_type **first, Element_type **last, Comp_func comp)
  using merge sort.
 
  @param first   First element in an array of pointers to be sorted
- @param last    Element after the last element in an array of pointers 
+ @param last    Element after the last element in an array of pointers
                 to be sorted
- @param comp    Comparison function object that, taking two pointers 
-                of the same type as those contained in the range, 
-                returns true if the first argument goes before the 
+ @param comp    Comparison function object that, taking two pointers
+                of the same type as those contained in the range,
+                returns true if the first argument goes before the
                 second argument in the specific strict weak ordering
                 it defines, and false otherwise.
 
  In our case comp should be a function object with an operator:
- 
+
  bool operator()(Element_type*, Element_type*)
 */
 
 template<typename Element_type, typename Comp_func>
 void merge_sort(Element_type **first, Element_type **last, Comp_func comp)
 {
-  const uint elements= last - first;
+    const uint elements= last - first;
 
-  /*
-    Tests showed that the value 5 was a good number for JOIN_TAB
-    ordering, which is the primary use case for this function
-  */
-  if (elements < 5)
-  {
-    insert_sort(first, last, comp);
-    return;
-  }
-  Element_type **middle= first + (elements)/2;
+    /*
+      Tests showed that the value 5 was a good number for JOIN_TAB
+      ordering, which is the primary use case for this function
+    */
+    if (elements < 5) {
+        insert_sort(first, last, comp);
+        return;
+    }
+    Element_type **middle= first + (elements)/2;
 
-  merge_sort (first, middle, comp);
-  merge_sort (middle, last, comp);
+    merge_sort (first, middle, comp);
+    merge_sort (middle, last, comp);
 
-  std::queue<Element_type *> merged;
+    std::queue<Element_type *> merged;
 
-  Element_type **cur1= first;
-  Element_type **cur2= middle;
+    Element_type **cur1= first;
+    Element_type **cur2= middle;
 
-  for (uint i= 0; i < elements; i++)
-  {
-    DBUG_ASSERT (cur1 < middle || cur2 < last);
+    for (uint i= 0; i < elements; i++) {
+        DBUG_ASSERT (cur1 < middle || cur2 < last);
 
-    if (cur1 == middle)
-      merged.push(*cur2++);
-    else if (cur2 == last)
-      merged.push(*cur1++);
-    else if (comp(*cur1, *cur2))
-      merged.push(*cur1++);
-    else
-      merged.push(*cur2++);
-  }
+        if (cur1 == middle)
+            merged.push(*cur2++);
+        else if (cur2 == last)
+            merged.push(*cur1++);
+        else if (comp(*cur1, *cur2))
+            merged.push(*cur1++);
+        else
+            merged.push(*cur2++);
+    }
 
-  Element_type **result= first;
-  while (!merged.empty())
-  {
-    *result++= merged.front();
-    merged.pop();
-  }
+    Element_type **result= first;
+    while (!merged.empty()) {
+        *result++= merged.front();
+        merged.pop();
+    }
 }
 
 #endif /* MERGE_SORT_INCLUDED */

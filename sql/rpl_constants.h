@@ -22,15 +22,16 @@
 /**
    Enumeration of the incidents that can occur for the server.
  */
-enum Incident {
-  /** No incident */
-  INCIDENT_NONE = 0,
+enum Incident
+{
+    /** No incident */
+    INCIDENT_NONE = 0,
 
-  /** There are possibly lost events in the replication stream */
-  INCIDENT_LOST_EVENTS = 1,
+    /** There are possibly lost events in the replication stream */
+    INCIDENT_LOST_EVENTS = 1,
 
-  /** Shall be last event of the enumeration */
-  INCIDENT_COUNT
+    /** Shall be last event of the enumeration */
+    INCIDENT_COUNT
 };
 
 /*
@@ -48,30 +49,31 @@ const int BINLOG_NAME_SIZE_INFO_SIZE= 4;
 /**
    Enumeration of the reserved formats of Binlog extra row information
 */
-enum ExtraRowInfoFormat {
-  /** Ndb format */
-  ERIF_NDB          =   0,
+enum ExtraRowInfoFormat
+{
+    /** Ndb format */
+    ERIF_NDB          =   0,
 
-  /** Reserved formats  0 -> 63 inclusive */
-  ERIF_LASTRESERVED =  63,
+    /** Reserved formats  0 -> 63 inclusive */
+    ERIF_LASTRESERVED =  63,
 
-  /**
-      Available / uncontrolled formats
-      64 -> 254 inclusive
-  */
-  ERIF_OPEN1        =  64,
-  ERIF_OPEN2        =  65,
+    /**
+        Available / uncontrolled formats
+        64 -> 254 inclusive
+    */
+    ERIF_OPEN1        =  64,
+    ERIF_OPEN2        =  65,
 
-  ERIF_LASTOPEN     =  254,
+    ERIF_LASTOPEN     =  254,
 
-  /**
-     Multi-payload format 255
+    /**
+       Multi-payload format 255
 
-      Length is total length, payload is sequence of
-      sub-payloads with their own headers containing
-      length + format.
-  */
-  ERIF_MULTI        =  255
+        Length is total length, payload is sequence of
+        sub-payloads with their own headers containing
+        length + format.
+    */
+    ERIF_MULTI        =  255
 };
 
 /*

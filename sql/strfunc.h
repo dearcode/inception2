@@ -24,7 +24,7 @@ typedef struct st_typelib TYPELIB;
 
 ulonglong find_set(TYPELIB *lib, const char *x, uint length,
                    const CHARSET_INFO *cs,
-		   char **err_pos, uint *err_len, bool *set_warning);
+                   char **err_pos, uint *err_len, bool *set_warning);
 ulonglong find_set_from_flags(TYPELIB *lib, uint default_name,
                               ulonglong cur_set, ulonglong default_set,
                               const char *str, uint length,
@@ -36,7 +36,7 @@ uint find_type2(const TYPELIB *lib, const char *find, uint length,
                 const CHARSET_INFO *cs);
 void unhex_type2(TYPELIB *lib);
 uint check_word(TYPELIB *lib, const char *val, const char *end,
-		const char **end_of_word);
+                const char **end_of_word);
 int find_string_in_array(LEX_STRING * const haystack, LEX_STRING * const needle,
                          CHARSET_INFO * const cs);
 char *flagset_to_string(THD *thd, LEX_STRING *result, ulonglong set,

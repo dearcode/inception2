@@ -29,21 +29,21 @@ int reassign_keycache_tables(THD* thd, KEY_CACHE *src_cache,
 class Sql_cmd_analyze_table : public Sql_cmd
 {
 public:
-  /**
-    Constructor, used to represent a ANALYZE TABLE statement.
-  */
-  Sql_cmd_analyze_table()
-  {}
+    /**
+      Constructor, used to represent a ANALYZE TABLE statement.
+    */
+    Sql_cmd_analyze_table()
+    {}
 
-  ~Sql_cmd_analyze_table()
-  {}
+    ~Sql_cmd_analyze_table()
+    {}
 
-  bool execute(THD *thd);
+    bool execute(THD *thd);
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_ANALYZE;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_ANALYZE;
+    }
 };
 
 
@@ -54,21 +54,21 @@ public:
 class Sql_cmd_check_table : public Sql_cmd
 {
 public:
-  /**
-    Constructor, used to represent a CHECK TABLE statement.
-  */
-  Sql_cmd_check_table()
-  {}
+    /**
+      Constructor, used to represent a CHECK TABLE statement.
+    */
+    Sql_cmd_check_table()
+    {}
 
-  ~Sql_cmd_check_table()
-  {}
+    ~Sql_cmd_check_table()
+    {}
 
-  bool execute(THD *thd);
+    bool execute(THD *thd);
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_CHECK;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_CHECK;
+    }
 };
 
 
@@ -78,21 +78,21 @@ public:
 class Sql_cmd_optimize_table : public Sql_cmd
 {
 public:
-  /**
-    Constructor, used to represent a OPTIMIZE TABLE statement.
-  */
-  Sql_cmd_optimize_table()
-  {}
+    /**
+      Constructor, used to represent a OPTIMIZE TABLE statement.
+    */
+    Sql_cmd_optimize_table()
+    {}
 
-  ~Sql_cmd_optimize_table()
-  {}
+    ~Sql_cmd_optimize_table()
+    {}
 
-  bool execute(THD *thd);
+    bool execute(THD *thd);
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_OPTIMIZE;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_OPTIMIZE;
+    }
 };
 
 
@@ -103,21 +103,21 @@ public:
 class Sql_cmd_repair_table : public Sql_cmd
 {
 public:
-  /**
-    Constructor, used to represent a REPAIR TABLE statement.
-  */
-  Sql_cmd_repair_table()
-  {}
+    /**
+      Constructor, used to represent a REPAIR TABLE statement.
+    */
+    Sql_cmd_repair_table()
+    {}
 
-  ~Sql_cmd_repair_table()
-  {}
+    ~Sql_cmd_repair_table()
+    {}
 
-  bool execute(THD *thd);
+    bool execute(THD *thd);
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_REPAIR;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_REPAIR;
+    }
 };
 
 #endif

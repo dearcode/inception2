@@ -27,23 +27,24 @@ typedef struct st_mem_root MEM_ROOT;
 
 #define PARSE_FILE_TIMESTAMPLENGTH 19
 
-enum file_opt_type {
-  FILE_OPTIONS_STRING,		/**< String (LEX_STRING) */
-  FILE_OPTIONS_ESTRING,		/**< Escaped string (LEX_STRING) */
-  FILE_OPTIONS_ULONGLONG,	/**< ulonglong parameter (ulonglong) */
-  FILE_OPTIONS_TIMESTAMP,	/**< timestamp (LEX_STRING have to be
+enum file_opt_type
+{
+    FILE_OPTIONS_STRING,		/**< String (LEX_STRING) */
+    FILE_OPTIONS_ESTRING,		/**< Escaped string (LEX_STRING) */
+    FILE_OPTIONS_ULONGLONG,	/**< ulonglong parameter (ulonglong) */
+    FILE_OPTIONS_TIMESTAMP,	/**< timestamp (LEX_STRING have to be
 				   allocated with length 20 (19+1) */
-  FILE_OPTIONS_STRLIST,         /**< list of escaped strings
+    FILE_OPTIONS_STRLIST,         /**< list of escaped strings
                                    (List<LEX_STRING>) */
-  FILE_OPTIONS_ULLLIST          /**< list of ulonglong values
+    FILE_OPTIONS_ULLLIST          /**< list of ulonglong values
                                    (List<ulonglong>) */
 };
 
 struct File_option
 {
-  LEX_STRING name;		/**< Name of the option */
-  int offset;			/**< offset to base address of value */
-  file_opt_type type;		/**< Option type */
+    LEX_STRING name;		/**< Name of the option */
+    int offset;			/**< offset to base address of value */
+    file_opt_type type;		/**< Option type */
 };
 
 
@@ -55,10 +56,10 @@ struct File_option
 class Unknown_key_hook
 {
 public:
-  Unknown_key_hook() {}                       /* Remove gcc warning */
-  virtual ~Unknown_key_hook() {}              /* Remove gcc warning */
-  virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
-                                      MEM_ROOT *mem_root, const char *end)= 0;
+    Unknown_key_hook() {}                       /* Remove gcc warning */
+    virtual ~Unknown_key_hook() {}              /* Remove gcc warning */
+    virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
+                                        MEM_ROOT *mem_root, const char *end)= 0;
 };
 
 
@@ -67,9 +68,9 @@ public:
 class File_parser_dummy_hook: public Unknown_key_hook
 {
 public:
-  File_parser_dummy_hook() {}                 /* Remove gcc warning */
-  virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
-                                      MEM_ROOT *mem_root, const char *end);
+    File_parser_dummy_hook() {}                 /* Remove gcc warning */
+    virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
+                                        MEM_ROOT *mem_root, const char *end);
 };
 
 extern File_parser_dummy_hook file_parser_dummy_hook;
@@ -85,33 +86,42 @@ parse_escaped_string(const char *ptr, const char *end, MEM_ROOT *mem_root,
 
 class File_parser;
 File_parser *sql_parse_prepare(const LEX_STRING *file_name,
-			       MEM_ROOT *mem_root, bool bad_format_errors);
+                               MEM_ROOT *mem_root, bool bad_format_errors);
 
 my_bool
 sql_create_definition_file(const LEX_STRING *dir, const  LEX_STRING *file_name,
-			   const LEX_STRING *type,
-			   uchar* base, File_option *parameters);
+                           const LEX_STRING *type,
+                           uchar* base, File_option *parameters);
 my_bool rename_in_schema_file(THD *thd,
                               const char *schema, const char *old_name,
                               const char *new_db, const char *new_name);
 
 class File_parser: public Sql_alloc
 {
-  const char *start, *end;
-  LEX_STRING file_type;
-  my_bool content_ok;
+    const char *start, *end;
+    LEX_STRING file_type;
+    my_bool content_ok;
 public:
-  File_parser() :start(0), end(0), content_ok(0)
-    { file_type.str= 0; file_type.length= 0; }
+    File_parser() :start(0), end(0), content_ok(0)
+    {
+        file_type.str= 0;
+        file_type.length= 0;
+    }
 
-  my_bool ok() { return content_ok; }
-  const LEX_STRING *type() const { return &file_type; }
-  my_bool parse(uchar* base, MEM_ROOT *mem_root,
-		struct File_option *parameters, uint required,
-                Unknown_key_hook *hook) const;
+    my_bool ok()
+    {
+        return content_ok;
+    }
+    const LEX_STRING *type() const
+    {
+        return &file_type;
+    }
+    my_bool parse(uchar* base, MEM_ROOT *mem_root,
+                  struct File_option *parameters, uint required,
+                  Unknown_key_hook *hook) const;
 
-  friend File_parser *sql_parse_prepare(const LEX_STRING *file_name,
-					MEM_ROOT *mem_root,
-					bool bad_format_errors);
+    friend File_parser *sql_parse_prepare(const LEX_STRING *file_name,
+                                          MEM_ROOT *mem_root,
+                                          bool bad_format_errors);
 };
 #endif /* _PARSE_FILE_H_ */

@@ -29,15 +29,15 @@ Rpl_info_values::Rpl_info_values(int param_ninfo): value(0),
 */
 bool Rpl_info_values::init()
 {
-  DBUG_ENTER("Rpl_info_values::init");
+    DBUG_ENTER("Rpl_info_values::init");
 
-  if (!value && !(value= new String[ninfo]))
-      DBUG_RETURN(TRUE);
+    if (!value && !(value= new String[ninfo]))
+        DBUG_RETURN(TRUE);
 
-  DBUG_RETURN(FALSE);
+    DBUG_RETURN(FALSE);
 }
 
 Rpl_info_values::~Rpl_info_values()
 {
-  delete [] value;
+    delete [] value;
 }

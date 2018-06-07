@@ -22,52 +22,58 @@
 class Item_xml_str_func: public Item_str_func
 {
 protected:
-  String tmp_value, pxml;
-  Item *nodeset_func;
+    String tmp_value, pxml;
+    Item *nodeset_func;
 public:
-  Item_xml_str_func(Item *a, Item *b): 
-    Item_str_func(a,b) 
-  {
-    maybe_null= TRUE;
-  }
-  Item_xml_str_func(Item *a, Item *b, Item *c): 
-    Item_str_func(a,b,c) 
-  {
-    maybe_null= TRUE;
-  }
-  void fix_length_and_dec();
-  String *parse_xml(String *raw_xml, String *parsed_xml_buf);
+    Item_xml_str_func(Item *a, Item *b):
+        Item_str_func(a,b)
+    {
+        maybe_null= TRUE;
+    }
+    Item_xml_str_func(Item *a, Item *b, Item *c):
+        Item_str_func(a,b,c)
+    {
+        maybe_null= TRUE;
+    }
+    void fix_length_and_dec();
+    String *parse_xml(String *raw_xml, String *parsed_xml_buf);
 
 protected:
-  /** 
-    Parse the specified XPATH expression and initialize @c nodeset_func.
+    /**
+      Parse the specified XPATH expression and initialize @c nodeset_func.
 
-    @note This is normally called in resolve phase since we only support
-          constant XPATH expressions, but it may be called upon execution when
-          const value is not yet known at resolve time.
+      @note This is normally called in resolve phase since we only support
+            constant XPATH expressions, but it may be called upon execution when
+            const value is not yet known at resolve time.
 
-    @param xpath_expr XPATH expression to be parsed
-   */
-  void parse_xpath(Item* xpath_expr);
+      @param xpath_expr XPATH expression to be parsed
+     */
+    void parse_xpath(Item* xpath_expr);
 };
 
 
 class Item_func_xml_extractvalue: public Item_xml_str_func
 {
 public:
-  Item_func_xml_extractvalue(Item *a,Item *b) :Item_xml_str_func(a,b) {}
-  const char *func_name() const { return "extractvalue"; }
-  String *val_str(String *);
+    Item_func_xml_extractvalue(Item *a,Item *b) :Item_xml_str_func(a,b) {}
+    const char *func_name() const
+    {
+        return "extractvalue";
+    }
+    String *val_str(String *);
 };
 
 
 class Item_func_xml_update: public Item_xml_str_func
 {
-  String tmp_value2, tmp_value3;
+    String tmp_value2, tmp_value3;
 public:
-  Item_func_xml_update(Item *a,Item *b,Item *c) :Item_xml_str_func(a,b,c) {}
-  const char *func_name() const { return "updatexml"; }
-  String *val_str(String *);
+    Item_func_xml_update(Item *a,Item *b,Item *c) :Item_xml_str_func(a,b,c) {}
+    const char *func_name() const
+    {
+        return "updatexml";
+    }
+    String *val_str(String *);
 };
 
 #endif /* ITEM_XMLFUNC_INCLUDED */

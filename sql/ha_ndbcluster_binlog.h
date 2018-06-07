@@ -34,30 +34,30 @@ extern handlerton *ndbcluster_hton;
 class Ndb_event_data
 {
 public:
-  Ndb_event_data(NDB_SHARE *the_share) :
-    shadow_table(0),
-    share(the_share)
-  {
-    ndb_value[0]= 0;
-    ndb_value[1]= 0;
-  }
-  ~Ndb_event_data()
-  {
-    if (shadow_table)
-      closefrm(shadow_table, 1);
-    shadow_table= 0;
-    free_root(&mem_root, MYF(0));
-    share= 0;
-    /*
-       ndbvalue[] allocated with my_multi_malloc
-       so only first pointer should be freed  
-    */
-    my_free(ndb_value[0], MYF(MY_WME|MY_ALLOW_ZERO_PTR));
-  }
-  MEM_ROOT mem_root;
-  TABLE *shadow_table;
-  NDB_SHARE *share;
-  NdbValue *ndb_value[2];
+    Ndb_event_data(NDB_SHARE *the_share) :
+        shadow_table(0),
+        share(the_share)
+    {
+        ndb_value[0]= 0;
+        ndb_value[1]= 0;
+    }
+    ~Ndb_event_data()
+    {
+        if (shadow_table)
+            closefrm(shadow_table, 1);
+        shadow_table= 0;
+        free_root(&mem_root, MYF(0));
+        share= 0;
+        /*
+           ndbvalue[] allocated with my_multi_malloc
+           so only first pointer should be freed
+        */
+        my_free(ndb_value[0], MYF(MY_WME|MY_ALLOW_ZERO_PTR));
+    }
+    MEM_ROOT mem_root;
+    TABLE *shadow_table;
+    NDB_SHARE *share;
+    NdbValue *ndb_value[2];
 };
 
 /*
@@ -68,26 +68,26 @@ public:
 */
 enum SCHEMA_OP_TYPE
 {
-  SOT_DROP_TABLE= 0,
-  SOT_CREATE_TABLE= 1,
-  SOT_RENAME_TABLE_NEW= 2,
-  SOT_ALTER_TABLE_COMMIT= 3,
-  SOT_DROP_DB= 4,
-  SOT_CREATE_DB= 5,
-  SOT_ALTER_DB= 6,
-  SOT_CLEAR_SLOCK= 7,
-  SOT_TABLESPACE= 8,
-  SOT_LOGFILE_GROUP= 9,
-  SOT_RENAME_TABLE= 10,
-  SOT_TRUNCATE_TABLE= 11,
-  SOT_RENAME_TABLE_PREPARE= 12,
-  SOT_ONLINE_ALTER_TABLE_PREPARE= 13,
-  SOT_ONLINE_ALTER_TABLE_COMMIT= 14,
-  SOT_CREATE_USER= 15,
-  SOT_DROP_USER= 16,
-  SOT_RENAME_USER= 17,
-  SOT_GRANT= 18,
-  SOT_REVOKE= 19
+    SOT_DROP_TABLE= 0,
+    SOT_CREATE_TABLE= 1,
+    SOT_RENAME_TABLE_NEW= 2,
+    SOT_ALTER_TABLE_COMMIT= 3,
+    SOT_DROP_DB= 4,
+    SOT_CREATE_DB= 5,
+    SOT_ALTER_DB= 6,
+    SOT_CLEAR_SLOCK= 7,
+    SOT_TABLESPACE= 8,
+    SOT_LOGFILE_GROUP= 9,
+    SOT_RENAME_TABLE= 10,
+    SOT_TRUNCATE_TABLE= 11,
+    SOT_RENAME_TABLE_PREPARE= 12,
+    SOT_ONLINE_ALTER_TABLE_PREPARE= 13,
+    SOT_ONLINE_ALTER_TABLE_COMMIT= 14,
+    SOT_CREATE_USER= 15,
+    SOT_DROP_USER= 16,
+    SOT_RENAME_USER= 17,
+    SOT_GRANT= 18,
+    SOT_REVOKE= 19
 };
 
 const uint max_ndb_nodes= 256; /* multiple of 32 */
@@ -105,16 +105,16 @@ const uint error_conflict_fn_violation= 9999;
 class Mutex_guard
 {
 public:
-  Mutex_guard(pthread_mutex_t &mutex) : m_mutex(mutex)
-  {
-    pthread_mutex_lock(&m_mutex);
-  };
-  ~Mutex_guard()
-  {
-    pthread_mutex_unlock(&m_mutex);
-  };
+    Mutex_guard(pthread_mutex_t &mutex) : m_mutex(mutex)
+    {
+        pthread_mutex_lock(&m_mutex);
+    };
+    ~Mutex_guard()
+    {
+        pthread_mutex_unlock(&m_mutex);
+    };
 private:
-  pthread_mutex_t &m_mutex;
+    pthread_mutex_t &m_mutex;
 };
 
 
@@ -177,14 +177,14 @@ ndbcluster_get_binlog_replication_info(THD *thd, Ndb *ndb,
                                        Uint32* num_args);
 int
 ndbcluster_apply_binlog_replication_info(THD *thd,
-                                         NDB_SHARE *share,
-                                         const NDBTAB* ndbtab,
-                                         TABLE* table,
-                                         const st_conflict_fn_def* conflict_fn,
-                                         const st_conflict_fn_arg* args,
-                                         Uint32 num_args,
-                                         bool do_set_binlog_flags,
-                                         Uint32 binlog_flags);
+        NDB_SHARE *share,
+        const NDBTAB* ndbtab,
+        TABLE* table,
+        const st_conflict_fn_def* conflict_fn,
+        const st_conflict_fn_arg* args,
+        Uint32 num_args,
+        bool do_set_binlog_flags,
+        Uint32 binlog_flags);
 int
 ndbcluster_read_binlog_replication(THD *thd, Ndb *ndb,
                                    NDB_SHARE *share,
@@ -250,17 +250,17 @@ inline NDB_SHARE *get_share(const char *key,
                             bool create_if_not_exists= TRUE,
                             bool have_lock= FALSE)
 {
-  return ndbcluster_get_share(key, table, create_if_not_exists, have_lock);
+    return ndbcluster_get_share(key, table, create_if_not_exists, have_lock);
 }
 
 inline NDB_SHARE *get_share(NDB_SHARE *share)
 {
-  return ndbcluster_get_share(share);
+    return ndbcluster_get_share(share);
 }
 
 inline void free_share(NDB_SHARE **share, bool have_lock= FALSE)
 {
-  ndbcluster_free_share(share, have_lock);
+    ndbcluster_free_share(share, have_lock);
 }
 
 void set_binlog_flags(NDB_SHARE *share);

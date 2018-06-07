@@ -35,10 +35,11 @@ typedef struct st_schema_table ST_SCHEMA_TABLE;
 struct TABLE;
 typedef struct system_status_var STATUS_VAR;
 
-enum find_files_result {
-  FIND_FILES_OK,
-  FIND_FILES_OOM,
-  FIND_FILES_DIR
+enum find_files_result
+{
+    FIND_FILES_OK,
+    FIND_FILES_OOM,
+    FIND_FILES_DIR
 };
 
 /* Define fields' indexes for COLUMNS table of I_S tables */
@@ -166,10 +167,10 @@ int copy_event_to_schema_table(THD *thd, TABLE *sch_table, TABLE *event_table);
 int get_quote_char_for_identifier(THD *thd, const char *name, uint length);
 
 void append_identifier(THD *thd, String *packet, const char *name,
-		       uint length);
+                       uint length);
 inline void append_identifier(THD *thd, String *packet, Simple_cstring str)
 {
-  append_identifier(thd, packet, str.ptr(), static_cast<uint>(str.length()));
+    append_identifier(thd, packet, str.ptr(), static_cast<uint>(str.length()));
 }
 void mysqld_list_fields(THD *thd,TABLE_LIST *table, const char *wild);
 bool mysqld_show_create(THD *thd, TABLE_LIST *table_list);

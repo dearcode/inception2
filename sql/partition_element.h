@@ -22,24 +22,26 @@
 /**
  * An enum and a struct to handle partitioning and subpartitioning.
  */
-enum partition_type {
-  NOT_A_PARTITION= 0,
-  RANGE_PARTITION,
-  HASH_PARTITION,
-  LIST_PARTITION
+enum partition_type
+{
+    NOT_A_PARTITION= 0,
+    RANGE_PARTITION,
+    HASH_PARTITION,
+    LIST_PARTITION
 };
 
-enum partition_state {
-  PART_NORMAL= 0,
-  PART_IS_DROPPED= 1,
-  PART_TO_BE_DROPPED= 2,
-  PART_TO_BE_ADDED= 3,
-  PART_TO_BE_REORGED= 4,
-  PART_REORGED_DROPPED= 5,
-  PART_CHANGED= 6,
-  PART_IS_CHANGED= 7,
-  PART_IS_ADDED= 8,
-  PART_ADMIN= 9
+enum partition_state
+{
+    PART_NORMAL= 0,
+    PART_IS_DROPPED= 1,
+    PART_TO_BE_DROPPED= 2,
+    PART_TO_BE_ADDED= 3,
+    PART_TO_BE_REORGED= 4,
+    PART_REORGED_DROPPED= 5,
+    PART_CHANGED= 6,
+    PART_IS_CHANGED= 7,
+    PART_IS_ADDED= 8,
+    PART_ADMIN= 9
 };
 
 /*
@@ -61,13 +63,13 @@ enum partition_state {
 
 typedef struct p_column_list_val
 {
-  void* column_value;
-  Item* item_expression;
-  partition_info *part_info;
-  uint partition_id;
-  bool max_value;
-  bool null_value;
-  char fixed;
+    void* column_value;
+    Item* item_expression;
+    partition_info *part_info;
+    uint partition_id;
+    bool max_value;
+    bool null_value;
+    char fixed;
 } part_column_list_val;
 
 
@@ -80,61 +82,62 @@ typedef struct p_column_list_val
 
 typedef struct p_elem_val
 {
-  longlong value;
-  uint added_items;
-  bool null_value;
-  bool unsigned_flag;
-  part_column_list_val *col_val_array;
+    longlong value;
+    uint added_items;
+    bool null_value;
+    bool unsigned_flag;
+    part_column_list_val *col_val_array;
 } part_elem_value;
 
 struct st_ddl_log_memory_entry;
 
-class partition_element :public Sql_alloc {
+class partition_element :public Sql_alloc
+{
 public:
-  List<partition_element> subpartitions;
-  List<part_elem_value> list_val_list;  // list of LIST values/column arrays
-  ha_rows part_max_rows;
-  ha_rows part_min_rows;
-  longlong range_value;
-  char *partition_name;
-  char *tablespace_name;
-  struct st_ddl_log_memory_entry *log_entry;
-  char* part_comment;
-  char* data_file_name;
-  char* index_file_name;
-  handlerton *engine_type;
-  enum partition_state part_state;
-  uint16 nodegroup_id;
-  bool has_null_value;
-  /* signed_flag and max_value only relevant for subpartitions */
-  bool signed_flag;
-  bool max_value;
+    List<partition_element> subpartitions;
+    List<part_elem_value> list_val_list;  // list of LIST values/column arrays
+    ha_rows part_max_rows;
+    ha_rows part_min_rows;
+    longlong range_value;
+    char *partition_name;
+    char *tablespace_name;
+    struct st_ddl_log_memory_entry *log_entry;
+    char* part_comment;
+    char* data_file_name;
+    char* index_file_name;
+    handlerton *engine_type;
+    enum partition_state part_state;
+    uint16 nodegroup_id;
+    bool has_null_value;
+    /* signed_flag and max_value only relevant for subpartitions */
+    bool signed_flag;
+    bool max_value;
 
-  partition_element()
-  : part_max_rows(0), part_min_rows(0), range_value(0),
-    partition_name(NULL), tablespace_name(NULL),
-    log_entry(NULL), part_comment(NULL),
-    data_file_name(NULL), index_file_name(NULL),
-    engine_type(NULL), part_state(PART_NORMAL),
-    nodegroup_id(UNDEF_NODEGROUP), has_null_value(FALSE),
-    signed_flag(FALSE), max_value(FALSE)
-  {
-  }
-  partition_element(partition_element *part_elem)
-  : part_max_rows(part_elem->part_max_rows),
-    part_min_rows(part_elem->part_min_rows),
-    range_value(0), partition_name(NULL),
-    tablespace_name(part_elem->tablespace_name),
-    part_comment(part_elem->part_comment),
-    data_file_name(part_elem->data_file_name),
-    index_file_name(part_elem->index_file_name),
-    engine_type(part_elem->engine_type),
-    part_state(part_elem->part_state),
-    nodegroup_id(part_elem->nodegroup_id),
-    has_null_value(FALSE)
-  {
-  }
-  ~partition_element() {}
+    partition_element()
+        : part_max_rows(0), part_min_rows(0), range_value(0),
+          partition_name(NULL), tablespace_name(NULL),
+          log_entry(NULL), part_comment(NULL),
+          data_file_name(NULL), index_file_name(NULL),
+          engine_type(NULL), part_state(PART_NORMAL),
+          nodegroup_id(UNDEF_NODEGROUP), has_null_value(FALSE),
+          signed_flag(FALSE), max_value(FALSE)
+    {
+    }
+    partition_element(partition_element *part_elem)
+        : part_max_rows(part_elem->part_max_rows),
+          part_min_rows(part_elem->part_min_rows),
+          range_value(0), partition_name(NULL),
+          tablespace_name(part_elem->tablespace_name),
+          part_comment(part_elem->part_comment),
+          data_file_name(part_elem->data_file_name),
+          index_file_name(part_elem->index_file_name),
+          engine_type(part_elem->engine_type),
+          part_state(part_elem->part_state),
+          nodegroup_id(part_elem->nodegroup_id),
+          has_null_value(FALSE)
+    {
+    }
+    ~partition_element() {}
 };
 
 #endif /* PARTITION_ELEMENT_INCLUDED */

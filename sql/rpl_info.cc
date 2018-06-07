@@ -28,52 +28,52 @@ Rpl_info::Rpl_info(const char* type
                    PSI_mutex_key *param_key_info_sleep_cond
 #endif
                    ,uint param_id
-                 )
-  :Slave_reporting_capability(type),
+                  )
+    :Slave_reporting_capability(type),
 #ifdef HAVE_PSI_INTERFACE
-  key_info_run_lock(param_key_info_run_lock),
-  key_info_data_lock(param_key_info_data_lock),
-  key_info_sleep_lock(param_key_info_sleep_lock),
-  key_info_data_cond(param_key_info_data_cond),
-  key_info_start_cond(param_key_info_start_cond),
-  key_info_stop_cond(param_key_info_stop_cond),
-  key_info_sleep_cond(param_key_info_sleep_cond),
+     key_info_run_lock(param_key_info_run_lock),
+     key_info_data_lock(param_key_info_data_lock),
+     key_info_sleep_lock(param_key_info_sleep_lock),
+     key_info_data_cond(param_key_info_data_cond),
+     key_info_start_cond(param_key_info_start_cond),
+     key_info_stop_cond(param_key_info_stop_cond),
+     key_info_sleep_cond(param_key_info_sleep_cond),
 #endif
-  info_thd(0), inited(0), abort_slave(0),
-  slave_running(0), slave_run_id(0),
-  handler(0), internal_id(param_id)
+     info_thd(0), inited(0), abort_slave(0),
+     slave_running(0), slave_run_id(0),
+     handler(0), internal_id(param_id)
 {
 #ifdef HAVE_PSI_INTERFACE
-  mysql_mutex_init(*key_info_run_lock,
-                    &run_lock, MY_MUTEX_INIT_FAST);
-  mysql_mutex_init(*key_info_data_lock,
-                   &data_lock, MY_MUTEX_INIT_FAST);
-  mysql_mutex_init(*key_info_sleep_lock,
-                    &sleep_lock, MY_MUTEX_INIT_FAST);
-  mysql_cond_init(*key_info_data_cond, &data_cond, NULL);
-  mysql_cond_init(*key_info_start_cond, &start_cond, NULL);
-  mysql_cond_init(*key_info_stop_cond, &stop_cond, NULL);
-  mysql_cond_init(*key_info_sleep_cond, &sleep_cond, NULL);
+    mysql_mutex_init(*key_info_run_lock,
+                     &run_lock, MY_MUTEX_INIT_FAST);
+    mysql_mutex_init(*key_info_data_lock,
+                     &data_lock, MY_MUTEX_INIT_FAST);
+    mysql_mutex_init(*key_info_sleep_lock,
+                     &sleep_lock, MY_MUTEX_INIT_FAST);
+    mysql_cond_init(*key_info_data_cond, &data_cond, NULL);
+    mysql_cond_init(*key_info_start_cond, &start_cond, NULL);
+    mysql_cond_init(*key_info_stop_cond, &stop_cond, NULL);
+    mysql_cond_init(*key_info_sleep_cond, &sleep_cond, NULL);
 #else
-  mysql_mutex_init(NULL, &run_lock, MY_MUTEX_INIT_FAST);
-  mysql_mutex_init(NULL, &data_lock, MY_MUTEX_INIT_FAST);
-  mysql_mutex_init(NULL, &sleep_lock, MY_MUTEX_INIT_FAST);
-  mysql_cond_init(NULL, &data_cond, NULL);
-  mysql_cond_init(NULL, &start_cond, NULL);
-  mysql_cond_init(NULL, &stop_cond, NULL);
-  mysql_cond_init(NULL, &sleep_cond, NULL);
+    mysql_mutex_init(NULL, &run_lock, MY_MUTEX_INIT_FAST);
+    mysql_mutex_init(NULL, &data_lock, MY_MUTEX_INIT_FAST);
+    mysql_mutex_init(NULL, &sleep_lock, MY_MUTEX_INIT_FAST);
+    mysql_cond_init(NULL, &data_cond, NULL);
+    mysql_cond_init(NULL, &start_cond, NULL);
+    mysql_cond_init(NULL, &stop_cond, NULL);
+    mysql_cond_init(NULL, &sleep_cond, NULL);
 #endif
 }
 
 Rpl_info::~Rpl_info()
 {
-  delete handler;
+    delete handler;
 
-  mysql_mutex_destroy(&run_lock);
-  mysql_mutex_destroy(&data_lock);
-  mysql_mutex_destroy(&sleep_lock);
-  mysql_cond_destroy(&data_cond);
-  mysql_cond_destroy(&start_cond);
-  mysql_cond_destroy(&stop_cond);
-  mysql_cond_destroy(&sleep_cond);
+    mysql_mutex_destroy(&run_lock);
+    mysql_mutex_destroy(&data_lock);
+    mysql_mutex_destroy(&sleep_lock);
+    mysql_cond_destroy(&data_cond);
+    mysql_cond_destroy(&start_cond);
+    mysql_cond_destroy(&stop_cond);
+    mysql_cond_destroy(&sleep_cond);
 }

@@ -36,9 +36,12 @@
 #include "my_getopt.h"                      /* my_option */
 
 class sys_var;
-enum SHOW_COMP_OPTION { SHOW_OPTION_YES, SHOW_OPTION_NO, SHOW_OPTION_DISABLED};
-enum enum_plugin_load_option { PLUGIN_OFF, PLUGIN_ON, PLUGIN_FORCE,
-  PLUGIN_FORCE_PLUS_PERMANENT };
+enum SHOW_COMP_OPTION
+{ SHOW_OPTION_YES, SHOW_OPTION_NO, SHOW_OPTION_DISABLED};
+enum enum_plugin_load_option
+{ PLUGIN_OFF, PLUGIN_ON, PLUGIN_FORCE,
+  PLUGIN_FORCE_PLUS_PERMANENT
+};
 extern const char *global_plugin_typelib_names[];
 
 #include <my_sys.h>
@@ -85,26 +88,26 @@ typedef struct st_mysql_lex_string LEX_STRING;
 
 struct st_plugin_dl
 {
-  LEX_STRING dl;
-  void *handle;
-  struct st_mysql_plugin *plugins;
-  int version;
-  uint ref_count;            /* number of plugins loaded from the library */
+    LEX_STRING dl;
+    void *handle;
+    struct st_mysql_plugin *plugins;
+    int version;
+    uint ref_count;            /* number of plugins loaded from the library */
 };
 
 /* A handle of a plugin */
 
 struct st_plugin_int
 {
-  LEX_STRING name;
-  struct st_mysql_plugin *plugin;
-  struct st_plugin_dl *plugin_dl;
-  uint state;
-  uint ref_count;               /* number of threads using the plugin */
-  void *data;                   /* plugin type specific, e.g. handlerton */
-  MEM_ROOT mem_root;            /* memory for dynamic plugin structures */
-  sys_var *system_vars;         /* server variables for this plugin */
-  enum enum_plugin_load_option load_option; /* OFF, ON, FORCE, F+PERMANENT */
+    LEX_STRING name;
+    struct st_mysql_plugin *plugin;
+    struct st_plugin_dl *plugin_dl;
+    uint state;
+    uint ref_count;               /* number of threads using the plugin */
+    void *data;                   /* plugin type specific, e.g. handlerton */
+    MEM_ROOT mem_root;            /* memory for dynamic plugin structures */
+    sys_var *system_vars;         /* server variables for this plugin */
+    enum enum_plugin_load_option load_option; /* OFF, ON, FORCE, F+PERMANENT */
 };
 
 

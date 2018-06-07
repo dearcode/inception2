@@ -16,7 +16,8 @@
 #ifndef RPL_SLAVE_H
 #define RPL_SLAVE_H
 
-typedef enum { SLAVE_THD_IO, SLAVE_THD_SQL, SLAVE_THD_WORKER } SLAVE_THD_TYPE;
+typedef enum
+{ SLAVE_THD_IO, SLAVE_THD_SQL, SLAVE_THD_WORKER } SLAVE_THD_TYPE;
 
 /**
   MASTER_DELAY can be at most (1 << 31) - 1.
@@ -33,8 +34,8 @@ typedef enum { SLAVE_THD_IO, SLAVE_THD_SQL, SLAVE_THD_WORKER } SLAVE_THD_TYPE;
   @file
 */
 
-/** 
-   Some of defines are need in parser even though replication is not 
+/**
+   Some of defines are need in parser even though replication is not
    compiled in (embedded).
 */
 
@@ -58,7 +59,7 @@ typedef enum { SLAVE_THD_IO, SLAVE_THD_SQL, SLAVE_THD_WORKER } SLAVE_THD_TYPE;
 #define MTS_WORKER_UNDEF ((ulong) -1)
 #define MTS_MAX_WORKERS  1024
 
-/* 
+/*
    When using tables to store the slave workers bitmaps,
    we use a BLOB field. The maximum size of a BLOB is:
 
@@ -81,11 +82,11 @@ extern bool server_id_supplied;
     I/O Thread - One of these threads is started for each master server.
                  They maintain a connection to their master server, read log
                  events from the master as they arrive, and queues them into
-                 a single, shared relay log file.  A Master_info 
+                 a single, shared relay log file.  A Master_info
                  represents each of these threads.
 
     SQL Thread - One of these threads is started and reads from the relay log
-                 file, executing each event.  A Relay_log_info 
+                 file, executing each event.  A Relay_log_info
                  represents this thread.
 
   Buffering in the relay log file makes it unnecessary to reread events from
@@ -126,7 +127,7 @@ extern bool server_id_supplied;
   In MYSQL_BIN_LOG: LOCK_log, LOCK_index of the binlog and the relay log
   LOCK_log: when you write to it. LOCK_index: when you create/delete a binlog
   (so that you have to update the .index file).
-  
+
   ==== Order of acquisition ====
 
   Here, we list most major functions that acquire multiple locks.
@@ -292,19 +293,19 @@ int terminate_slave_threads(Master_info* mi, int thread_mask,
 */
 int start_slave_thread(
 #ifdef HAVE_PSI_INTERFACE
-                       PSI_thread_key thread_key,
+    PSI_thread_key thread_key,
 #endif
-                       pthread_handler h_func,
-                       mysql_mutex_t *start_lock,
-                       mysql_mutex_t *cond_lock,
-                       mysql_cond_t *start_cond,
-                       volatile uint *slave_running,
-                       volatile ulong *slave_run_id,
-                       Master_info *mi);
+    pthread_handler h_func,
+    mysql_mutex_t *start_lock,
+    mysql_mutex_t *cond_lock,
+    mysql_cond_t *start_cond,
+    volatile uint *slave_running,
+    volatile ulong *slave_run_id,
+    Master_info *mi);
 
 /* retrieve table from master and copy to slave*/
 int fetch_master_table(THD* thd, const char* db_name, const char* table_name,
-		       Master_info* mi, MYSQL* mysql, bool overwrite);
+                       Master_info* mi, MYSQL* mysql, bool overwrite);
 
 bool show_slave_status(THD* thd, Master_info* mi);
 bool rpl_master_has_bug(const Relay_log_info *rli, uint bug_id, bool report,
@@ -344,7 +345,7 @@ extern char *report_host, *report_password;
 extern my_bool master_ssl;
 extern char *master_ssl_ca, *master_ssl_capath, *master_ssl_cert;
 extern char *master_ssl_cipher, *master_ssl_key;
-       
+
 int mts_recovery_groups(Relay_log_info *rli);
 bool mts_checkpoint_routine(Relay_log_info *rli, ulonglong period,
                             bool force, bool need_data_lock);

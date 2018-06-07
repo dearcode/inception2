@@ -27,11 +27,11 @@
 #ifdef HAVE_CRYPTED_FRM
 
 /* password('test') */
-ulong password_seed[2]={0x378b243e, 0x220ca493};
+ulong password_seed[2]= {0x378b243e, 0x220ca493};
 
 SQL_CRYPT *get_crypt_for_frm(void)
 {
-  return new SQL_CRYPT(password_seed);
+    return new SQL_CRYPT(password_seed);
 }
 
 #endif

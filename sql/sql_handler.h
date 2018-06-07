@@ -33,18 +33,18 @@ struct TABLE_LIST;
 class Sql_cmd_handler_open : public Sql_cmd
 {
 public:
-  Sql_cmd_handler_open()
-  {}
+    Sql_cmd_handler_open()
+    {}
 
-  virtual ~Sql_cmd_handler_open()
-  {}
+    virtual ~Sql_cmd_handler_open()
+    {}
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_HA_OPEN;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_HA_OPEN;
+    }
 
-  virtual bool execute(THD *thd);
+    virtual bool execute(THD *thd);
 };
 
 
@@ -59,39 +59,39 @@ public:
 class Sql_cmd_handler_read : public Sql_cmd
 {
 public:
-  Sql_cmd_handler_read(enum_ha_read_modes read_mode,
-                       const char *key_name,
-                       List<Item> *key_expr,
-                       ha_rkey_function rkey_mode)
-    : m_read_mode(read_mode), m_key_name(key_name), m_key_expr(key_expr),
-      m_rkey_mode(rkey_mode)
-  {}
+    Sql_cmd_handler_read(enum_ha_read_modes read_mode,
+                         const char *key_name,
+                         List<Item> *key_expr,
+                         ha_rkey_function rkey_mode)
+        : m_read_mode(read_mode), m_key_name(key_name), m_key_expr(key_expr),
+          m_rkey_mode(rkey_mode)
+    {}
 
-  virtual ~Sql_cmd_handler_read()
-  {}
+    virtual ~Sql_cmd_handler_read()
+    {}
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_HA_READ;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_HA_READ;
+    }
 
-  virtual bool execute(THD *thd);
+    virtual bool execute(THD *thd);
 
 private:
-  /** Read mode for HANDLER READ: FIRST, NEXT, LAST, ... */
-  enum enum_ha_read_modes m_read_mode;
+    /** Read mode for HANDLER READ: FIRST, NEXT, LAST, ... */
+    enum enum_ha_read_modes m_read_mode;
 
-  /**
-    Name of key to be used for reading,
-    NULL in cases when natural row-order is to be used.
-  */
-  const char *m_key_name;
+    /**
+      Name of key to be used for reading,
+      NULL in cases when natural row-order is to be used.
+    */
+    const char *m_key_name;
 
-  /** Key values to be satisfied. */
-  List<Item> *m_key_expr;
+    /** Key values to be satisfied. */
+    List<Item> *m_key_expr;
 
-  /** Type of condition for key values to be satisfied. */
-  enum ha_rkey_function m_rkey_mode;
+    /** Type of condition for key values to be satisfied. */
+    enum ha_rkey_function m_rkey_mode;
 };
 
 
@@ -105,18 +105,18 @@ private:
 class Sql_cmd_handler_close : public Sql_cmd
 {
 public:
-  Sql_cmd_handler_close()
-  {}
+    Sql_cmd_handler_close()
+    {}
 
-  virtual ~Sql_cmd_handler_close()
-  {}
+    virtual ~Sql_cmd_handler_close()
+    {}
 
-  virtual enum_sql_command sql_command_code() const
-  {
-    return SQLCOM_HA_CLOSE;
-  }
+    virtual enum_sql_command sql_command_code() const
+    {
+        return SQLCOM_HA_CLOSE;
+    }
 
-  virtual bool execute(THD *thd);
+    virtual bool execute(THD *thd);
 };
 
 
@@ -130,8 +130,8 @@ typedef bool Log_func(THD*, TABLE*, bool,
                       const uchar*, const uchar*);
 
 int  binlog_log_row(TABLE* table,
-                          const uchar *before_record,
-                          const uchar *after_record,
-                          Log_func *log_func);
+                    const uchar *before_record,
+                    const uchar *after_record,
+                    Log_func *log_func);
 
 #endif /* SQL_HANDLER_INCLUDED */

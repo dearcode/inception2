@@ -26,15 +26,15 @@ class THD;
 
 struct scheduler_functions
 {
-  uint max_threads;
-  bool (*init)(void);
-  bool (*init_new_connection_thread)(void);
-  void (*add_connection)(THD *thd);
-  void (*thd_wait_begin)(THD *thd, int wait_type);
-  void (*thd_wait_end)(THD *thd);
-  void (*post_kill_notification)(THD *thd);
-  bool (*end_thread)(THD *thd, bool cache_thread);
-  void (*end)(void);
+    uint max_threads;
+    bool (*init)(void);
+    bool (*init_new_connection_thread)(void);
+    void (*add_connection)(THD *thd);
+    void (*thd_wait_begin)(THD *thd, int wait_type);
+    void (*thd_wait_end)(THD *thd);
+    void (*post_kill_notification)(THD *thd);
+    bool (*end_thread)(THD *thd, bool cache_thread);
+    void (*end)(void);
 };
 
 
@@ -53,16 +53,16 @@ struct scheduler_functions
 */
 enum scheduler_types
 {
-  /*
-    The default of --thread-handling is the first one in the
-    thread_handling_names array, this array has to be consistent with
-    the order in this array, so to change default one has to change
-    the first entry in this enum and the first entry in the
-    thread_handling_names array.
-  */
-  SCHEDULER_ONE_THREAD_PER_CONNECTION=0,
-  SCHEDULER_NO_THREADS,
-  SCHEDULER_TYPES_COUNT
+    /*
+      The default of --thread-handling is the first one in the
+      thread_handling_names array, this array has to be consistent with
+      the order in this array, so to change default one has to change
+      the first entry in this enum and the first entry in the
+      thread_handling_names array.
+    */
+    SCHEDULER_ONE_THREAD_PER_CONNECTION=0,
+    SCHEDULER_NO_THREADS,
+    SCHEDULER_TYPES_COUNT
 };
 
 void one_thread_per_connection_scheduler();
@@ -74,22 +74,22 @@ void one_thread_scheduler();
 class thd_scheduler
 {
 public:
-  /*
-    Thread instrumentation for the user job.
-    This member holds the instrumentation while the user job is not run
-    by a thread.
+    /*
+      Thread instrumentation for the user job.
+      This member holds the instrumentation while the user job is not run
+      by a thread.
 
-    Note that this member is not conditionally declared
-    (ifdef HAVE_PSI_INTERFACE), because doing so will change the binary
-    layout of THD, which is exposed to plugin code that may be compiled
-    differently.
-  */
-  PSI_thread *m_psi;
+      Note that this member is not conditionally declared
+      (ifdef HAVE_PSI_INTERFACE), because doing so will change the binary
+      layout of THD, which is exposed to plugin code that may be compiled
+      differently.
+    */
+    PSI_thread *m_psi;
 
-  void *data;                  /* scheduler-specific data structure */
+    void *data;                  /* scheduler-specific data structure */
 
-  thd_scheduler();
-  ~thd_scheduler();
+    thd_scheduler();
+    ~thd_scheduler();
 };
 
 void *thd_get_scheduler_data(THD *thd);

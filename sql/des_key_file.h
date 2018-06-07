@@ -23,12 +23,12 @@
 
 struct st_des_keyblock
 {
-  DES_cblock key1, key2, key3;
+    DES_cblock key1, key2, key3;
 };
 
 struct st_des_keyschedule
 {
-  DES_key_schedule ks1, ks2, ks3;
+    DES_key_schedule ks1, ks2, ks3;
 };
 
 extern struct st_des_keyschedule des_keyschedule[10];

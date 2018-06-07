@@ -28,8 +28,8 @@ char *sql_strdup(const char *str);
 char *sql_strmake(const char *str, size_t len);
 void *sql_memdup(const void * ptr, size_t size);
 char *sql_strmake_with_convert(const char *str, size_t arg_length,
-			       const CHARSET_INFO *from_cs,
-			       size_t max_res_length,
-			       const CHARSET_INFO *to_cs, size_t *result_length);
+                               const CHARSET_INFO *from_cs,
+                               size_t max_res_length,
+                               const CHARSET_INFO *to_cs, size_t *result_length);
 
 #endif /* THR_MALLOC_INCLUDED */

@@ -29,39 +29,38 @@ class Item_equal_iterator;
 #include "sql_list.h"
 
 /**
-  Abstract query plan (AQP) is an interface for examining certain aspects of 
-  query plans without accessing mysqld internal classes (JOIN_TAB, SQL_SELECT 
+  Abstract query plan (AQP) is an interface for examining certain aspects of
+  query plans without accessing mysqld internal classes (JOIN_TAB, SQL_SELECT
   etc.) directly.
 
-  AQP maps join execution plans, as represented by mysqld internals, to a set 
+  AQP maps join execution plans, as represented by mysqld internals, to a set
   of facade classes. Non-join operations such as sorting and aggregation is
   currently *not* modelled in the AQP.
 
   The AQP models an n-way join as a sequence of the n table access operations
-  that the MySQL server would execute as part of its nested loop join 
+  that the MySQL server would execute as part of its nested loop join
   execution. (Each such table access operation is a scan of a table or index,
-  or an index lookup.) For each lookup operation, it is possible to examine 
+  or an index lookup.) For each lookup operation, it is possible to examine
   the expression that represents each field in the key.
 
   A storage enging will typically use the AQP for finding sections of a join
-  execution plan that may be executed in the engine rather than in mysqld. By 
+  execution plan that may be executed in the engine rather than in mysqld. By
   using the AQP rather than the mysqld internals directly, the coupling between
   the engine and mysqld is reduced.
 */
-namespace AQP
-{
-  class Table_access;
+namespace AQP {
+class Table_access;
 
-  /**
-    This class represents a query plan for an n-way join, in the form a 
-    sequence of n table access operations that will execute as a nested loop 
-    join.
-  */
-  class Join_plan : public Sql_alloc
-  {
+/**
+  This class represents a query plan for an n-way join, in the form a
+  sequence of n table access operations that will execute as a nested loop
+  join.
+*/
+class Join_plan : public Sql_alloc
+{
     friend class Equal_set_iterator;
     friend class Table_access;
-  public:
+public:
 
     explicit Join_plan(const JOIN* join);
 
@@ -71,8 +70,8 @@ namespace AQP
 
     uint get_access_count() const;
 
-  private:
-    /** 
+private:
+    /**
       Array of the JOIN_TABs that are the internal representation of table
       access operations.
     */
@@ -87,26 +86,28 @@ namespace AQP
     // No copying.
     Join_plan(const Join_plan&);
     Join_plan& operator=(const Join_plan&);
-  }; 
-  // class Join_plan
+};
+// class Join_plan
 
 
-  /**
-    This class is an iterator for iterating over sets of fields (columns) that
-    should have the same value. For example, if the query is
-    SELECT * FROM T1, T2, T3 WHERE T1.b = T2.a AND T2.a = T3.a
-    then there would be such a set of {T1.b, T2.a, T3.a}.
-  */
-  class Equal_set_iterator : public Sql_alloc
-  {
-  public:
+/**
+  This class is an iterator for iterating over sets of fields (columns) that
+  should have the same value. For example, if the query is
+  SELECT * FROM T1, T2, T3 WHERE T1.b = T2.a AND T2.a = T3.a
+  then there would be such a set of {T1.b, T2.a, T3.a}.
+*/
+class Equal_set_iterator : public Sql_alloc
+{
+public:
     explicit Equal_set_iterator(Item_equal& item_equal)
-    : m_iterator(item_equal) {}
+        : m_iterator(item_equal) {}
 
     const Item_field* next()
-    { return m_iterator++; }
+    {
+        return m_iterator++;
+    }
 
-  private:
+private:
     /**
       This class is implemented in terms of this mysqld internal class.
      */
@@ -115,12 +116,12 @@ namespace AQP
     // No copying.
     Equal_set_iterator(const Equal_set_iterator&);
     Equal_set_iterator& operator=(const Equal_set_iterator&);
-  }; 
-  // class Equal_set_iterator
+};
+// class Equal_set_iterator
 
-  /** The type of a table access operation. */
-  enum enum_access_type
-  {
+/** The type of a table access operation. */
+enum enum_access_type
+{
     /** For default initialization.*/
     AT_VOID,
     /** Value has already been fetched / determined by optimizer.*/
@@ -135,7 +136,7 @@ namespace AQP
     AT_MULTI_PRIMARY_KEY,
     /** Do a multi range read for a set of unique index keys.*/
     AT_MULTI_UNIQUE_KEY,
-    /** 
+    /**
       Do a multi range read for a mix of ranges (for which there is an
       ordered index), and either primary keys or unique index keys.
     */
@@ -145,31 +146,31 @@ namespace AQP
     /** Access method will not be chosen before the execution phase.*/
     AT_UNDECIDED,
     /**
-      The access method has properties that prevents it from being pushed to a 
+      The access method has properties that prevents it from being pushed to a
       storage engine.
      */
     AT_OTHER
-  };
+};
 
-  /** The type of join operation require */
-  enum enum_join_type
-  {
+/** The type of join operation require */
+enum enum_join_type
+{
     JT_OUTER_JOIN,
     JT_INNER_JOIN,
     JT_SEMI_JOIN
-  };
+};
 
-  /**
-    This class represents an access operation on a table, such as a table
-    scan, or a scan or lookup via an index. A Table_access object is always
-    owned by a Join_plan object, such that the life time of the Table_access 
-    object ends when the life time of the owning Join_plan object ends.
-   */
-  class Table_access : public Sql_alloc
-  {
+/**
+  This class represents an access operation on a table, such as a table
+  scan, or a scan or lookup via an index. A Table_access object is always
+  owned by a Join_plan object, such that the life time of the Table_access
+  object ends when the life time of the owning Join_plan object ends.
+ */
+class Table_access : public Sql_alloc
+{
     friend class Join_plan;
     friend inline bool equal(const Table_access*, const Table_access*);
-  public:
+public:
 
     const Join_plan* get_join_plan() const;
 
@@ -201,7 +202,7 @@ namespace AQP
 
     bool filesort_before_join() const;
 
-  private:
+private:
 
     /** Backref. to the Join_plan which this Table_access is part of */
     const Join_plan* m_join_plan;
@@ -212,7 +213,7 @@ namespace AQP
     /** The type of this operation.*/
     mutable enum_access_type m_access_type;
 
-    /** 
+    /**
       The reason for getting m_access_type==AT_OTHER. Used for explain extended.
     */
     mutable const char* m_other_access_reason;
@@ -229,77 +230,77 @@ namespace AQP
     /** No copying*/
     Table_access(const Table_access&);
     Table_access& operator=(const Table_access&);
-  }; 
-  // class Table_access
+};
+// class Table_access
 
-  /**
-    Get the n'th table access operation.
-    @param access_no The index of the table access operation to fetch.
-    @return The access_no'th table access operation.
-  */
-  inline const Table_access* Join_plan::get_table_access(uint access_no) const
-  {
+/**
+  Get the n'th table access operation.
+  @param access_no The index of the table access operation to fetch.
+  @return The access_no'th table access operation.
+*/
+inline const Table_access* Join_plan::get_table_access(uint access_no) const
+{
     DBUG_ASSERT(access_no < m_access_count);
     return m_table_accesses + access_no;
-  }
+}
 
-  /**
-     @return The number of table access operations in the nested loop join.
-  */
-  inline uint Join_plan::get_access_count() const
-  { 
+/**
+   @return The number of table access operations in the nested loop join.
+*/
+inline uint Join_plan::get_access_count() const
+{
     return m_access_count;
-  }
+}
 
-  /** Get the Join_plan that this Table_access belongs to.*/
-  inline const Join_plan* Table_access::get_join_plan() const
-  {
+/** Get the Join_plan that this Table_access belongs to.*/
+inline const Join_plan* Table_access::get_join_plan() const
+{
     return m_join_plan;
-  }
+}
 
-  /** Get the type of this operation.*/
-  inline enum_access_type Table_access::get_access_type() const
-  {
+/** Get the type of this operation.*/
+inline enum_access_type Table_access::get_access_type() const
+{
     if (m_access_type == AT_VOID)
-      compute_type_and_index();
+        compute_type_and_index();
     return m_access_type;
-  }
+}
 
-  /** 
-    Get a description of the reason for getting access_type==AT_OTHER. To be 
-    used for informational messages.
-    @return A string that should be assumed to have the same life time as the
-    Table_access object.
-  */
-  inline const char* Table_access::get_other_access_reason() const
-  {
+/**
+  Get a description of the reason for getting access_type==AT_OTHER. To be
+  used for informational messages.
+  @return A string that should be assumed to have the same life time as the
+  Table_access object.
+*/
+inline const char* Table_access::get_other_access_reason() const
+{
     if (m_access_type == AT_VOID)
-      compute_type_and_index();
+        compute_type_and_index();
     return m_other_access_reason;
-  }
+}
 
-  /**
-    @return The number of the index to use for this access operation (
-    or -1 for non-index operations).
-  */
-  inline int Table_access::get_index_no() const
-  {
+/**
+  @return The number of the index to use for this access operation (
+  or -1 for non-index operations).
+*/
+inline int Table_access::get_index_no() const
+{
     if (m_access_type == AT_VOID)
-      compute_type_and_index();
-	
+        compute_type_and_index();
+
     return m_index_no;
-  }
+}
 
-  /** 
-    Get the number of this Table_access within the enclosing Join_plan. 
-    (This number will be in the range 0 to Join_plan::get_access_count() - 1.)
-  */
-  inline uint Table_access::get_access_no() const
-  { 
+/**
+  Get the number of this Table_access within the enclosing Join_plan.
+  (This number will be in the range 0 to Join_plan::get_access_count() - 1.)
+*/
+inline uint Table_access::get_access_no() const
+{
     return m_tab_no;
-  }
+}
 
-}; 
+};
 // namespace AQP
 
 #endif

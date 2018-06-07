@@ -16,9 +16,9 @@ typedef void (*THREAD_FC)(void *);
 
 class NTService
 {
-  public:
+public:
     NTService();
-   ~NTService();
+    ~NTService();
 
     BOOL    bOsNT;	      ///< true if OS is NT, false for Win95
     //install optinos
@@ -46,12 +46,18 @@ class NTService
     DWORD   dwState;
 
     BOOL GetOS();	      // returns TRUE if WinNT
-    BOOL IsNT() { return bOsNT;}
+    BOOL IsNT()
+    {
+        return bOsNT;
+    }
     //init service entry point
     long Init(LPCSTR szInternName,void *ServiceThread);
 
     //application shutdown event
-    void SetShutdownEvent(HANDLE hEvent){ hShutdownEvent=hEvent; }
+    void SetShutdownEvent(HANDLE hEvent)
+    {
+        hShutdownEvent=hEvent;
+    }
 
 
     //service install / un-install
@@ -64,8 +70,8 @@ class NTService
     BOOL got_service_option(char **argv, char *service_option);
     BOOL is_super_user();
 
-    /* 
-      SetRunning() is to be called by the application 
+    /*
+      SetRunning() is to be called by the application
       when initialization completes and it can accept
       stop request
     */
@@ -82,12 +88,12 @@ class NTService
     void SetSlowStarting(unsigned long timeout);
 
     /*
-      Stop() is to be called by the application to stop 
+      Stop() is to be called by the application to stop
       the service
     */
-    void Stop(void); 
+    void Stop(void);
 
-  protected:
+protected:
     LPSTR		   ServiceName;
     HANDLE		   hExitEvent;
     SERVICE_STATUS_HANDLE  hServiceStatusHandle;
@@ -106,8 +112,8 @@ class NTService
 
     void Exit(DWORD error);
     BOOL SetStatus (DWORD dwCurrentState,DWORD dwWin32ExitCode,
-		    DWORD dwServiceSpecificExitCode,
-		    DWORD dwCheckPoint,DWORD dwWaitHint);
+                    DWORD dwServiceSpecificExitCode,
+                    DWORD dwCheckPoint,DWORD dwWaitHint);
 
 };
 /* ------------------------- the end -------------------------------------- */

@@ -37,7 +37,7 @@ extern bool ndb_index_stat_get_enable(THD *thd);
 extern long g_ndb_status_index_stat_cache_query;
 extern long g_ndb_status_index_stat_cache_clean;
 
-void 
+void
 compute_index_bounds(NdbIndexScanOperation::IndexBound & bound,
                      const KEY *key_info,
                      const key_range *start_key, const key_range *end_key,

@@ -14,8 +14,8 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA */
 
 #include "sql_parse.h"                      // check_access,
-                                            // check_merge_table_access
-                                            // check_one_table_access
+// check_merge_table_access
+// check_one_table_access
 #include "sql_table.h"                      // mysql_alter_table, etc.
 #include "sql_cmd.h"                        // Sql_cmd
 #include "sql_alter.h"                      // Sql_cmd_alter_table
@@ -23,7 +23,7 @@
 #include "sql_base.h"                       // open_and_lock_tables, etc
 #include "debug_sync.h"                     // DEBUG_SYNC
 #include "sql_truncate.h"                   // mysql_truncate_table,
-                                            // Sql_cmd_truncate_table
+// Sql_cmd_truncate_table
 #include "sql_admin.h"                      // Sql_cmd_Analyze/Check/.._table
 #include "sql_partition_admin.h"            // Alter_table_*_partition
 #ifdef WITH_PARTITION_STORAGE_ENGINE
@@ -35,11 +35,11 @@
 
 bool Sql_cmd_partition_unsupported::execute(THD *)
 {
-  DBUG_ENTER("Sql_cmd_partition_unsupported::execute");
-  /* error, partitioning support not compiled in... */
-  my_error(ER_FEATURE_DISABLED, MYF(0), "partitioning",
-           "--with-plugin-partition");
-  DBUG_RETURN(TRUE);
+    DBUG_ENTER("Sql_cmd_partition_unsupported::execute");
+    /* error, partitioning support not compiled in... */
+    my_error(ER_FEATURE_DISABLED, MYF(0), "partitioning",
+             "--with-plugin-partition");
+    DBUG_RETURN(TRUE);
 }
 
 #endif /* WITH_PARTITION_STORAGE_ENGINE */

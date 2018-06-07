@@ -372,28 +372,28 @@ class Opt_trace_stmt;           // implementation detail local to opt_trace.cc
 */
 struct Opt_trace_info
 {
-  /**
-     String containing trace.
-     If trace has been end()ed, this is 0-terminated, which is only to aid
-     debugging or unit testing; this property is not relied upon in normal
-     server usage.
-     If trace has not been ended, this is not 0-terminated. That rare case can
-     happen when a substatement reads OPTIMIZER_TRACE (at that stage, the top
-     statement is still executing so its trace is not ended yet, but may still
-     be read by the sub-statement).
-  */
-  const char *trace_ptr;
-  size_t trace_length;                          ///< length of trace string
-  //// String containing original query. 0-termination: like trace_ptr.
-  const char *query_ptr;
-  size_t query_length;                          ///< length of query string
-  const CHARSET_INFO *query_charset;            ///< charset of query string
-  /**
-    How many bytes this trace is missing (for traces which were truncated
-    because of @@@@optimizer-trace-max-mem-size).
-  */
-  size_t missing_bytes;
-  bool missing_priv; ///< whether user lacks privilege to see this trace
+    /**
+       String containing trace.
+       If trace has been end()ed, this is 0-terminated, which is only to aid
+       debugging or unit testing; this property is not relied upon in normal
+       server usage.
+       If trace has not been ended, this is not 0-terminated. That rare case can
+       happen when a substatement reads OPTIMIZER_TRACE (at that stage, the top
+       statement is still executing so its trace is not ended yet, but may still
+       be read by the sub-statement).
+    */
+    const char *trace_ptr;
+    size_t trace_length;                          ///< length of trace string
+    //// String containing original query. 0-termination: like trace_ptr.
+    const char *query_ptr;
+    size_t query_length;                          ///< length of query string
+    const CHARSET_INFO *query_charset;            ///< charset of query string
+    /**
+      How many bytes this trace is missing (for traces which were truncated
+      because of @@@@optimizer-trace-max-mem-size).
+    */
+    size_t missing_bytes;
+    bool missing_priv; ///< whether user lacks privilege to see this trace
 };
 
 
@@ -405,32 +405,35 @@ struct Opt_trace_info
 class Opt_trace_iterator
 {
 public:
-  /**
-    @param  ctx  context
-  */
-  Opt_trace_iterator(Opt_trace_context *ctx);
+    /**
+      @param  ctx  context
+    */
+    Opt_trace_iterator(Opt_trace_context *ctx);
 
-  void next();                           ///< Advances iterator to next trace.
+    void next();                           ///< Advances iterator to next trace.
 
-  /**
-     Provides information about the trace on which the iterator is
-     positioned.
-     @param[out]  info  information returned.
-     The usage pattern is
-     1) instantiate the iterator
-     2) test at_end(), if false: call get_value() and then next()
-     3) repeat (2) until at_end() is true.
-  */
-  void get_value(Opt_trace_info *info) const;
+    /**
+       Provides information about the trace on which the iterator is
+       positioned.
+       @param[out]  info  information returned.
+       The usage pattern is
+       1) instantiate the iterator
+       2) test at_end(), if false: call get_value() and then next()
+       3) repeat (2) until at_end() is true.
+    */
+    void get_value(Opt_trace_info *info) const;
 
-  /// @returns whether iterator is positioned to the end.
-  bool at_end() const { return cursor == NULL; }
+    /// @returns whether iterator is positioned to the end.
+    bool at_end() const
+    {
+        return cursor == NULL;
+    }
 
 private:
-  /// Pointer to context, from which traces are retrieved
-  Opt_trace_context *ctx;
-  const Opt_trace_stmt *cursor; ///< trace which the iterator is positioned on
-  long row_count;               ///< how many traces retrieved so far
+    /// Pointer to context, from which traces are retrieved
+    Opt_trace_context *ctx;
+    const Opt_trace_stmt *cursor; ///< trace which the iterator is positioned on
+    long row_count;               ///< how many traces retrieved so far
 };
 
 
@@ -446,397 +449,402 @@ private:
 class Opt_trace_struct
 {
 protected:
-  /**
-     @param  ctx_arg  Optimizer trace context for this structure
-     @param  requires_key_arg  whether this structure requires/forbids keys
-                      for values put inside it (an object requires them, an
-                      array forbids them)
-     @param  key      key if this structure is the value of a key/value pair,
-                      NULL otherwise. This pointer must remain constant and
-                      valid until the object is destroyed (to support
-                      @ref saved_key).
-     @param  feature  optimizer feature to which this structure belongs
+    /**
+       @param  ctx_arg  Optimizer trace context for this structure
+       @param  requires_key_arg  whether this structure requires/forbids keys
+                        for values put inside it (an object requires them, an
+                        array forbids them)
+       @param  key      key if this structure is the value of a key/value pair,
+                        NULL otherwise. This pointer must remain constant and
+                        valid until the object is destroyed (to support
+                        @ref saved_key).
+       @param  feature  optimizer feature to which this structure belongs
 
-     This constructor is never called directly, only from subclasses.
-  */
-  Opt_trace_struct(Opt_trace_context *ctx_arg, bool requires_key_arg,
-                   const char *key,
-                   Opt_trace_context::feature_value feature) :
-    started(false)
-  {
-    // A first inlined test
-    if (unlikely(ctx_arg->is_started()))
-    {
-      // Tracing enabled: must fully initialize the structure.
-      do_construct(ctx_arg, requires_key_arg, key, feature);
-    }
-    /*
-      Otherwise, just leave "started" to false, it marks that the structure is
-      dummy.
+       This constructor is never called directly, only from subclasses.
     */
-  }
-  ~Opt_trace_struct() { if (unlikely(started)) do_destruct(); }
+    Opt_trace_struct(Opt_trace_context *ctx_arg, bool requires_key_arg,
+                     const char *key,
+                     Opt_trace_context::feature_value feature) :
+        started(false)
+    {
+        // A first inlined test
+        if (unlikely(ctx_arg->is_started())) {
+            // Tracing enabled: must fully initialize the structure.
+            do_construct(ctx_arg, requires_key_arg, key, feature);
+        }
+        /*
+          Otherwise, just leave "started" to false, it marks that the structure is
+          dummy.
+        */
+    }
+    ~Opt_trace_struct()
+    {
+        if (unlikely(started)) do_destruct();
+    }
 
 public:
 
-  /**
-    The exception to RAII: this function is an explicit way of ending a
-    structure before it goes out of scope. Don't use it unless RAII mandates
-    a new scope which mandates re-indenting lots of code lines.
-  */
-  void end() { if (unlikely(started)) do_destruct(); }
+    /**
+      The exception to RAII: this function is an explicit way of ending a
+      structure before it goes out of scope. Don't use it unless RAII mandates
+      a new scope which mandates re-indenting lots of code lines.
+    */
+    void end()
+    {
+        if (unlikely(started)) do_destruct();
+    }
 
-  /**
-     Adds a value (of string type) to the structure. A key is specified, so it
-     adds the key/value pair (the structure must thus be an object).
+    /**
+       Adds a value (of string type) to the structure. A key is specified, so it
+       adds the key/value pair (the structure must thus be an object).
 
-     There are two "add_*" variants to add a string value.
-     If the value is 0-terminated and each character
-     - is ASCII 7-bit
-     - has ASCII code >=32 and is neither '"' nor '\\'
-     then add_alnum() should be used. That should be the case for all fixed
-     strings like add_alnum("cause", "cost").
-     Otherwise, add_utf8() should be used; it accepts any UTF8-encoded
-     character in 'value' and will escape characters which JSON requires (and
-     is thus slower than add_alnum()). It should be used for all strings which
-     we get from the server's objects (indeed a table's name, a WHERE
-     condition, may contain "strange" characters).
+       There are two "add_*" variants to add a string value.
+       If the value is 0-terminated and each character
+       - is ASCII 7-bit
+       - has ASCII code >=32 and is neither '"' nor '\\'
+       then add_alnum() should be used. That should be the case for all fixed
+       strings like add_alnum("cause", "cost").
+       Otherwise, add_utf8() should be used; it accepts any UTF8-encoded
+       character in 'value' and will escape characters which JSON requires (and
+       is thus slower than add_alnum()). It should be used for all strings which
+       we get from the server's objects (indeed a table's name, a WHERE
+       condition, may contain "strange" characters).
 
-     @param  key    key
-     @param  value  value
-     @param  val_length  length of string 'value'
-     @returns a reference to the structure, useful for chaining like this:
-     @verbatim add(x,y).add(z,t).add(u,v) @endverbatim
+       @param  key    key
+       @param  value  value
+       @param  val_length  length of string 'value'
+       @returns a reference to the structure, useful for chaining like this:
+       @verbatim add(x,y).add(z,t).add(u,v) @endverbatim
 
-     String-related add() variants are named add_[something]():
-     - to avoid confusing the compiler between:
-     add(const char *value, size_t    val_length) and
-     add(const char *key,   ulonglong value)
-     - and because String::length() returns uint32 and not size_t, so for
-     add(str.ptr(), str.length())
-     compiler may pick
-     add(const char *key,   double value) instead of
-     add(const char *value, size_t val_length).
-  */
-  Opt_trace_struct& add_alnum(const char *key, const char *value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value, strlen(value), false);
-  }
+       String-related add() variants are named add_[something]():
+       - to avoid confusing the compiler between:
+       add(const char *value, size_t    val_length) and
+       add(const char *key,   ulonglong value)
+       - and because String::length() returns uint32 and not size_t, so for
+       add(str.ptr(), str.length())
+       compiler may pick
+       add(const char *key,   double value) instead of
+       add(const char *value, size_t val_length).
+    */
+    Opt_trace_struct& add_alnum(const char *key, const char *value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value, strlen(value), false);
+    }
 
-  /**
-     Adds a value (of string type) to the structure. No key is specified, so
-     it adds only the value (the structure must thus be an array).
-     @param  value  value
-     @returns a reference to the structure
-  */
-  Opt_trace_struct& add_alnum(const char *value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value, strlen(value), false);
-  }
+    /**
+       Adds a value (of string type) to the structure. No key is specified, so
+       it adds only the value (the structure must thus be an array).
+       @param  value  value
+       @returns a reference to the structure
+    */
+    Opt_trace_struct& add_alnum(const char *value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value, strlen(value), false);
+    }
 
-  /**
-     Like add_alnum() but supports any UTF8 characters in 'value'.
-     Will "escape" 'value' to be JSON-compliant.
-     @param  key
-     @param  value       value
-     @param  val_length  length of string 'value'
-  */
-  Opt_trace_struct& add_utf8(const char *key,
-                             const char *value, size_t val_length)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value, val_length, true);
-  }
+    /**
+       Like add_alnum() but supports any UTF8 characters in 'value'.
+       Will "escape" 'value' to be JSON-compliant.
+       @param  key
+       @param  value       value
+       @param  val_length  length of string 'value'
+    */
+    Opt_trace_struct& add_utf8(const char *key,
+                               const char *value, size_t val_length)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value, val_length, true);
+    }
 
-  /// Variant of add_utf8() for adding to an array (no key)
-  Opt_trace_struct& add_utf8(const char *value, size_t val_length)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value, val_length, true);
-  }
+    /// Variant of add_utf8() for adding to an array (no key)
+    Opt_trace_struct& add_utf8(const char *value, size_t val_length)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value, val_length, true);
+    }
 
-  /// Variant of add_utf8() where 'value' is 0-terminated
-  Opt_trace_struct& add_utf8(const char *key, const char *value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value, strlen(value), true);
-  }
+    /// Variant of add_utf8() where 'value' is 0-terminated
+    Opt_trace_struct& add_utf8(const char *key, const char *value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value, strlen(value), true);
+    }
 
-  /// Variant of add_utf8() where 'value' is 0-terminated
-  Opt_trace_struct& add_utf8(const char *value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value, strlen(value), true);
-  }
+    /// Variant of add_utf8() where 'value' is 0-terminated
+    Opt_trace_struct& add_utf8(const char *value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value, strlen(value), true);
+    }
 
-  /**
-     Add a value (of Item type) to the structure. The Item should be a
-     condition (like a WHERE clause) which will be pretty-printed into the
-     trace. This is useful for showing condition transformations (equality
-     propagation etc).
-     @param  key    key
-     @param  item   the Item
-     @return a reference to the structure
-  */
-  Opt_trace_struct& add(const char *key, Item *item)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, item);
-  }
-  Opt_trace_struct& add(Item *item)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, item);
-  }
+    /**
+       Add a value (of Item type) to the structure. The Item should be a
+       condition (like a WHERE clause) which will be pretty-printed into the
+       trace. This is useful for showing condition transformations (equality
+       propagation etc).
+       @param  key    key
+       @param  item   the Item
+       @return a reference to the structure
+    */
+    Opt_trace_struct& add(const char *key, Item *item)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, item);
+    }
+    Opt_trace_struct& add(Item *item)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, item);
+    }
 public:
-  Opt_trace_struct& add(const char *key, bool value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value);
-  }
-  Opt_trace_struct& add(bool value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value);
-  }
-  Opt_trace_struct& add(const char *key, int value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, static_cast<longlong>(value));
-  }
-  Opt_trace_struct& add(int value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, static_cast<longlong>(value));
-  }
-  Opt_trace_struct& add(const char *key, uint value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, static_cast<ulonglong>(value));
-  }
-  Opt_trace_struct& add(uint value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, static_cast<ulonglong>(value));
-  }
-  Opt_trace_struct& add(const char *key, ulong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, static_cast<ulonglong>(value));
-  }
-  Opt_trace_struct& add(ulong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, static_cast<ulonglong>(value));
-  }
-  Opt_trace_struct& add(const char *key, longlong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value);
-  }
-  Opt_trace_struct& add(longlong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value);
-  }
-  Opt_trace_struct& add(const char *key, ulonglong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value);
-  }
-  Opt_trace_struct& add(ulonglong value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value);
-  }
-  Opt_trace_struct& add(const char *key, double value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(key, value);
-  }
-  Opt_trace_struct& add(double value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add(NULL, value);
-  }
-  /// Adds a 64-bit integer to trace, in hexadecimal format
-  Opt_trace_struct& add_hex(const char *key, uint64 value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add_hex(key, value);
-  }
-  Opt_trace_struct& add_hex(uint64 value)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add_hex(NULL, value);
-  }
-  /// Adds a JSON null object (==Python's "None")
-  Opt_trace_struct& add_null(const char *key)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add_null(key);
-  }
-  /**
-     Helper to put the database/table name in an object.
-     @param  tab  TABLE* pointer
-  */
-  Opt_trace_struct& add_utf8_table(const TABLE *tab)
-  {
-    if (likely(!started))
-      return *this;
-    return do_add_utf8_table(tab);
-  }
-  /**
-     Helper to put the number of select_lex in an object.
-     @param  select_number  number of select_lex
-  */
-  Opt_trace_struct& add_select_number(uint select_number)
-  {
-    return unlikely(select_number >= INT_MAX) ?
-      // Clearer than any huge number.
-      add_alnum("select#", "fake") :
-      add("select#", select_number);
-  }
+    Opt_trace_struct& add(const char *key, bool value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value);
+    }
+    Opt_trace_struct& add(bool value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value);
+    }
+    Opt_trace_struct& add(const char *key, int value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, static_cast<longlong>(value));
+    }
+    Opt_trace_struct& add(int value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, static_cast<longlong>(value));
+    }
+    Opt_trace_struct& add(const char *key, uint value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, static_cast<ulonglong>(value));
+    }
+    Opt_trace_struct& add(uint value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, static_cast<ulonglong>(value));
+    }
+    Opt_trace_struct& add(const char *key, ulong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, static_cast<ulonglong>(value));
+    }
+    Opt_trace_struct& add(ulong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, static_cast<ulonglong>(value));
+    }
+    Opt_trace_struct& add(const char *key, longlong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value);
+    }
+    Opt_trace_struct& add(longlong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value);
+    }
+    Opt_trace_struct& add(const char *key, ulonglong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value);
+    }
+    Opt_trace_struct& add(ulonglong value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value);
+    }
+    Opt_trace_struct& add(const char *key, double value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(key, value);
+    }
+    Opt_trace_struct& add(double value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add(NULL, value);
+    }
+    /// Adds a 64-bit integer to trace, in hexadecimal format
+    Opt_trace_struct& add_hex(const char *key, uint64 value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add_hex(key, value);
+    }
+    Opt_trace_struct& add_hex(uint64 value)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add_hex(NULL, value);
+    }
+    /// Adds a JSON null object (==Python's "None")
+    Opt_trace_struct& add_null(const char *key)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add_null(key);
+    }
+    /**
+       Helper to put the database/table name in an object.
+       @param  tab  TABLE* pointer
+    */
+    Opt_trace_struct& add_utf8_table(const TABLE *tab)
+    {
+        if (likely(!started))
+            return *this;
+        return do_add_utf8_table(tab);
+    }
+    /**
+       Helper to put the number of select_lex in an object.
+       @param  select_number  number of select_lex
+    */
+    Opt_trace_struct& add_select_number(uint select_number)
+    {
+        return unlikely(select_number >= INT_MAX) ?
+               // Clearer than any huge number.
+               add_alnum("select#", "fake") :
+               add("select#", select_number);
+    }
 
-  /**
-    Informs this structure that we are adding data (scalars, structures) to
-    it.
-    This is used only if sending to I_S.
-    @returns whether the structure was empty so far.
-    @note this is reserved for use by Opt_trace_stmt.
-  */
-  bool set_not_empty()
-  {
-    const bool old_empty= empty;
-    empty= false;
-    return old_empty;
-  }
-  /**
-    Validates the key about to be added.
-    @note this is reserved for use by Opt_trace_stmt.
+    /**
+      Informs this structure that we are adding data (scalars, structures) to
+      it.
+      This is used only if sending to I_S.
+      @returns whether the structure was empty so far.
+      @note this is reserved for use by Opt_trace_stmt.
+    */
+    bool set_not_empty()
+    {
+        const bool old_empty= empty;
+        empty= false;
+        return old_empty;
+    }
+    /**
+      Validates the key about to be added.
+      @note this is reserved for use by Opt_trace_stmt.
 
-    When adding a value (or array or object) to an array, or a key/value pair
-    to an object, we need to know this outer array or object.
+      When adding a value (or array or object) to an array, or a key/value pair
+      to an object, we need to know this outer array or object.
 
-    It would be possible, when trying to add a key to an array, which is wrong
-    in JSON, or similarly when trying to add a value without any key to an
-    object, to catch it at compilation time, if the adder received, as
-    function parameter, the type of the structure (like @c
-    Opt_trace_array*). Then the @c add(key,val) call would not compile as
-    Opt_trace_array wouldn't feature it.
+      It would be possible, when trying to add a key to an array, which is wrong
+      in JSON, or similarly when trying to add a value without any key to an
+      object, to catch it at compilation time, if the adder received, as
+      function parameter, the type of the structure (like @c
+      Opt_trace_array*). Then the @c add(key,val) call would not compile as
+      Opt_trace_array wouldn't feature it.
 
-    But as explained in comment of class Opt_trace_context we
-    cannot pass down the object, have to maintain a "current object or
-    array" in the Opt_trace_context context (pointer to an instance of
-    Opt_trace_struct), and the adder grabs it from the context.
+      But as explained in comment of class Opt_trace_context we
+      cannot pass down the object, have to maintain a "current object or
+      array" in the Opt_trace_context context (pointer to an instance of
+      Opt_trace_struct), and the adder grabs it from the context.
 
-    As this current structure is of type "object or array", we cannot do
-    compile-time checks that only suitable functions are used. A call to @c
-    add(key,value) is necessarily legal for the compiler as the structure may
-    be an object, though it will be wrong in case the structure is actually
-    an array at run-time. Thus we have the risk of an untested particular
-    situation where the current structure is not an object (but an array)
-    though the code expected it to be one. This happens in practice, because
-    subqueries are evaluated in many possible places of code, not all of them
-    being known. Same happens, to a lesser extent, with calls to the range
-    optimizer.
-    So at run-time, in check_key(), we detect wrong usage, like adding a value
-    to an object without specifying a key, and then remove the unnecessary
-    key, or add an autogenerated key.
-  */
-  const char *check_key(const char *key);
+      As this current structure is of type "object or array", we cannot do
+      compile-time checks that only suitable functions are used. A call to @c
+      add(key,value) is necessarily legal for the compiler as the structure may
+      be an object, though it will be wrong in case the structure is actually
+      an array at run-time. Thus we have the risk of an untested particular
+      situation where the current structure is not an object (but an array)
+      though the code expected it to be one. This happens in practice, because
+      subqueries are evaluated in many possible places of code, not all of them
+      being known. Same happens, to a lesser extent, with calls to the range
+      optimizer.
+      So at run-time, in check_key(), we detect wrong usage, like adding a value
+      to an object without specifying a key, and then remove the unnecessary
+      key, or add an autogenerated key.
+    */
+    const char *check_key(const char *key);
 
 private:
-  /// Not implemented, use add_alnum() instead.
-  Opt_trace_struct& add(const char *key, const char* value);
-  Opt_trace_struct& add(const char *key);
+    /// Not implemented, use add_alnum() instead.
+    Opt_trace_struct& add(const char *key, const char* value);
+    Opt_trace_struct& add(const char *key);
 
-  /// Full initialization. @sa Opt_trace_struct::Opt_trace_struct
-  void do_construct(Opt_trace_context *ctx,
-                    bool requires_key, const char *key,
-                    Opt_trace_context::feature_value feature);
-  /// Really does destruction
-  void do_destruct();
-  /**
-     Really adds to the object. @sa add().
-     @param  escape  do JSON-compliant escaping of 'value'.
-     @details If 'escape' is false, 'value' should be ASCII. Otherwise, should
-     be UTF8.
-  */
-  Opt_trace_struct& do_add(const char *key, const char *value,
-                           size_t val_length, bool escape);
-  Opt_trace_struct& do_add(const char *key, Item *item);
-  Opt_trace_struct& do_add(const char *key, bool value);
-  Opt_trace_struct& do_add(const char *key, longlong value);
-  Opt_trace_struct& do_add(const char *key, ulonglong value);
-  Opt_trace_struct& do_add(const char *key, double value);
-  Opt_trace_struct& do_add_hex(const char *key, uint64 value);
-  Opt_trace_struct& do_add_null(const char *key);
-  Opt_trace_struct& do_add_utf8_table(const TABLE *tab);
+    /// Full initialization. @sa Opt_trace_struct::Opt_trace_struct
+    void do_construct(Opt_trace_context *ctx,
+                      bool requires_key, const char *key,
+                      Opt_trace_context::feature_value feature);
+    /// Really does destruction
+    void do_destruct();
+    /**
+       Really adds to the object. @sa add().
+       @param  escape  do JSON-compliant escaping of 'value'.
+       @details If 'escape' is false, 'value' should be ASCII. Otherwise, should
+       be UTF8.
+    */
+    Opt_trace_struct& do_add(const char *key, const char *value,
+                             size_t val_length, bool escape);
+    Opt_trace_struct& do_add(const char *key, Item *item);
+    Opt_trace_struct& do_add(const char *key, bool value);
+    Opt_trace_struct& do_add(const char *key, longlong value);
+    Opt_trace_struct& do_add(const char *key, ulonglong value);
+    Opt_trace_struct& do_add(const char *key, double value);
+    Opt_trace_struct& do_add_hex(const char *key, uint64 value);
+    Opt_trace_struct& do_add_null(const char *key);
+    Opt_trace_struct& do_add_utf8_table(const TABLE *tab);
 
-  Opt_trace_struct(const Opt_trace_struct&);            ///< not defined
-  Opt_trace_struct& operator=(const Opt_trace_struct&); ///< not defined
+    Opt_trace_struct(const Opt_trace_struct&);            ///< not defined
+    Opt_trace_struct& operator=(const Opt_trace_struct&); ///< not defined
 
-  bool started; ///< Whether the structure does tracing or is dummy
+    bool started; ///< Whether the structure does tracing or is dummy
 
-  /**
-     Whether the structure requires/forbids keys for values inside it.
-     true: this is an object. false: this is an array.
+    /**
+       Whether the structure requires/forbids keys for values inside it.
+       true: this is an object. false: this is an array.
 
-     @note The canonical way would be to not have such bool per instance, but
-     rather have a pure virtual member function
-     Opt_trace_struct::requires_key(), overloaded by Opt_trace_object
-     (returning true) and by Opt_trace_array (returning false). But
-     Opt_trace_object::requires_key() would not be accessible from
-     Opt_trace_struct::do_construct() (which would complicate coding), whereas
-     the bool is.
-  */
-  bool requires_key;
+       @note The canonical way would be to not have such bool per instance, but
+       rather have a pure virtual member function
+       Opt_trace_struct::requires_key(), overloaded by Opt_trace_object
+       (returning true) and by Opt_trace_array (returning false). But
+       Opt_trace_object::requires_key() would not be accessible from
+       Opt_trace_struct::do_construct() (which would complicate coding), whereas
+       the bool is.
+    */
+    bool requires_key;
 
-  /**
-    Whether this structure caused tracing to be disabled in this statement
-    because belonging to a not-traced optimizer feature, in accordance with
-    the value of @@@@optimizer_trace_features.
-  */
-  bool has_disabled_I_S;
-  bool empty;                                   ///< @see set_not_empty()
-  Opt_trace_stmt *stmt;                        ///< Trace owning the structure
-  /// Key if the structure is the value of a key/value pair, NULL otherwise
-  const char *saved_key;
+    /**
+      Whether this structure caused tracing to be disabled in this statement
+      because belonging to a not-traced optimizer feature, in accordance with
+      the value of @@@@optimizer_trace_features.
+    */
+    bool has_disabled_I_S;
+    bool empty;                                   ///< @see set_not_empty()
+    Opt_trace_stmt *stmt;                        ///< Trace owning the structure
+    /// Key if the structure is the value of a key/value pair, NULL otherwise
+    const char *saved_key;
 #ifndef DBUG_OFF
-  /**
-     Fixed-length prefix of previous key in this structure, if this structure
-     is an object. Serves to detect when adding two same consecutive keys to
-     an object, which would be wrong.
-  */
-  char previous_key[25];
+    /**
+       Fixed-length prefix of previous key in this structure, if this structure
+       is an object. Serves to detect when adding two same consecutive keys to
+       an object, which would be wrong.
+    */
+    char previous_key[25];
 #endif
 };
 
@@ -849,29 +857,29 @@ private:
 class Opt_trace_object: public Opt_trace_struct
 {
 public:
-  /**
-     Constructs an object. Key is specified, so the object is the value of a
-     key/value pair.
-     @param  ctx  context for this object
-     @param  key  key
-     @param  feature  optimizer feature to which this structure belongs
-  */
-  Opt_trace_object(Opt_trace_context *ctx, const char *key,
-                   Opt_trace_context::feature_value feature=
-                   Opt_trace_context::MISC)
-    : Opt_trace_struct(ctx, true, key, feature)
-  {}
-  /**
-     Constructs an object. No key is specified, so the object is just a value
-     (serves for the single root object or for adding the object to an array).
-     @param  ctx  context for this object
-     @param  feature  optimizer feature to which this structure belongs
-  */
-  Opt_trace_object(Opt_trace_context *ctx,
-                   Opt_trace_context::feature_value feature=
-                   Opt_trace_context::MISC)
-    : Opt_trace_struct(ctx, true, NULL, feature)
-  {}
+    /**
+       Constructs an object. Key is specified, so the object is the value of a
+       key/value pair.
+       @param  ctx  context for this object
+       @param  key  key
+       @param  feature  optimizer feature to which this structure belongs
+    */
+    Opt_trace_object(Opt_trace_context *ctx, const char *key,
+                     Opt_trace_context::feature_value feature=
+                         Opt_trace_context::MISC)
+        : Opt_trace_struct(ctx, true, key, feature)
+    {}
+    /**
+       Constructs an object. No key is specified, so the object is just a value
+       (serves for the single root object or for adding the object to an array).
+       @param  ctx  context for this object
+       @param  feature  optimizer feature to which this structure belongs
+    */
+    Opt_trace_object(Opt_trace_context *ctx,
+                     Opt_trace_context::feature_value feature=
+                         Opt_trace_context::MISC)
+        : Opt_trace_struct(ctx, true, NULL, feature)
+    {}
 };
 
 
@@ -883,29 +891,29 @@ public:
 class Opt_trace_array: public Opt_trace_struct
 {
 public:
-  /**
-     Constructs an array. Key is specified, so the array is the value of a
-     key/value pair.
-     @param  ctx  context for this array
-     @param  key  key
-     @param  feature  optimizer feature to which this structure belongs
-  */
-  Opt_trace_array(Opt_trace_context *ctx, const char *key,
-                  Opt_trace_context::feature_value feature=
-                  Opt_trace_context::MISC)
-    : Opt_trace_struct(ctx, false, key, feature)
-  {}
-  /**
-     Constructs an array. No key is specified, so the array is just a value
-     (serves for adding the object to an array).
-     @param  ctx  context for this array
-     @param  feature  optimizer feature to which this structure belongs
-  */
-  Opt_trace_array(Opt_trace_context *ctx,
-                  Opt_trace_context::feature_value feature=
-                  Opt_trace_context::MISC)
-    : Opt_trace_struct(ctx, false, NULL, feature)
-  {}
+    /**
+       Constructs an array. Key is specified, so the array is the value of a
+       key/value pair.
+       @param  ctx  context for this array
+       @param  key  key
+       @param  feature  optimizer feature to which this structure belongs
+    */
+    Opt_trace_array(Opt_trace_context *ctx, const char *key,
+                    Opt_trace_context::feature_value feature=
+                        Opt_trace_context::MISC)
+        : Opt_trace_struct(ctx, false, key, feature)
+    {}
+    /**
+       Constructs an array. No key is specified, so the array is just a value
+       (serves for adding the object to an array).
+       @param  ctx  context for this array
+       @param  feature  optimizer feature to which this structure belongs
+    */
+    Opt_trace_array(Opt_trace_context *ctx,
+                    Opt_trace_context::feature_value feature=
+                        Opt_trace_context::MISC)
+        : Opt_trace_struct(ctx, false, NULL, feature)
+    {}
 };
 
 
@@ -919,60 +927,58 @@ public:
 class Opt_trace_disable_I_S
 {
 public:
-  /**
-     @param  ctx_arg      Context.
-     @param  disable_arg  Whether the instance should really disable
-                          anything. If false, the object is dummy. If true,
-                          tracing-to-I_S is disabled at construction and
-                          re-enabled at destruction.
-     @details A dummy instance is there only for RAII reasons. Imagine we want
-     to do this:
-@verbatim
-     {
-       if (x) disable tracing;
-       code;
-     } // tracing should be re-enabled here
-@endverbatim
-     As we use RAII, we cannot put the instance declaration inside if(x):
-@verbatim
-     {
-       if (x) Opt_trace_disable_I_S instance(ctx);
-       code;
-     }
-@endverbatim
-     because it would be destroyed as soon as the if() block is left, so
-     tracing would be re-enabled before @c code;. It should rather be written
-     as:
-@verbatim
-     {
-       Opt_trace_disable_I_S instance(ctx, x); // if !x, does nothing
-       code;
-     } // re-enabling happens here, if x is true
-@endverbatim
-  */
-  Opt_trace_disable_I_S(Opt_trace_context *ctx_arg, bool disable_arg)
-  {
-    if (disable_arg)
+    /**
+       @param  ctx_arg      Context.
+       @param  disable_arg  Whether the instance should really disable
+                            anything. If false, the object is dummy. If true,
+                            tracing-to-I_S is disabled at construction and
+                            re-enabled at destruction.
+       @details A dummy instance is there only for RAII reasons. Imagine we want
+       to do this:
+    @verbatim
+       {
+         if (x) disable tracing;
+         code;
+       } // tracing should be re-enabled here
+    @endverbatim
+       As we use RAII, we cannot put the instance declaration inside if(x):
+    @verbatim
+       {
+         if (x) Opt_trace_disable_I_S instance(ctx);
+         code;
+       }
+    @endverbatim
+       because it would be destroyed as soon as the if() block is left, so
+       tracing would be re-enabled before @c code;. It should rather be written
+       as:
+    @verbatim
+       {
+         Opt_trace_disable_I_S instance(ctx, x); // if !x, does nothing
+         code;
+       } // re-enabling happens here, if x is true
+    @endverbatim
+    */
+    Opt_trace_disable_I_S(Opt_trace_context *ctx_arg, bool disable_arg)
     {
-      ctx= ctx_arg;
-      ctx->disable_I_S_for_this_and_children();
+        if (disable_arg) {
+            ctx= ctx_arg;
+            ctx->disable_I_S_for_this_and_children();
+        } else
+            ctx= NULL;
     }
-    else
-      ctx= NULL;
-  }
 
-  /// Destructor. Restores trace's "enabled" property to its previous value.
-  ~Opt_trace_disable_I_S()
-  {
-    if (ctx != NULL)
-      ctx->restore_I_S();
-  }
+    /// Destructor. Restores trace's "enabled" property to its previous value.
+    ~Opt_trace_disable_I_S()
+    {
+        if (ctx != NULL)
+            ctx->restore_I_S();
+    }
 
 private:
-  /** Context. Non-NULL if and only if this instance really does disabling */
-  Opt_trace_context *ctx;
-  Opt_trace_disable_I_S(const Opt_trace_disable_I_S&); // not defined
-  Opt_trace_disable_I_S& operator=(const Opt_trace_disable_I_S&);//not defined
+    /** Context. Non-NULL if and only if this instance really does disabling */
+    Opt_trace_context *ctx;
+    Opt_trace_disable_I_S(const Opt_trace_disable_I_S&); // not defined
+    Opt_trace_disable_I_S& operator=(const Opt_trace_disable_I_S&);//not defined
 };
 
 
@@ -1008,16 +1014,16 @@ private:
 class Opt_trace_start
 {
 public:
-  Opt_trace_start(THD *thd_arg, TABLE_LIST *tbl,
-                  enum enum_sql_command sql_command,
-                  List<set_var_base> *set_vars,
-                  const char *query, size_t query_length,
-                  sp_printable *instr,
-                  const CHARSET_INFO *query_charset);
-  ~Opt_trace_start();
+    Opt_trace_start(THD *thd_arg, TABLE_LIST *tbl,
+                    enum enum_sql_command sql_command,
+                    List<set_var_base> *set_vars,
+                    const char *query, size_t query_length,
+                    sp_printable *instr,
+                    const CHARSET_INFO *query_charset);
+    ~Opt_trace_start();
 private:
-  Opt_trace_context * const ctx;
-  bool error; ///< whether trace start() had an error
+    Opt_trace_context * const ctx;
+    bool error; ///< whether trace start() had an error
 };
 
 
@@ -1087,7 +1093,7 @@ void opt_trace_disable_if_no_security_context_access(THD *thd);
    @param underlying_tables underlying tables/views of 'view'
  */
 void opt_trace_disable_if_no_view_access(THD *thd, TABLE_LIST *view,
-                                         TABLE_LIST *underlying_tables);
+        TABLE_LIST *underlying_tables);
 
 /**
   If tracing is on, checks additional privileges on a stored routine, to make
@@ -1124,81 +1130,157 @@ int fill_optimizer_trace_info(THD *thd, TABLE_LIST *tables, Item *cond);
 class Opt_trace_object
 {
 public:
-  Opt_trace_object(Opt_trace_context *ctx, const char *key,
-                   Opt_trace_context::feature_value feature=
-                   Opt_trace_context::MISC)
-  {}
-  Opt_trace_object(Opt_trace_context *ctx,
-                   Opt_trace_context::feature_value feature=
-                   Opt_trace_context::MISC)
-  {}
-  Opt_trace_object& add_alnum(const char *key, const char *value)
-  { return *this; }
-  Opt_trace_object& add_utf8(const char *key,
-                             const char *value, size_t val_length)
-  { return *this; }
-  Opt_trace_object& add_utf8(const char *key, const char *value)
-  { return *this; }
-  Opt_trace_object& add(const char *key, Item *item) { return *this; }
-  Opt_trace_object& add(const char *key, bool value) { return *this; }
-  Opt_trace_object& add(const char *key, int value) { return *this; }
-  Opt_trace_object& add(const char *key, uint value) { return *this; }
-  Opt_trace_object& add(const char *key, ulong value) { return *this; }
-  Opt_trace_object& add(const char *key, longlong value) { return *this; }
-  Opt_trace_object& add(const char *key, ulonglong value) { return *this; }
-  Opt_trace_object& add(const char *key, double value) { return *this; }
-  Opt_trace_object& add_hex(const char *key, uint64 value) { return *this; }
-  Opt_trace_object& add_utf8_table(const TABLE *tab) { return *this; }
-  Opt_trace_object& add_select_number(uint select_number) { return *this; }
-  void end() {}
+    Opt_trace_object(Opt_trace_context *ctx, const char *key,
+                     Opt_trace_context::feature_value feature=
+                         Opt_trace_context::MISC)
+    {}
+    Opt_trace_object(Opt_trace_context *ctx,
+                     Opt_trace_context::feature_value feature=
+                         Opt_trace_context::MISC)
+    {}
+    Opt_trace_object& add_alnum(const char *key, const char *value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add_utf8(const char *key,
+                               const char *value, size_t val_length)
+    {
+        return *this;
+    }
+    Opt_trace_object& add_utf8(const char *key, const char *value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, Item *item)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, bool value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, int value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, uint value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, ulong value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, longlong value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, ulonglong value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add(const char *key, double value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add_hex(const char *key, uint64 value)
+    {
+        return *this;
+    }
+    Opt_trace_object& add_utf8_table(const TABLE *tab)
+    {
+        return *this;
+    }
+    Opt_trace_object& add_select_number(uint select_number)
+    {
+        return *this;
+    }
+    void end() {}
 };
 
 /** Empty implementation used when optimizer trace is not compiled in */
 class Opt_trace_array
 {
 public:
-  Opt_trace_array(Opt_trace_context *ctx, const char *key,
-                  Opt_trace_context::feature_value feature=
-                  Opt_trace_context::MISC)
-  {}
-  Opt_trace_array(Opt_trace_context *ctx,
-                  Opt_trace_context::feature_value feature=
-                  Opt_trace_context::MISC)
-  {}
-  Opt_trace_array& add_alnum(const char *value) { return *this; }
-  Opt_trace_array& add_utf8(const char *value, size_t val_length)
-  { return *this; }
-  Opt_trace_array& add_utf8(const char *value)
-  { return *this; }
-  Opt_trace_array& add(Item *item) { return *this; }
-  Opt_trace_array& add(bool value) { return *this; }
-  Opt_trace_array& add(int value) { return *this; }
-  Opt_trace_array& add(uint value) { return *this; }
-  Opt_trace_array& add(longlong value) { return *this; }
-  Opt_trace_array& add(ulonglong value) { return *this; }
-  Opt_trace_array& add(double value) { return *this; }
-  Opt_trace_array& add_hex(uint64 value) { return *this; }
-  Opt_trace_array& add_utf8_table(TABLE *tab) { return *this; }
-  Opt_trace_array& add_select_number(uint select_number) { return *this; }
-  void end() {}
+    Opt_trace_array(Opt_trace_context *ctx, const char *key,
+                    Opt_trace_context::feature_value feature=
+                        Opt_trace_context::MISC)
+    {}
+    Opt_trace_array(Opt_trace_context *ctx,
+                    Opt_trace_context::feature_value feature=
+                        Opt_trace_context::MISC)
+    {}
+    Opt_trace_array& add_alnum(const char *value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add_utf8(const char *value, size_t val_length)
+    {
+        return *this;
+    }
+    Opt_trace_array& add_utf8(const char *value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(Item *item)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(bool value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(int value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(uint value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(longlong value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(ulonglong value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add(double value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add_hex(uint64 value)
+    {
+        return *this;
+    }
+    Opt_trace_array& add_utf8_table(TABLE *tab)
+    {
+        return *this;
+    }
+    Opt_trace_array& add_select_number(uint select_number)
+    {
+        return *this;
+    }
+    void end() {}
 };
 
 /** Empty implementation used when optimizer trace is not compiled in */
 class Opt_trace_disable_I_S
 {
 public:
-  Opt_trace_disable_I_S(Opt_trace_context *ctx_arg, bool disable_arg) {}
+    Opt_trace_disable_I_S(Opt_trace_context *ctx_arg, bool disable_arg) {}
 };
 
 class Opt_trace_start
 {
 public:
-  Opt_trace_start(THD *thd, const TABLE_LIST *tbl,
-                  enum enum_sql_command sql_command,
-                  List<set_var_base> *set_vars,
-                  const char *query, size_t query_length,
-                  sp_printable *instr,
-                  const CHARSET_INFO *query_charset) {}
+    Opt_trace_start(THD *thd, const TABLE_LIST *tbl,
+                    enum enum_sql_command sql_command,
+                    List<set_var_base> *set_vars,
+                    const char *query, size_t query_length,
+                    sp_printable *instr,
+                    const CHARSET_INFO *query_charset) {}
 };
 
 #define opt_trace_print_expanded_query(thd, select_lex, trace_object) \

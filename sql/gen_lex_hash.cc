@@ -19,10 +19,10 @@
 
   @details
 @verbatim
-The idea of presented algorithm see in 
+The idea of presented algorithm see in
 "The Art of Computer Programming" by Donald E. Knuth
 Volume 3 "Sorting and searching"
-(chapter 6.3 "Digital searching" - name and number of chapter 
+(chapter 6.3 "Digital searching" - name and number of chapter
    is back translation from Russian edition :))
 
 as illustration of data structures, imagine next table:
@@ -70,7 +70,7 @@ So, we can read full search-structure as 32-bit word
 @endverbatim
 
 @todo
-    use instead to_upper_lex, special array 
+    use instead to_upper_lex, special array
     (substitute chars) without skip codes..
 @todo
     try use reverse order of comparing..
@@ -89,87 +89,83 @@ So, we can read full search-structure as 32-bit word
 
 struct hash_lex_struct
 {
-  int first_char;
-  char last_char;
-  union{
-    hash_lex_struct *char_tails;
-    int iresult;
-  };
-  int ithis;
+    int first_char;
+    char last_char;
+    union {
+        hash_lex_struct *char_tails;
+        int iresult;
+    };
+    int ithis;
 };
 
 hash_lex_struct *get_hash_struct_by_len(hash_lex_struct **root_by_len,
-					    int len, int *max_len)
+                                        int len, int *max_len)
 {
-  if (*max_len<len){
-    *root_by_len= (hash_lex_struct *)realloc((char*)*root_by_len,
-                                             sizeof(hash_lex_struct)*len);
-    hash_lex_struct *cur, *end= *root_by_len + len;
-    for (cur= *root_by_len + *max_len; cur<end; cur++)
-      cur->first_char= 0;
-    *max_len= len;
-  }
-  return (*root_by_len)+(len-1);
+    if (*max_len<len) {
+        *root_by_len= (hash_lex_struct *)realloc((char*)*root_by_len,
+                      sizeof(hash_lex_struct)*len);
+        hash_lex_struct *cur, *end= *root_by_len + len;
+        for (cur= *root_by_len + *max_len; cur<end; cur++)
+            cur->first_char= 0;
+        *max_len= len;
+    }
+    return (*root_by_len)+(len-1);
 }
 
-void insert_into_hash(hash_lex_struct *root, const char *name, 
-		      int len_from_begin, int index, int function)
+void insert_into_hash(hash_lex_struct *root, const char *name,
+                      int len_from_begin, int index, int function)
 {
-  hash_lex_struct *end, *cur, *tails;
+    hash_lex_struct *end, *cur, *tails;
 
-  if (!root->first_char)
-  {
-    root->first_char= -1;
-    root->iresult= index;
-    return;
-  }
+    if (!root->first_char) {
+        root->first_char= -1;
+        root->iresult= index;
+        return;
+    }
 
-  if (root->first_char == -1)
-  {
-    int index2= root->iresult;
-    const char *name2= (index2 < 0 ? sql_functions[-index2-1] :
-			symbols[index2]).name + len_from_begin;
-    root->first_char= (int) (uchar) name2[0];
-    root->last_char= (char) root->first_char;
-    tails= (hash_lex_struct*)malloc(sizeof(hash_lex_struct));
-    root->char_tails= tails;
-    tails->first_char= -1;
-    tails->iresult= index2;
-  }
+    if (root->first_char == -1) {
+        int index2= root->iresult;
+        const char *name2= (index2 < 0 ? sql_functions[-index2-1] :
+                            symbols[index2]).name + len_from_begin;
+        root->first_char= (int) (uchar) name2[0];
+        root->last_char= (char) root->first_char;
+        tails= (hash_lex_struct*)malloc(sizeof(hash_lex_struct));
+        root->char_tails= tails;
+        tails->first_char= -1;
+        tails->iresult= index2;
+    }
 
-  size_t real_size= (root->last_char-root->first_char+1);
+    size_t real_size= (root->last_char-root->first_char+1);
 
-  if (root->first_char>(*name))
-  {
-    size_t new_size= root->last_char-(*name)+1;
-    if (new_size<real_size) printf("error!!!!\n");
-    tails= root->char_tails;
-    tails= (hash_lex_struct*)realloc((char*)tails,
-				       sizeof(hash_lex_struct)*new_size);
-    root->char_tails= tails;
-    memmove(tails+(new_size-real_size),tails,real_size*sizeof(hash_lex_struct));
-    end= tails + new_size - real_size;
-    for (cur= tails; cur<end; cur++)
-      cur->first_char= 0;
-    root->first_char= (int) (uchar) *name;
-  }
+    if (root->first_char>(*name)) {
+        size_t new_size= root->last_char-(*name)+1;
+        if (new_size<real_size) printf("error!!!!\n");
+        tails= root->char_tails;
+        tails= (hash_lex_struct*)realloc((char*)tails,
+                                         sizeof(hash_lex_struct)*new_size);
+        root->char_tails= tails;
+        memmove(tails+(new_size-real_size),tails,real_size*sizeof(hash_lex_struct));
+        end= tails + new_size - real_size;
+        for (cur= tails; cur<end; cur++)
+            cur->first_char= 0;
+        root->first_char= (int) (uchar) *name;
+    }
 
-  if (root->last_char<(*name))
-  {
-    size_t new_size= (*name)-root->first_char+1;
-    if (new_size<real_size) printf("error!!!!\n");
-    tails= root->char_tails;
-    tails= (hash_lex_struct*)realloc((char*)tails,
-				    sizeof(hash_lex_struct)*new_size);
-    root->char_tails= tails;
-    end= tails + new_size;
-    for (cur= tails+real_size; cur<end; cur++)
-      cur->first_char= 0;
-    root->last_char= (*name);
-  }
+    if (root->last_char<(*name)) {
+        size_t new_size= (*name)-root->first_char+1;
+        if (new_size<real_size) printf("error!!!!\n");
+        tails= root->char_tails;
+        tails= (hash_lex_struct*)realloc((char*)tails,
+                                         sizeof(hash_lex_struct)*new_size);
+        root->char_tails= tails;
+        end= tails + new_size;
+        for (cur= tails+real_size; cur<end; cur++)
+            cur->first_char= 0;
+        root->last_char= (*name);
+    }
 
-  insert_into_hash(root->char_tails+(*name)-root->first_char,
-		   name+1,len_from_begin+1,index,function);
+    insert_into_hash(root->char_tails+(*name)-root->first_char,
+                     name+1,len_from_begin+1,index,function);
 }
 
 
@@ -181,52 +177,51 @@ int max_len2=0;
 
 void insert_symbols()
 {
-  size_t i= 0;
-  SYMBOL *cur;
-  for (cur= symbols; i<array_elements(symbols); cur++, i++){
-    hash_lex_struct *root= 
-      get_hash_struct_by_len(&root_by_len,cur->length,&max_len);
-    insert_into_hash(root,cur->name,0,(uint) i,0);
-  }
+    size_t i= 0;
+    SYMBOL *cur;
+    for (cur= symbols; i<array_elements(symbols); cur++, i++) {
+        hash_lex_struct *root=
+            get_hash_struct_by_len(&root_by_len,cur->length,&max_len);
+        insert_into_hash(root,cur->name,0,(uint) i,0);
+    }
 }
 
 void insert_sql_functions()
 {
-  int i= 0;
-  SYMBOL *cur;
-  for (cur= sql_functions; i < (int) array_elements(sql_functions); cur++, i++)
-  {
-    hash_lex_struct *root= 
-      get_hash_struct_by_len(&root_by_len,cur->length,&max_len);
-    insert_into_hash(root,cur->name,0,-i-1,1);
-  }
+    int i= 0;
+    SYMBOL *cur;
+    for (cur= sql_functions; i < (int) array_elements(sql_functions); cur++, i++) {
+        hash_lex_struct *root=
+            get_hash_struct_by_len(&root_by_len,cur->length,&max_len);
+        insert_into_hash(root,cur->name,0,-i-1,1);
+    }
 }
 
 void calc_length()
 {
-  SYMBOL *cur, *end= symbols + array_elements(symbols);
-  for (cur= symbols; cur < end; cur++)
-    cur->length=(uchar) strlen(cur->name);
-  end= sql_functions + array_elements(sql_functions);
-  for (cur= sql_functions; cur<end; cur++)
-    cur->length=(uchar) strlen(cur->name);
+    SYMBOL *cur, *end= symbols + array_elements(symbols);
+    for (cur= symbols; cur < end; cur++)
+        cur->length=(uchar) strlen(cur->name);
+    end= sql_functions + array_elements(sql_functions);
+    for (cur= sql_functions; cur<end; cur++)
+        cur->length=(uchar) strlen(cur->name);
 }
 
 void generate_find_structs()
 {
-  root_by_len= 0;
-  max_len=0;
+    root_by_len= 0;
+    max_len=0;
 
-  insert_symbols();
+    insert_symbols();
 
-  root_by_len2= root_by_len;
-  max_len2= max_len;
+    root_by_len2= root_by_len;
+    max_len2= max_len;
 
-  root_by_len= 0;
-  max_len= 0;
+    root_by_len= 0;
+    max_len= 0;
 
-  insert_symbols();
-  insert_sql_functions();
+    insert_symbols();
+    insert_sql_functions();
 }
 
 char *hash_map= 0;
@@ -234,138 +229,131 @@ int size_hash_map= 0;
 
 void add_struct_to_map(hash_lex_struct *st)
 {
-  st->ithis= size_hash_map/4;
-  size_hash_map+= 4;
-  hash_map= (char*)realloc((char*)hash_map,size_hash_map);
-  hash_map[size_hash_map-4]= (char) (st->first_char == -1 ? 0 :
-				     st->first_char);
-  hash_map[size_hash_map-3]= (char) (st->first_char == -1 ||
-				     st->first_char == 0 ? 0 : st->last_char);
-  if (st->first_char == -1)
-  {
-    hash_map[size_hash_map-2]= ((unsigned int)(int16)st->iresult)&255;
-    hash_map[size_hash_map-1]= ((unsigned int)(int16)st->iresult)>>8;
-  }
-  else if (st->first_char == 0)
-  {
-    hash_map[size_hash_map-2]= ((unsigned int)(int16)array_elements(symbols))&255;
-    hash_map[size_hash_map-1]= ((unsigned int)(int16)array_elements(symbols))>>8;
-  }
+    st->ithis= size_hash_map/4;
+    size_hash_map+= 4;
+    hash_map= (char*)realloc((char*)hash_map,size_hash_map);
+    hash_map[size_hash_map-4]= (char) (st->first_char == -1 ? 0 :
+                                       st->first_char);
+    hash_map[size_hash_map-3]= (char) (st->first_char == -1 ||
+                                       st->first_char == 0 ? 0 : st->last_char);
+    if (st->first_char == -1) {
+        hash_map[size_hash_map-2]= ((unsigned int)(int16)st->iresult)&255;
+        hash_map[size_hash_map-1]= ((unsigned int)(int16)st->iresult)>>8;
+    } else if (st->first_char == 0) {
+        hash_map[size_hash_map-2]= ((unsigned int)(int16)array_elements(symbols))&255;
+        hash_map[size_hash_map-1]= ((unsigned int)(int16)array_elements(symbols))>>8;
+    }
 }
 
 
 void add_structs_to_map(hash_lex_struct *st, int len)
 {
-  hash_lex_struct *cur, *end= st+len;
-  for (cur= st; cur<end; cur++)
-    add_struct_to_map(cur);
-  for (cur= st; cur<end; cur++)
-  {
-    if (cur->first_char && cur->first_char != -1)
-      add_structs_to_map(cur->char_tails,cur->last_char-cur->first_char+1);
-  }
+    hash_lex_struct *cur, *end= st+len;
+    for (cur= st; cur<end; cur++)
+        add_struct_to_map(cur);
+    for (cur= st; cur<end; cur++) {
+        if (cur->first_char && cur->first_char != -1)
+            add_structs_to_map(cur->char_tails,cur->last_char-cur->first_char+1);
+    }
 }
 
 void set_links(hash_lex_struct *st, int len)
 {
-  hash_lex_struct *cur, *end= st+len;
-  for (cur= st; cur<end; cur++)
-  {
-    if (cur->first_char != 0 && cur->first_char != -1)
-    {
-      int ilink= cur->char_tails->ithis;
-      hash_map[cur->ithis*4+2]= ilink%256;
-      hash_map[cur->ithis*4+3]= ilink/256;
-      set_links(cur->char_tails,cur->last_char-cur->first_char+1);
+    hash_lex_struct *cur, *end= st+len;
+    for (cur= st; cur<end; cur++) {
+        if (cur->first_char != 0 && cur->first_char != -1) {
+            int ilink= cur->char_tails->ithis;
+            hash_map[cur->ithis*4+2]= ilink%256;
+            hash_map[cur->ithis*4+3]= ilink/256;
+            set_links(cur->char_tails,cur->last_char-cur->first_char+1);
+        }
     }
-  }
 }
 
 
 void print_hash_map(const char *name)
 {
-  char *cur;
-  int i;
+    char *cur;
+    int i;
 
-  printf("static uchar %s[%d]= {\n",name,size_hash_map);
-  for (i=0, cur= hash_map; i<size_hash_map; i++, cur++)
-  {
-    switch(i%4){
-    case 0: case 1:
-      if (!*cur)
-	printf("0,   ");
-      else
-	printf("\'%c\', ",*cur);
-      break;
-    case 2: printf("%u, ",(uint)(uchar)*cur); break;
-    case 3: printf("%u,\n",(uint)(uchar)*cur); break;
+    printf("static uchar %s[%d]= {\n",name,size_hash_map);
+    for (i=0, cur= hash_map; i<size_hash_map; i++, cur++) {
+        switch(i%4) {
+        case 0:
+        case 1:
+            if (!*cur)
+                printf("0,   ");
+            else
+                printf("\'%c\', ",*cur);
+            break;
+        case 2:
+            printf("%u, ",(uint)(uchar)*cur);
+            break;
+        case 3:
+            printf("%u,\n",(uint)(uchar)*cur);
+            break;
+        }
     }
-  }
-  printf("};\n");
+    printf("};\n");
 }
 
 
 void print_find_structs()
 {
-  add_structs_to_map(root_by_len,max_len);
-  set_links(root_by_len,max_len);
-  print_hash_map("sql_functions_map");
+    add_structs_to_map(root_by_len,max_len);
+    set_links(root_by_len,max_len);
+    print_hash_map("sql_functions_map");
 
-  hash_map= 0;
-  size_hash_map= 0;
+    hash_map= 0;
+    size_hash_map= 0;
 
-  printf("\n");
+    printf("\n");
 
-  add_structs_to_map(root_by_len2,max_len2);
-  set_links(root_by_len2,max_len2);
-  print_hash_map("symbols_map");
+    add_structs_to_map(root_by_len2,max_len2);
+    set_links(root_by_len2,max_len2);
+    print_hash_map("symbols_map");
 }
 
 int check_dup_symbols(SYMBOL *s1, SYMBOL *s2)
 {
-  if (s1->length!=s2->length || strncmp(s1->name,s2->name,s1->length))
-    return 0;
+    if (s1->length!=s2->length || strncmp(s1->name,s2->name,s1->length))
+        return 0;
 
-  const char *err_tmpl= "\ngen_lex_hash fatal error : \
+    const char *err_tmpl= "\ngen_lex_hash fatal error : \
 Unfortunately gen_lex_hash can not generate a hash,\n since \
 your lex.h has duplicate definition for a symbol \"%s\"\n\n";
-  printf (err_tmpl,s1->name);
-  fprintf (stderr,err_tmpl,s1->name);
+    printf (err_tmpl,s1->name);
+    fprintf (stderr,err_tmpl,s1->name);
 
-  return 1;
+    return 1;
 }
 
 
 int check_duplicates()
 {
-  SYMBOL *cur1, *cur2, *s_end, *f_end;
+    SYMBOL *cur1, *cur2, *s_end, *f_end;
 
-  s_end= symbols + array_elements(symbols);
-  f_end= sql_functions + array_elements(sql_functions);
+    s_end= symbols + array_elements(symbols);
+    f_end= sql_functions + array_elements(sql_functions);
 
-  for (cur1= symbols; cur1<s_end; cur1++)
-  {
-    for (cur2= cur1+1; cur2<s_end; cur2++)
-    {
-      if (check_dup_symbols(cur1,cur2))
-	return 1;
+    for (cur1= symbols; cur1<s_end; cur1++) {
+        for (cur2= cur1+1; cur2<s_end; cur2++) {
+            if (check_dup_symbols(cur1,cur2))
+                return 1;
+        }
+        for (cur2= sql_functions; cur2<f_end; cur2++) {
+            if (check_dup_symbols(cur1,cur2))
+                return 1;
+        }
     }
-    for (cur2= sql_functions; cur2<f_end; cur2++)
-    {
-      if (check_dup_symbols(cur1,cur2))
-	return 1;
-    }
-  }
 
-  for (cur1= sql_functions; cur1<f_end; cur1++)
-  {
-    for (cur2= cur1+1; cur2< f_end; cur2++)
-    {
-      if (check_dup_symbols(cur1,cur2))
-	return 1;
+    for (cur1= sql_functions; cur1<f_end; cur1++) {
+        for (cur2= cur1+1; cur2< f_end; cur2++) {
+            if (check_dup_symbols(cur1,cur2))
+                return 1;
+        }
     }
-  }
-  return 0;
+    return 0;
 }
 
 
@@ -373,30 +361,30 @@ int main(int argc,char **argv)
 {
 
 
-  /* Broken up to indicate that it's not advice to you, gentle reader. */
-  printf("/*\n\n  Do " "not " "edit " "this " "file " "directly!\n\n*/\n");
+    /* Broken up to indicate that it's not advice to you, gentle reader. */
+    printf("/*\n\n  Do " "not " "edit " "this " "file " "directly!\n\n*/\n");
 
-  puts("/*");
-  puts(ORACLE_WELCOME_COPYRIGHT_NOTICE("2000"));
-  puts("*/");
+    puts("/*");
+    puts(ORACLE_WELCOME_COPYRIGHT_NOTICE("2000"));
+    puts("*/");
 
-  /* Broken up to indicate that it's not advice to you, gentle reader. */
-  printf("/* Do " "not " "edit " "this " "file!  This is generated by "
-         "gen_lex_hash.cc\nthat seeks for a perfect hash function */\n\n");
-  printf("#include \"lex.h\"\n\n");
+    /* Broken up to indicate that it's not advice to you, gentle reader. */
+    printf("/* Do " "not " "edit " "this " "file!  This is generated by "
+           "gen_lex_hash.cc\nthat seeks for a perfect hash function */\n\n");
+    printf("#include \"lex.h\"\n\n");
 
-  calc_length();
+    calc_length();
 
-  if (check_duplicates())
-    exit(1);
+    if (check_duplicates())
+        exit(1);
 
-  generate_find_structs();
-  print_find_structs();
+    generate_find_structs();
+    print_find_structs();
 
-  printf("\nstatic unsigned int sql_functions_max_len=%d;\n", max_len);
-  printf("\nstatic unsigned int symbols_max_len=%d;\n\n", max_len2);
+    printf("\nstatic unsigned int sql_functions_max_len=%d;\n", max_len);
+    printf("\nstatic unsigned int symbols_max_len=%d;\n\n", max_len2);
 
-  printf("\
+    printf("\
 SYMBOL *get_hash_symbol(const char *s,\n\
                                unsigned int len,bool function)\n\
 {\n\
@@ -407,9 +395,9 @@ SYMBOL *get_hash_symbol(const char *s,\n\
     DBUG_PRINT(\"warning\", (\"get_hash_symbol() received a request for a zero-length symbol, which is probably a mistake.\"));\
     return(NULL);\n\
   }\n"
-);
+          );
 
-  printf("\
+    printf("\
   if (function){\n\
     if (len>sql_functions_max_len) return 0;\n\
     hash_map= sql_functions_map;\n\
@@ -441,9 +429,9 @@ SYMBOL *get_hash_symbol(const char *s,\n\
                         (((uint16)cur_struct + cur_char - first_char)*4));\n\
       cur_str++;\n\
     }\n"
-);
+          );
 
-  printf("\
+    printf("\
   }else{\n\
     if (len>symbols_max_len) return 0;\n\
     hash_map= symbols_map;\n\
@@ -472,7 +460,7 @@ SYMBOL *get_hash_symbol(const char *s,\n\
     }\n\
   }\n\
 }\n"
-);
-  exit(0);
+          );
+    exit(0);
 }
 
