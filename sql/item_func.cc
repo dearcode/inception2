@@ -4903,12 +4903,16 @@ bool Item_func_set_user_var::is_null_result()
 }
 
 // just the assignment, for use in "SET @a:=5" type self-prints
-void Item_func_set_user_var::print_assignment(String *str,
-        enum_query_type query_type)
+void Item_func_set_user_var::print_assignment(String *str, enum_query_type query_type)
 {
     str->append(STRING_WITH_LEN("@"));
     str->append(name);
     str->append(STRING_WITH_LEN(":="));
+    args[0]->print(str, query_type);
+}
+
+void Item_func_set_user_var::print_value(String *str, enum_query_type query_type)
+{
     args[0]->print(str, query_type);
 }
 

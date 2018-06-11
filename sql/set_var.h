@@ -290,13 +290,14 @@ class set_var_user: public set_var_base
 {
     Item_func_set_user_var *user_var_item;
 public:
-    set_var_user(Item_func_set_user_var *item)
-        :user_var_item(item)
-    {}
+    set_var_user(Item_func_set_user_var *item) :user_var_item(item) {}
+
     int check(THD *thd);
     int update(THD *thd);
     int light_check(THD *thd);
     void print(THD *thd, String *str);	/* To self-print */
+    const char *key();
+    void value(String *str);
 };
 
 /* For SET PASSWORD */

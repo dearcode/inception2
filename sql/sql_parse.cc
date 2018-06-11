@@ -958,7 +958,8 @@ bool dispatch_command(enum enum_server_command command, THD * thd, char *packet,
     inc_thread_running();
 
     switch (command) {
-    case COM_QUERY: {
+    case COM_INIT_DB:
+    case COM_QUERY:{
         if (alloc_query(thd, packet, packet_length))
             break;
 
@@ -973,8 +974,7 @@ bool dispatch_command(enum enum_server_command command, THD * thd, char *packet,
 
         mysql_parse(thd, thd->query_length(), &parser_state);
 
-        while (!thd->killed && (parser_state.m_lip.found_semicolon != NULL) && !thd->is_error()
-                && !thd->parse_error) {
+        while (!thd->killed && (parser_state.m_lip.found_semicolon != NULL) && !thd->is_error() && !thd->parse_error) {
             char *beginning_of_next_stmt = (char *)parser_state.m_lip.found_semicolon;
 
             /* Finalize server status flags after executing a statement. */
@@ -995,14 +995,14 @@ bool dispatch_command(enum enum_server_command command, THD * thd, char *packet,
             mysql_clear_execute_env(thd);
 
         break;
-    }
-
+                   }
     case COM_QUIT:
         thd->get_stmt_da()->disable_status();	// Don't send anything back
         error = TRUE;	// End server
         break;
 
     default: {
+        printf("command:%d ER_NOT_SUPPORTED_YET\n", command);
         my_error(ER_NOT_SUPPORTED_YET, MYF(0));
     }
     }
@@ -3843,7 +3843,7 @@ int mysql_check_select(THD * thd)
     DBUG_ENTER("mysql_check_select");
 
     if (inception_get_type(thd) == INCEPTION_TYPE_SPLIT) {
-        DBUG_RETURN(false);
+        DBUG_RETURN(FALSE);
     }
 
     if (thd->lex->select_lex.where == NULL) {
@@ -3851,7 +3851,9 @@ int mysql_check_select(THD * thd)
             Item *m_expr_item;
             m_expr_item = thd->lex->select_lex.item_list.head();
             if (dynamic_cast < Item_func_database * >(m_expr_item)) {
-                DBUG_RETURN(FALSE);
+                Item_func_database  *expr =   (Item_func_database *)m_expr_item;
+                printf("name:%s\n", expr->full_name());
+                DBUG_RETURN(TRUE);
             }
 
         }
@@ -6652,6 +6654,60 @@ int mysql_check_item(THD * thd, Item * item, st_select_lex * select_lex)
     return 0;
 }
 
+int mysql_process_set_option(THD * thd)
+{
+    int error;
+
+    DBUG_ENTER("mysql_process_set_option");
+
+    List_iterator_fast < set_var_base > it(thd->lex->var_list);
+
+    set_var_base *var;
+    while ((var = it++)) {
+        //DBA执行的语句，需要设置的，只支持set names ...语句
+        if (dynamic_cast < set_var_user * >(var)) {
+            set_var_user *user_var = (set_var_user *)var;
+
+            String vals;
+            user_var->value(&vals);
+
+            const char *val = vals.ptr();
+            size_t len = vals.length();
+
+            for (size_t i =0; i < len && (val[i] == '\'' || val[i] == '\"'); i++ ) {
+                    val++;
+                    len--;
+            }
+
+            for (size_t i =len - 1; i > 0 && (val[i] == '\'' || val[i] == '\"'); i-- ) {
+                len--;
+            }
+
+            if (!strcmp( user_var->key(), "user")) {
+                memcpy(thd->thd_sinfo->user, val, sizeof(thd->thd_sinfo->user) < len?sizeof(thd->thd_sinfo->user):len);
+            }else if (!strcmp(user_var->key(), "password")) {
+                memcpy(thd->thd_sinfo->password, val, sizeof(thd->thd_sinfo->password) < len?sizeof(thd->thd_sinfo->password):len);
+            } else if (!strcmp(user_var->key(), "host")) {
+                memcpy(thd->thd_sinfo->host, val, sizeof(thd->thd_sinfo->host) < len?sizeof(thd->thd_sinfo->host):len);
+            } else if (!strcmp(user_var->key(), "port")) {
+                thd->thd_sinfo->port = atoi(val);
+            } else if (!strcmp(user_var->key(), "check")) {
+                if (!strcmp(val, "1")) {
+                    thd->thd_sinfo->optype = INCEPTION_TYPE_CHECK;
+                }
+            }
+
+            printf("user:%s, password:%s, host:%s, port:%d, check:%d\n", thd->thd_sinfo->user, thd->thd_sinfo->password, thd->thd_sinfo->host, thd->thd_sinfo->port, thd->thd_sinfo->check);
+            vals.free();
+        } else {
+            my_error(ER_WRONG_ARGUMENTS, MYF(0), "SET");
+            mysql_errmsg_append(thd);
+        }
+    }
+
+    DBUG_RETURN(FALSE);
+}
+
 int mysql_check_command(THD * thd)
 {
     int err;
@@ -6666,7 +6722,7 @@ int mysql_check_command(THD * thd)
     lex->first_lists_tables_same();
     thd->timestamp_count = 0;
 
-    if (!mysql_not_need_data_source(thd)) {
+    if ( !mysql_not_need_data_source(thd)) {
         if (thd->lex->sql_command == SQLCOM_INSERT || thd->lex->sql_command == SQLCOM_INSERT_SELECT) {
             /* Skip first table, which is the table we are inserting in */
             TABLE_LIST *second_table = first_table->next_local;
@@ -6676,6 +6732,8 @@ int mysql_check_command(THD * thd)
         //clear
         str_truncate(&thd->ddl_rollback, str_get_len(&thd->ddl_rollback));
     }
+
+    printf("comand:%d\n", thd->lex->sql_command);
 
     thd_sql_statistic_increment(thd, 0);
     switch (thd->lex->sql_command) {
@@ -6740,6 +6798,7 @@ int mysql_check_command(THD * thd)
     case SQLCOM_DROP_TABLE:
         err = mysql_check_drop_table(thd);
         break;
+
 
     default:
         my_error(ER_NOT_SUPPORTED_YET, MYF(0));
@@ -9945,6 +10004,9 @@ int mysql_show_print_and_execute_simple(THD * thd)
     DBUG_RETURN(res);
 }
 
+
+
+//TODO 以后删除了这个函数，现在不确定是否有其它用途.
 int mysql_parse_and_check_valid(THD * thd, Parser_state * parser_state)
 {
     DBUG_ENTER("mysql_parse_and_check_valid");
@@ -10007,12 +10069,42 @@ int mysql_check_after_parse(THD * thd)
     DBUG_RETURN(FALSE);
 }
 
+
 int mysql_process_command(THD * thd, Parser_state * parser_state)
 {
     int err;
 
     DBUG_ENTER("mysql_process_command");
 
+    if (parse_sql(thd, parser_state, NULL)) {
+        thd->parse_error = TRUE;
+        mysql_errmsg_append(thd);
+        DBUG_RETURN(TRUE);
+    }
+
+    switch (thd->lex->sql_command) {
+    case SQLCOM_INCEPTION_START:
+        DBUG_RETURN(mysql_init_sql_cache(thd));
+
+    case SQLCOM_INCEPTION_COMMIT:
+        DBUG_RETURN(mysql_execute_commit(thd));
+
+    case SQLCOM_SET_OPTION:
+        if (!thd->have_begin) {
+            mysql_process_set_option(thd);
+        }
+    default:
+        if (thd->have_begin) {
+            DBUG_RETURN(mysql_check_command(thd));
+        }
+        break;
+    }
+
+    DBUG_RETURN(FALSE);
+
+
+
+    /*
     if ((err = mysql_parse_and_check_valid(thd, parser_state)) != FALSE)
         DBUG_RETURN(err);
 
@@ -10024,8 +10116,8 @@ int mysql_process_command(THD * thd, Parser_state * parser_state)
 
     if (inception_get_type(thd) == INCEPTION_TYPE_PRINT)
         DBUG_RETURN(mysql_print_command(thd));
+        */
 
-    DBUG_RETURN(mysql_check_command(thd));
 }
 
 /*
@@ -10048,8 +10140,7 @@ void mysql_parse(THD * thd, uint length, Parser_state * parser_state)
     int err;
     DBUG_ENTER("mysql_parse");
 
-    DBUG_EXECUTE_IF("parser_debug", turn_parser_debug_on();
-                   );
+    DBUG_EXECUTE_IF("parser_debug", turn_parser_debug_on(););
 
     lex_start(thd);
     mysql_reset_thd_for_next_command(thd);

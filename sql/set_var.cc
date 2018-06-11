@@ -710,6 +710,16 @@ int set_var_user::update(THD *thd)
 }
 
 
+const char *set_var_user::key()
+{
+    return user_var_item->name.ptr();
+}
+
+void set_var_user::value(String *str)
+{
+    user_var_item->print_value(str, QT_ORDINARY);
+}
+
 void set_var_user::print(THD *thd, String *str)
 {
     user_var_item->print_assignment(str, QT_ORDINARY);

@@ -594,22 +594,19 @@ bool String::replace(uint32 offset,uint32 arg_length,const String &to)
     return replace(offset,arg_length,to.ptr(),to.length());
 }
 
-bool String::replace(uint32 offset,uint32 arg_length,
-                     const char *to, uint32 to_length)
+bool String::replace(uint32 offset,uint32 arg_length, const char *to, uint32 to_length)
 {
     long diff = (long) to_length-(long) arg_length;
     if (offset+arg_length <= str_length) {
         if (diff < 0) {
             if (to_length)
                 memcpy(Ptr+offset,to,to_length);
-            bmove(Ptr+offset+to_length,Ptr+offset+arg_length,
-                  str_length-offset-arg_length);
+            bmove(Ptr+offset+to_length,Ptr+offset+arg_length, str_length-offset-arg_length);
         } else {
             if (diff) {
                 if (realloc(str_length+(uint32) diff))
                     return TRUE;
-                bmove_upp((uchar*) Ptr+str_length+diff, (uchar*) Ptr+str_length,
-                          str_length-offset-arg_length);
+                bmove_upp((uchar*) Ptr+str_length+diff, (uchar*) Ptr+str_length, str_length-offset-arg_length);
             }
             if (to_length)
                 memcpy(Ptr+offset,to,to_length);
