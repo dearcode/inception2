@@ -1083,23 +1083,23 @@ bool THD::init_audit_connection()
 
 MYSQL* THD::get_audit_connection()
 {
+        //如果没连接过，直接连接，返回
     if (!audit_conn_inited) {
         if (init_audit_connection() == FALSE)
             return NULL;
-        else
-            return &audit_conn.mysql;
-    } else if (!strcmp(audit_conn.user, thd_sinfo->user)
-               && !strcmp(audit_conn.passwd, thd_sinfo->password)
-               && !strcmp(audit_conn.host, thd_sinfo->host)
-               && audit_conn.port == thd_sinfo->port) {
         return &audit_conn.mysql;
-    } else {
-        mysql_close(&audit_conn.mysql);
-        if (init_audit_connection() == FALSE)
-            return NULL;
-        else
-            return &audit_conn.mysql;
     }
+
+    //如果连接过，变更了用户名、密码或者ip端口信息都没变化，就直接返回.
+    if (!strcmp(audit_conn.user, thd_sinfo->user) && !strcmp(audit_conn.passwd, thd_sinfo->password) && !strcmp(audit_conn.host, thd_sinfo->host) && audit_conn.port == thd_sinfo->port) {
+        return &audit_conn.mysql;
+    }
+
+    //有变化就关了重新连接.
+    mysql_close(&audit_conn.mysql);
+    if (init_audit_connection() == FALSE)
+            return NULL;
+    return &audit_conn.mysql;
 }
 
 bool THD::init_backup_connection()

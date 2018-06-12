@@ -3762,6 +3762,10 @@ int mysql_check_update(THD * thd)
 
     if (thd->lex->sql_command == SQLCOM_UPDATE_MULTI) {
         for (table = thd->lex->query_tables; table; table = table->next_global) {
+            if (table->table_name && *table->table_name == '*'){
+                continue;
+            }
+
             table_info = mysql_get_table_object(thd, table->db, table->table_name, TRUE);
             if (table_info == NULL) {
                 tablenotexisted = true;
@@ -4401,7 +4405,6 @@ int mysql_check_create_index(THD * thd)
         }
 
         if (keymaxlen > MAX_KEY_LENGTH) {
-            printf("v222222222222222\n");
             my_error(ER_TOO_LONG_KEY, MYF(0), key->name.str, MAX_KEY_LENGTH);
             mysql_errmsg_append(thd);
         }
@@ -5589,6 +5592,9 @@ int mysql_load_tables(THD * thd, rt_lst_t * rt_lst, st_select_lex * select_lex)
     tables = &select_lex->table_list;
 
     for (table = tables->first; table; table = table->next_local) {
+        if (table->table_name && *table->table_name == '*'){
+            continue;
+        }
         tableinfo = mysql_get_table_object(thd, table->db, table->table_name, TRUE);
         //如果有自连接，或者在不同层次使用了同一个表，那么以上层主准
         if (tableinfo) {
@@ -9588,8 +9594,7 @@ int mysql_get_remote_variables(THD * thd)
     if (mysql == NULL)
         DBUG_RETURN(ER_NO);
 
-    sprintf(set_format, "show variables where \
-        Variable_name in ('explicit_defaults_for_timestamp', 'sql_mode');");
+    sprintf(set_format, "show variables where Variable_name in ('explicit_defaults_for_timestamp', 'sql_mode');");
     if (mysql_real_query(mysql, set_format, strlen(set_format))) {
         my_message(mysql_errno(mysql), mysql_error(mysql), MYF(0));
         DBUG_RETURN(ER_NO);
