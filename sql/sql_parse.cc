@@ -10193,11 +10193,7 @@ Add a table to list of used tables.
 \# Pointer to TABLE_LIST element added to the total table list
 */
 
-TABLE_LIST *st_select_lex::add_table_to_list(THD * thd,
-        Table_ident * table,
-        LEX_STRING * alias,
-        ulong table_options,
-        thr_lock_type lock_type, enum_mdl_type mdl_type, List < Index_hint > *index_hints_arg, List < String > *partition_names, LEX_STRING * option)
+TABLE_LIST *st_select_lex::add_table_to_list(THD * thd, Table_ident * table, LEX_STRING * alias, ulong table_options, thr_lock_type lock_type, enum_mdl_type mdl_type, List < Index_hint > *index_hints_arg, List < String > *partition_names, LEX_STRING * option)
 {
     register TABLE_LIST *ptr;
     TABLE_LIST *previous_table_ref;	/* The table preceding the current one. */
@@ -10310,6 +10306,7 @@ TABLE_LIST *st_select_lex::add_table_to_list(THD * thd,
 #endif				/* WITH_PARTITION_STORAGE_ENGINE */
     /* Link table in global list (all used tables) */
     lex->add_to_query_tables(ptr);
+    printf("db:%s, table:%s\n", ptr->db, ptr->table_name);
 
     // Pure table aliases do not need to be locked:
     if (!test(table_options & TL_OPTION_ALIAS)) {

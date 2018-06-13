@@ -27,8 +27,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301  USA
 #include "sql_base.h"   // open_table_uncached, lock_table_names
 #include "lock.h"       // mysql_unlock_tables
 #include "strfunc.h"    // find_type2, find_set
-#include "sql_view.h" // view_checksum 
-#include "sql_truncate.h"                       // regenerate_locked_table 
+#include "sql_view.h" // view_checksum
+#include "sql_truncate.h"                       // regenerate_locked_table
 #include "sql_partition.h"                      // mem_alloc_error,
 // generate_partition_syntax,
 // partition_info
@@ -1342,9 +1342,7 @@ RETURN VALUES
 1             Error
 */
 
-bool check_duplicates_in_interval(const char *set_or_name,
-                                  const char *name, TYPELIB *typelib,
-                                  const CHARSET_INFO *cs, uint *dup_val_count)
+bool check_duplicates_in_interval(const char *set_or_name, const char *name, TYPELIB *typelib, const CHARSET_INFO *cs, uint *dup_val_count)
 {
     TYPELIB tmp= *typelib;
     const char **cur_value= typelib->type_names;
@@ -1427,11 +1425,7 @@ RETURN VALUES
 1	Error
 */
 
-int prepare_create_field(
-    THD* thd,
-    Create_field *sql_field,
-    uint *blob_columns,
-    longlong table_flags)
+int prepare_create_field( THD* thd, Create_field *sql_field, uint *blob_columns, longlong table_flags)
 {
     unsigned int dup_val_count;
     DBUG_ENTER("prepare_field");
@@ -1472,14 +1466,11 @@ int prepare_create_field(
         sql_field->unireg_check=Field::INTERVAL_FIELD;
         break;
     case MYSQL_TYPE_SET:
-        sql_field->pack_flag=pack_length_to_packflag(sql_field->pack_length) |
-                             FIELDFLAG_BITFIELD;
+        sql_field->pack_flag=pack_length_to_packflag(sql_field->pack_length) | FIELDFLAG_BITFIELD;
         if (sql_field->charset->state & MY_CS_BINSORT)
             sql_field->pack_flag|=FIELDFLAG_BINARY;
         sql_field->unireg_check=Field::BIT_FIELD;
-        if (check_duplicates_in_interval("SET",sql_field->field_name,
-                                         sql_field->interval,
-                                         sql_field->charset, &dup_val_count))
+        if (check_duplicates_in_interval("SET",sql_field->field_name, sql_field->interval, sql_field->charset, &dup_val_count))
             DBUG_RETURN(1);
         /* Check that count of unique members is not more then 64 */
         if (sql_field->interval->count -  dup_val_count > sizeof(longlong)*8) {
@@ -1846,30 +1837,23 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
         }
 
         /* Set field charset. */
-        save_cs= sql_field->charset= get_sql_field_charset(sql_field,
-                                     create_info);
-        if ((sql_field->flags & BINCMP_FLAG) &&
-                !(sql_field->charset= get_charset_by_csname(sql_field->charset->csname,
-                                      MY_CS_BINSORT,MYF(0)))) {
+        save_cs= sql_field->charset= get_sql_field_charset(sql_field, create_info);
+        if ((sql_field->flags & BINCMP_FLAG) && !(sql_field->charset= get_charset_by_csname(sql_field->charset->csname, MY_CS_BINSORT,MYF(0)))) {
             char tmp[65];
-            strmake(strmake(tmp, save_cs->csname, sizeof(tmp)-4),
-                    STRING_WITH_LEN("_bin"));
+            strmake(strmake(tmp, save_cs->csname, sizeof(tmp)-4), STRING_WITH_LEN("_bin"));
             my_error(ER_UNKNOWN_COLLATION, MYF(0), tmp);
             mysql_errmsg_append(thd);
         } else if (!sql_field->charset) {
             sql_field->charset = system_charset_info;
         }
 
-        mysql_check_column_default(thd, sql_field->def, sql_field->flags,
-                                   NULL, sql_field->field_name, sql_field->sql_type);
+        mysql_check_column_default(thd, sql_field->def, sql_field->flags, NULL, sql_field->field_name, sql_field->sql_type);
         if (mysql_field_check(thd, sql_field,tablename))
             DBUG_RETURN(TRUE);
 
         /* Check if we have used the same field name before */
         for (dup_no=0; (dup_field=it2++) != sql_field; dup_no++) {
-            if (my_strcasecmp(system_charset_info,
-                              sql_field->field_name,
-                              dup_field->field_name) == 0) {
+            if (my_strcasecmp(system_charset_info, sql_field->field_name, dup_field->field_name) == 0) {
                 /*
                 If this was a CREATE ... SELECT statement, accept a field
                 redefinition if we are changing a field in the SELECT part
@@ -1879,6 +1863,156 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
                     mysql_errmsg_append(thd);
                 }
             }
+        }
+
+
+        /*
+          Convert the default value from client character
+          set into the column character set if necessary.
+        */
+        if (sql_field->def && save_cs != sql_field->def->collation.collation &&
+            (sql_field->sql_type == MYSQL_TYPE_VAR_STRING ||
+             sql_field->sql_type == MYSQL_TYPE_STRING ||
+             sql_field->sql_type == MYSQL_TYPE_SET ||
+             sql_field->sql_type == MYSQL_TYPE_ENUM))
+        {
+          /*
+            Starting from 5.1 we work here with a copy of Create_field
+            created by the caller, not with the instance that was
+            originally created during parsing. It's OK to create
+            a temporary item and initialize with it a member of the
+            copy -- this item will be thrown away along with the copy
+            at the end of execution, and thus not introduce a dangling
+            pointer in the parsed tree of a prepared statement or a
+            stored procedure statement.
+          */
+          sql_field->def= sql_field->def->safe_charset_converter(save_cs);
+
+          if (sql_field->def == NULL)
+          {
+            /* Could not convert */
+            my_error(ER_INVALID_DEFAULT, MYF(0), sql_field->field_name);
+            DBUG_RETURN(TRUE);
+          }
+        }
+
+        if (sql_field->sql_type == MYSQL_TYPE_SET || sql_field->sql_type == MYSQL_TYPE_ENUM)
+        {
+          uint32 dummy;
+          const CHARSET_INFO *cs= sql_field->charset;
+          TYPELIB *interval= sql_field->interval;
+
+          /*
+            Create typelib from interval_list, and if necessary
+            convert strings from client character set to the
+            column character set.
+          */
+          if (!interval)
+          {
+            /*
+              Create the typelib in runtime memory - we will free the
+              occupied memory at the same time when we free this
+              sql_field -- at the end of execution.
+            */
+            interval= sql_field->interval= typelib(thd->mem_root, sql_field->interval_list);
+            List_iterator<String> int_it(sql_field->interval_list);
+            String conv, *tmp;
+            char comma_buf[4]; /* 4 bytes for utf32 */
+            int comma_length= cs->cset->wc_mb(cs, ',', (uchar*) comma_buf, (uchar*) comma_buf + sizeof(comma_buf));
+            DBUG_ASSERT(comma_length > 0);
+            for (uint i= 0; (tmp= int_it++); i++)
+            {
+              size_t lengthsp;
+              if (String::needs_conversion(tmp->length(), tmp->charset(), cs, &dummy))
+              {
+                uint cnv_errs;
+                conv.copy(tmp->ptr(), tmp->length(), tmp->charset(), cs, &cnv_errs);
+                interval->type_names[i]= strmake_root(thd->mem_root, conv.ptr(), conv.length());
+                interval->type_lengths[i]= conv.length();
+              }
+
+              // Strip trailing spaces.
+              lengthsp= cs->cset->lengthsp(cs, interval->type_names[i], interval->type_lengths[i]);
+              interval->type_lengths[i]= lengthsp;
+              ((uchar *)interval->type_names[i])[lengthsp]= '\0';
+              if (sql_field->sql_type == MYSQL_TYPE_SET)
+              {
+                if (cs->coll->instr(cs, interval->type_names[i], interval->type_lengths[i], comma_buf, comma_length, NULL, 0))
+                {
+                  ErrConvString err(tmp->ptr(), tmp->length(), cs);
+                  my_error(ER_ILLEGAL_VALUE_FOR_TYPE, MYF(0), "set", err.ptr());
+                  DBUG_RETURN(TRUE);
+                }
+              }
+            }
+            sql_field->interval_list.empty(); // Don't need interval_list anymore
+          }
+
+          if (sql_field->sql_type == MYSQL_TYPE_SET)
+          {
+            uint32 field_length;
+            if (sql_field->def != NULL)
+            {
+              char *not_used;
+              uint not_used2;
+              bool not_found= 0;
+              String str, *def= sql_field->def->val_str(&str);
+              if (def == NULL) /* SQL "NULL" maps to NULL */
+              {
+                if ((sql_field->flags & NOT_NULL_FLAG) != 0)
+                {
+                  my_error(ER_INVALID_DEFAULT, MYF(0), sql_field->field_name);
+                  DBUG_RETURN(TRUE);
+                }
+
+                /* else, NULL is an allowed value */
+                (void) find_set(interval, NULL, 0, cs, &not_used, &not_used2, &not_found);
+              }
+              else /* not NULL */
+              {
+                (void) find_set(interval, def->ptr(), def->length(), cs, &not_used, &not_used2, &not_found);
+              }
+
+              if (not_found)
+              {
+                my_error(ER_INVALID_DEFAULT, MYF(0), sql_field->field_name);
+                DBUG_RETURN(TRUE);
+              }
+            }
+            calculate_interval_lengths(cs, interval, &dummy, &field_length);
+            sql_field->length= field_length + (interval->count - 1);
+          }
+          else  /* MYSQL_TYPE_ENUM */
+          {
+            uint32 field_length;
+            DBUG_ASSERT(sql_field->sql_type == MYSQL_TYPE_ENUM);
+            if (sql_field->def != NULL)
+            {
+              String str, *def= sql_field->def->val_str(&str);
+              if (def == NULL) /* SQL "NULL" maps to NULL */
+              {
+                if ((sql_field->flags & NOT_NULL_FLAG) != 0)
+                {
+                  my_error(ER_INVALID_DEFAULT, MYF(0), sql_field->field_name);
+                  DBUG_RETURN(TRUE);
+                }
+
+                /* else, the defaults yield the correct length for NULLs. */
+              }
+              else /* not NULL */
+              {
+                def->length(cs->cset->lengthsp(cs, def->ptr(), def->length()));
+                if (find_type2(interval, def->ptr(), def->length(), cs) == 0) /* not found */
+                {
+                  my_error(ER_INVALID_DEFAULT, MYF(0), sql_field->field_name);
+                  DBUG_RETURN(TRUE);
+                }
+              }
+            }
+            calculate_interval_lengths(cs, interval, &field_length, &dummy);
+            sql_field->length= field_length;
+          }
+          set_if_smaller(sql_field->length, MAX_FIELD_WIDTH-1);
         }
 
         it2.rewind();
@@ -1933,9 +2067,7 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
 
         if (key->type == Key::PRIMARY) {
             if (key->columns.elements > inception_max_primary_key_parts) {
-                my_error(ER_PK_TOO_MANY_PARTS, MYF(0),
-                         thd->lex->select_lex.table_list.first->db, tablename,
-                         inception_max_primary_key_parts);
+                my_error(ER_PK_TOO_MANY_PARTS, MYF(0), thd->lex->select_lex.table_list.first->db, tablename, inception_max_primary_key_parts);
                 mysql_errmsg_append(thd);
             }
             pk_count++;
@@ -1943,8 +2075,7 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
 
         (*key_count)++;
 
-        if (check_string_char_length(&key->name, "", NAME_CHAR_LEN,
-                                     system_charset_info, 1)) {
+        if (check_string_char_length(&key->name, "", NAME_CHAR_LEN, system_charset_info, 1)) {
             my_error(ER_TOO_LONG_IDENT, MYF(0), key->name.str);
             mysql_errmsg_append(thd);
         }
@@ -1973,8 +2104,7 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
         DBUG_RETURN(TRUE);				// Out of memory
     }
 
-    if (create_info->auto_increment_value != 0 &&
-            create_info->auto_increment_value != 1 ) {
+    if (create_info->auto_increment_value != 0 && create_info->auto_increment_value != 1 ) {
         my_error(ER_INC_INIT_ERR, MYF(0));
         mysql_errmsg_append(thd);
     }
@@ -2023,9 +2153,7 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
             it.rewind();
             field=0;
             while ((sql_field=it++) &&
-                    my_strcasecmp(system_charset_info,
-                                  column->field_name.str,
-                                  sql_field->field_name))
+                    my_strcasecmp(system_charset_info, column->field_name.str, sql_field->field_name))
                 field++;
             if (!sql_field) {
                 my_error(ER_KEY_COLUMN_DOES_NOT_EXITS, MYF(0), column->field_name.str);
@@ -2033,22 +2161,15 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
                 continue;
             }
             if (key->type == Key::PRIMARY) {
-                if (sql_field->sql_type != MYSQL_TYPE_INT24 &&
-                        sql_field->sql_type != MYSQL_TYPE_LONGLONG &&
-                        sql_field->sql_type != MYSQL_TYPE_LONG &&
-                        inception_enable_pk_columns_only_int) {
-                    my_error(ER_PK_COLS_NOT_INT, MYF(0), column->field_name.str,
-                             thd->lex->select_lex.table_list.first->db, tablename);
+                if (sql_field->sql_type != MYSQL_TYPE_INT24 && sql_field->sql_type != MYSQL_TYPE_LONGLONG && sql_field->sql_type != MYSQL_TYPE_LONG && inception_enable_pk_columns_only_int) {
+                    my_error(ER_PK_COLS_NOT_INT, MYF(0), column->field_name.str, thd->lex->select_lex.table_list.first->db, tablename);
                     mysql_errmsg_append(thd);
                 }
             }
 
             while ((dup_column= cols2++) != column) {
-                if (!my_strcasecmp(system_charset_info,
-                                   column->field_name.str, dup_column->field_name.str)) {
-                    my_printf_error(ER_DUP_FIELDNAME,
-                                    ER(ER_DUP_FIELDNAME),MYF(0),
-                                    column->field_name.str);
+                if (!my_strcasecmp(system_charset_info, column->field_name.str, dup_column->field_name.str)) {
+                    my_printf_error(ER_DUP_FIELDNAME, ER(ER_DUP_FIELDNAME),MYF(0), column->field_name.str);
                     mysql_errmsg_append(thd);
                 }
             }
@@ -2100,15 +2221,13 @@ mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
             if (column_nr == 0) {
                 if (key->type == Key::PRIMARY) {
                     if (primary_key) {
-                        my_message(ER_MULTIPLE_PRI_KEY, ER(ER_MULTIPLE_PRI_KEY),
-                                   MYF(0));
+                        my_message(ER_MULTIPLE_PRI_KEY, ER(ER_MULTIPLE_PRI_KEY), MYF(0));
                         mysql_errmsg_append(thd);
                     }
                     key_name=primary_key_name;
                     primary_key=1;
                 } else if (!(key_name= key->name.str))
-                    key_name=make_unique_key_name(sql_field->field_name,
-                                                  *key_info_buffer, key_info);
+                    key_name=make_unique_key_name(sql_field->field_name, *key_info_buffer, key_info);
                 if (check_if_keyname_exists(key_name, *key_info_buffer, key_info)) {
                     my_error(ER_DUP_KEYNAME, MYF(0), key_name);
                     mysql_errmsg_append(thd);
