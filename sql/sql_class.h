@@ -5811,19 +5811,9 @@ inline bool add_group_to_list(THD *thd, Item *item, bool asc)
     return thd->lex->current_select->add_group_to_list(thd, item, asc);
 }
 
-field_info_t*
-mysql_get_table_field(
-    THD*  thd,
-    char*  dbname,
-    char*  tablename,
-    char* field_name
-);
-void
-mysql_errmsg_append_without_errno(
-    THD * thd,
-    sql_cache_node_t* sql_cache_node,
-    char* errmsg
-);
+field_info_t* mysql_get_table_field( THD*  thd, char*  dbname, char*  tablename, char* field_name);
+
+void mysql_errmsg_append_without_errno( THD * thd, sql_cache_node_t* sql_cache_node, char* errmsg);
 
 
 int mysql_check_table_existed(THD* thd);

@@ -973,8 +973,7 @@ bool dispatch_command(enum enum_server_command command, THD * thd, char *packet,
 
         mysql_parse(thd, thd->query_length(), &parser_state);
 
-        while (!thd->killed && (parser_state.m_lip.found_semicolon != NULL) && !thd->is_error()
-                && !thd->parse_error) {
+        while (!thd->killed && (parser_state.m_lip.found_semicolon != NULL) && !thd->is_error() && !thd->parse_error) {
             char *beginning_of_next_stmt = (char *)parser_state.m_lip.found_semicolon;
 
             /* Finalize server status flags after executing a statement. */
@@ -2864,7 +2863,6 @@ int mysql_check_insert_select_ex(THD * thd, table_info_t * table_info)
 {
     ORDER *order;
     DBUG_ENTER("mysql_check_insert_select_ex");
-    int found_where = false;
     explain_info_t *explain;
     char *sql_statement;
     char *sql_p;
@@ -2925,7 +2923,6 @@ int mysql_check_insert_select_ex(THD * thd, table_info_t * table_info)
         if (!mysql_check_version_56(thd)) {
             while (*sql_p) {
                 if (strnicmp(sql_p, "select", 6) == 0) {
-                    found_where = true;
                     break;
                 }
                 sql_p++;
@@ -3254,27 +3251,24 @@ void mysql_free_explain_info(explain_info_t * explain)
 
 int mysql_anlyze_explain(THD * thd, explain_info_t * explain)
 {
-    int err = 0;
-    int select_count;
-    select_info_t *select_node;
-
     DBUG_ENTER("mysql_anlyze_explain");
+    my_ulonglong   affected_rows = 0;
 
-    select_count = LIST_GET_LEN(explain->field_lst);
-
-    select_node = LIST_GET_FIRST(explain->field_lst);
-    if (select_node != NULL)
-        thd->affected_rows = select_node->rows;
-
-    while (select_node != NULL) {
+    for (select_info_t *select_node = LIST_GET_FIRST(explain->field_lst); select_node != NULL; select_node = LIST_GET_NEXT(link, select_node)) {
+        if (!affected_rows)
+            affected_rows = select_node->rows;
+        DBUG_PRINT("mysql_anlyze_explain", ("rows:%d", select_node->rows));
         if ((thd->lex->sql_command == SQLCOM_DELETE || thd->lex->sql_command == SQLCOM_UPDATE) && select_node->rows >= (int)inception_max_update_rows) {
             my_error(ER_UDPATE_TOO_MUCH_ROWS, MYF(0), inception_max_update_rows);
             DBUG_RETURN(TRUE);
         }
-        select_node = LIST_GET_NEXT(link, select_node);
     }
 
-    DBUG_RETURN(err);
+    thd->affected_rows = affected_rows;
+
+    DBUG_PRINT("mysql_anlyze_explain", ("affected_rows:%lld", affected_rows));
+
+    DBUG_RETURN(0);
 }
 
 int mysql_explain_or_analyze_statement(THD * thd, table_info_t * table_info)
@@ -4501,8 +4495,8 @@ int mysql_check_column_default(THD * thd, Item * default_value, uint flags, fiel
                  real_type == MYSQL_TYPE_DATETIME2 ||
                  real_type == MYSQL_TYPE_DATE || real_type == MYSQL_TYPE_TIME || real_type == MYSQL_TYPE_TIME2 || real_type == MYSQL_TYPE_NEWDATE || real_type == MYSQL_TYPE_TIMESTAMP)) {
             MYSQL_TIME ltime;
-            MYSQL_TIME_STATUS status = { 0 };
-            MYSQL_TIME_STATUS status2 = { 0 };
+            MYSQL_TIME_STATUS status = { 0,0,0 };
+            MYSQL_TIME_STATUS status2 = { 0,0,0 };
             uchar buff[MAX_FIELD_WIDTH];
             String buffer((char *)buff, sizeof(buff), &my_charset_bin);
             Item_string *itemstr;
@@ -6586,23 +6580,25 @@ int mysql_check_item(THD * thd, Item * item, st_select_lex * select_lex)
         sprintf(fieldname, "\"%s\"", stringval->ptr());
     }
     break;
+    /*
     case Item::FIELD_ITEM: {
         table_info_t *tableinfo;
         table_rt_t *tablert;
         if (strcasecmp(((Item_field *) item)->field_name, "*")) {
-            tablert =
-                mysql_find_field_from_all_tables(thd, thd->rt_lst, select_lex,
-                                                 ((Item_field *) item)->db_name, ((Item_field *) item)->table_name, ((Item_field *) item)->field_name);
+            tablert = mysql_find_field_from_all_tables(thd, thd->rt_lst, select_lex, ((Item_field *) item)->db_name, ((Item_field *) item)->table_name, ((Item_field *) item)->field_name);
             if (tablert) {
                 tableinfo = tablert->table_info;
             }
         }
     }
+
     break;
+    */
     case Item::FUNC_ITEM: {
         mysql_check_func_item(thd, item, select_lex);
     }
     break;
+    /*
     case Item::INT_ITEM: {
         char fieldname[FN_LEN];
         sprintf(fieldname, "\"%lld\"", ((Item_int *) item)->val_int());
@@ -6613,6 +6609,7 @@ int mysql_check_item(THD * thd, Item * item, st_select_lex * select_lex)
         sprintf(fieldname, "\"%f\"", ((Item_int *) item)->val_real());
     }
     break;
+    */
     case Item::NULL_ITEM:
         break;
     case Item::COND_ITEM: {
@@ -6643,6 +6640,7 @@ int mysql_check_item(THD * thd, Item * item, st_select_lex * select_lex)
         }
     }
     break;
+    /*
     case Item::DECIMAL_ITEM: {
         String *stringval;
         String tmp;
@@ -6651,6 +6649,7 @@ int mysql_check_item(THD * thd, Item * item, st_select_lex * select_lex)
         fieldname = (char *)my_malloc(stringval->length(), MY_ZEROFILL);
     }
     break;
+    */
     default:
         break;
     }
@@ -7421,7 +7420,7 @@ int process_io_rotate(Master_info * mi, Rotate_log_event * rev)
 int mysql_process_event(Master_info * mi, const char *buf, ulong event_len, Log_event ** evlog)
 {
     String error_msg;
-    ulong inc_pos = 0;
+//    ulong inc_pos = 0;
     char *error_desc;
 
     uint8 checksum_alg = mi->checksum_alg_before_fd != BINLOG_CHECKSUM_ALG_UNDEF ? mi->checksum_alg_before_fd : mi->relay_log_checksum_alg;
@@ -7492,12 +7491,12 @@ int mysql_process_event(Master_info * mi, const char *buf, ulong event_len, Log_
         /* installing new value of checksum Alg for relay log */
         mi->relay_log_checksum_alg = new_fdle->checksum_alg;
 
-        inc_pos = uint4korr(buf + LOG_POS_OFFSET) ? event_len : 0;
+        //inc_pos = uint4korr(buf + LOG_POS_OFFSET) ? event_len : 0;
     }
     break;
 
     default:
-        inc_pos = event_len;
+//        inc_pos = event_len;
         break;
     }
 
@@ -8979,10 +8978,9 @@ int mysql_osc_execute_abort_check(THD * thd, sql_cache_node_t * sql_cache_node)
     DBUG_RETURN(false);
 }
 
+
 int mysql_execute_alter_table_osc(THD * thd, MYSQL * mysql, char *statement, sql_cache_node_t * sql_cache_node)
 {
-//    str_t       osc_cmd;
-//    str_t*      osc_cmd_ptr;
     char cmd_line[100];
     int ret;
     char *oscargv[100];
@@ -8993,7 +8991,6 @@ int mysql_execute_alter_table_osc(THD * thd, MYSQL * mysql, char *statement, sql
 
     DBUG_ENTER("mysql_execute_alter_table_osc");
     osc_prepend_PATH(inception_osc_bin_dir, thd, sql_cache_node);
-//    osc_cmd_ptr = str_init(&osc_cmd);
     oscargv[count++] = strdup("pt-online-schema-change");
     oscargv[count++] = strdup("--alter");
     oscargv[count++] = strdup(mysql_get_alter_table_post_part(thd, statement, sql_cache_node->ignore));
@@ -10306,7 +10303,6 @@ TABLE_LIST *st_select_lex::add_table_to_list(THD * thd, Table_ident * table, LEX
 #endif				/* WITH_PARTITION_STORAGE_ENGINE */
     /* Link table in global list (all used tables) */
     lex->add_to_query_tables(ptr);
-    printf("db:%s, table:%s\n", ptr->db, ptr->table_name);
 
     // Pure table aliases do not need to be locked:
     if (!test(table_options & TL_OPTION_ALIAS)) {

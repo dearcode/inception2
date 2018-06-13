@@ -46,11 +46,7 @@ extern char** environ; // environment variables
 
 extern char** environ; // environment variables
 
-void
-osc_prepend_PATH (
-    const char* path,
-    THD* thd,
-    sql_cache_node_t* node)
+void osc_prepend_PATH ( const char* path, THD* thd, sql_cache_node_t* node)
 {
     int count = 0;
     char    errmsg[1024];
@@ -65,19 +61,15 @@ osc_prepend_PATH (
 
         if (strstr (old_path, path)) return; // path already there
 
-        size_t const new_path_len(strlen(old_path) + strlen(":") +
-                                  strlen(path) + 1);
+        size_t const new_path_len(strlen(old_path) + strlen(":") + strlen(path) + 1);
 
         char* const new_path (reinterpret_cast<char*>(malloc(new_path_len)));
 
         if (new_path) {
-            snprintf (new_path, new_path_len, "PATH=%s:%s", path,
-                      old_path + strlen("PATH="));
-
+            snprintf (new_path, new_path_len, "PATH=%s:%s", path, old_path + strlen("PATH="));
             environ[count] = new_path;
         } else {
-            sprintf(errmsg, "Failed to allocate 'PATH' environment variable "
-                    "buffer of size %zu.", new_path_len);
+            sprintf(errmsg, "Failed to allocate 'PATH' environment variable buffer of size %zu.", new_path_len);
             mysql_errmsg_append_without_errno(thd, node, errmsg);
         }
 
@@ -85,12 +77,7 @@ osc_prepend_PATH (
     }
 }
 
-process::process (
-    THD* thd_in,
-    sql_cache_node_t* sql_cache_node_in,
-    char** argv,
-    const char* type
-) : io_(NULL), err_(EINVAL), pid_(0)
+process::process ( THD* thd_in, sql_cache_node_t* sql_cache_node_in, char** argv, const char* type) : io_(NULL), err_(EINVAL), pid_(0)
 {
     char errmsg[5120];
 
@@ -222,8 +209,7 @@ process::~process ()
     }
 }
 
-int
-process::wait ()
+int process::wait ()
 {
     char errmsg[5120];
     if (pid_) {
@@ -271,8 +257,7 @@ process::wait ()
     return err_;
 }
 
-int
-process::killpid ()
+int process::killpid ()
 {
     if (pid_)
         kill(pid_, SIGKILL);

@@ -4458,9 +4458,7 @@ void THD::set_query(const CSET_STRING &string_arg)
 
 /** Assign a new value to thd->query and thd->query_id.  */
 
-void THD::set_query_and_id(char *query_arg, uint32 query_length_arg,
-                           const CHARSET_INFO *cs,
-                           query_id_t new_query_id)
+void THD::set_query_and_id(char *query_arg, uint32 query_length_arg, const CHARSET_INFO *cs, query_id_t new_query_id)
 {
     mysql_mutex_lock(&LOCK_thd_data);
     set_query_inner(query_arg, query_length_arg, cs);
