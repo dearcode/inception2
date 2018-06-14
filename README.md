@@ -8,3 +8,7 @@ Inception是一个开源系统，每个人或者每个公司都可以自由使�
 ## 文档地址  
 http://mysql-inception.github.io/inception-document/
 
+# 代码风格  
+``` astyle -xW -w -F -p -xg -xe -k3  -W3 -xb -xj -xf -o -xC200  -L -n ```  
+
+
