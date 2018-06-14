@@ -18,11 +18,11 @@
 
 /* Forward declarations */
 #ifndef MYSQL_CLIENT
-struct TABLE;
+    struct TABLE;
 #else
-class Table_map_log_event;
-typedef Table_map_log_event TABLE;
-void free_table_map_log_event(TABLE *table);
+    class Table_map_log_event;
+    typedef Table_map_log_event TABLE;
+    void free_table_map_log_event(TABLE *table);
 #endif
 
 
@@ -72,9 +72,9 @@ public:
     table_mapping();
     ~table_mapping();
 
-    TABLE* get_table(ulong table_id);
+    TABLE *get_table(ulong table_id);
 
-    int       set_table(ulong table_id, TABLE* table);
+    int       set_table(ulong table_id, TABLE *table);
     int       remove_table(ulong table_id);
     void      clear_tables();
     ulong     count() const
@@ -99,7 +99,7 @@ private:
     entry *find_entry(ulong table_id)
     {
         return (entry *) my_hash_search(&m_table_ids,
-                                        (uchar*)&table_id,
+                                        (uchar *)&table_id,
                                         sizeof(table_id));
     }
     int expand();

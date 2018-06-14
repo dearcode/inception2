@@ -33,37 +33,37 @@
 
 enum THD_NDB_OPTIONS
 {
-    TNO_NO_LOG_SCHEMA_OP=  1 << 0,
+    TNO_NO_LOG_SCHEMA_OP =  1 << 0,
     /*
       In participating mysqld, do not try to acquire global schema
       lock, as one other mysqld already has the lock.
     */
-    TNO_NO_LOCK_SCHEMA_OP= 1 << 1
-                           /*
-                             Skip drop of ndb table in delete_table.  Used when calling
-                             mysql_rm_table_part2 in "show tables", as we do not want to
-                             remove ndb tables "by mistake".  The table should not exist
-                             in ndb in the first place.
-                           */
-    ,TNO_NO_NDB_DROP_TABLE=    1 << 2
+    TNO_NO_LOCK_SCHEMA_OP = 1 << 1
+                            /*
+                              Skip drop of ndb table in delete_table.  Used when calling
+                              mysql_rm_table_part2 in "show tables", as we do not want to
+                              remove ndb tables "by mistake".  The table should not exist
+                              in ndb in the first place.
+                            */
+    , TNO_NO_NDB_DROP_TABLE =    1 << 2
 };
 
 enum THD_NDB_TRANS_OPTIONS
 {
-    TNTO_INJECTED_APPLY_STATUS= 1 << 0
-    ,TNTO_NO_LOGGING=           1 << 1
-    ,TNTO_TRANSACTIONS_OFF=     1 << 2
+    TNTO_INJECTED_APPLY_STATUS = 1 << 0
+    , TNTO_NO_LOGGING =           1 << 1
+    , TNTO_TRANSACTIONS_OFF =     1 << 2
 };
 
 class Thd_ndb
 {
-    THD* m_thd;
+    THD *m_thd;
 
-    Thd_ndb(THD*);
+    Thd_ndb(THD *);
     ~Thd_ndb();
 public:
-    static Thd_ndb* seize(THD*);
-    static void release(Thd_ndb* thd_ndb);
+    static Thd_ndb *seize(THD *);
+    static void release(Thd_ndb *thd_ndb);
 
     void init_open_tables();
 
@@ -132,11 +132,11 @@ public:
     uint global_schema_lock_count;
     uint global_schema_lock_error;
     uint schema_locks_count; // Number of global schema locks taken by thread
-    bool has_required_global_schema_lock(const char* func);
+    bool has_required_global_schema_lock(const char *func);
 
     unsigned m_connect_count;
     bool valid_ndb(void);
-    bool recycle_ndb(THD* thd);
+    bool recycle_ndb(THD *thd);
 };
 
 #endif

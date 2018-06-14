@@ -161,7 +161,7 @@ public:
      ********************************************/
 
     longlong err_value;
-    char* part_info_string;
+    char *part_info_string;
 
     char *part_func_string;
     char *subpart_func_string;
@@ -298,8 +298,8 @@ public:
                               handler *file, HA_CREATE_INFO *info,
                               bool check_partition_function);
     void print_no_partition_found(TABLE *table);
-    void print_debug(const char *str, uint*);
-    Item* get_column_item(Item *item, Field *field);
+    void print_debug(const char *str, uint *);
+    Item *get_column_item(Item *item, Field *field);
     bool fix_partition_values(THD *thd,
                               part_elem_value *val,
                               partition_element *part_elem,
@@ -339,7 +339,7 @@ public:
                   by evaluate the partition_id on row by row basis.
     */
     enum enum_can_prune
-    {PRUNE_NO=0, PRUNE_DEFAULTS, PRUNE_YES};
+    {PRUNE_NO = 0, PRUNE_DEFAULTS, PRUNE_YES};
     bool can_prune_insert(THD *thd,
                           enum_duplicates duplic,
                           COPY_INFO &update,
@@ -350,7 +350,7 @@ public:
                           bool *prune_needs_default_values,
                           MY_BITMAP *used_partitions);
 private:
-    static int list_part_cmp(const void* a, const void* b);
+    static int list_part_cmp(const void *a, const void *b);
     bool set_up_default_partitions(handler *file, HA_CREATE_INFO *info,
                                    uint start_no);
     bool set_up_default_subpartitions(handler *file, HA_CREATE_INFO *info);
@@ -364,7 +364,7 @@ private:
     bool is_full_part_expr_in_fields(List<Item> &fields);
 };
 
-uint32 get_next_partition_id_range(struct st_partition_iter* part_iter);
+uint32 get_next_partition_id_range(struct st_partition_iter *part_iter);
 bool check_partition_dirs(partition_info *part_info);
 
 /* Initialize the iterator to return a single partition with given part_id */
@@ -372,10 +372,10 @@ bool check_partition_dirs(partition_info *part_info);
 static inline void init_single_partition_iterator(uint32 part_id,
         PARTITION_ITERATOR *part_iter)
 {
-    part_iter->part_nums.start= part_iter->part_nums.cur= part_id;
-    part_iter->part_nums.end= part_id+1;
-    part_iter->ret_null_part= part_iter->ret_null_part_orig= FALSE;
-    part_iter->get_next= get_next_partition_id_range;
+    part_iter->part_nums.start = part_iter->part_nums.cur = part_id;
+    part_iter->part_nums.end = part_id + 1;
+    part_iter->ret_null_part = part_iter->ret_null_part_orig = FALSE;
+    part_iter->get_next = get_next_partition_id_range;
 }
 
 /* Initialize the iterator to enumerate all partitions */
@@ -383,10 +383,10 @@ static inline
 void init_all_partitions_iterator(partition_info *part_info,
                                   PARTITION_ITERATOR *part_iter)
 {
-    part_iter->part_nums.start= part_iter->part_nums.cur= 0;
-    part_iter->part_nums.end= part_info->num_parts;
-    part_iter->ret_null_part= part_iter->ret_null_part_orig= FALSE;
-    part_iter->get_next= get_next_partition_id_range;
+    part_iter->part_nums.start = part_iter->part_nums.cur = 0;
+    part_iter->part_nums.end = part_info->num_parts;
+    part_iter->ret_null_part = part_iter->ret_null_part_orig = FALSE;
+    part_iter->get_next = get_next_partition_id_range;
 }
 
 #endif /* PARTITION_INFO_INCLUDED */

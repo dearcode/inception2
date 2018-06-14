@@ -31,9 +31,9 @@ public:
     plugin_ref plugin;
 
     Observer_info(void *ob, st_plugin_int *p)
-        :observer(ob), plugin_int(p)
+        : observer(ob), plugin_int(p)
     {
-        plugin= plugin_int_to_ref(plugin_int);
+        plugin = plugin_int_to_ref(plugin_int);
     }
 };
 
@@ -45,39 +45,52 @@ public:
 
     int add_observer(void *observer, st_plugin_int *plugin)
     {
-        int ret= FALSE;
+        int ret = FALSE;
+
         if (!inited)
             return TRUE;
+
         write_lock();
         Observer_info_iterator iter(observer_info_list);
-        Observer_info *info= iter++;
+        Observer_info *info = iter++;
+
         while (info && info->observer != observer)
-            info= iter++;
+            info = iter++;
+
         if (!info) {
-            info= new Observer_info(observer, plugin);
+            info = new Observer_info(observer, plugin);
+
             if (!info || observer_info_list.push_back(info, &memroot))
-                ret= TRUE;
+                ret = TRUE;
+
         } else
-            ret= TRUE;
+            ret = TRUE;
+
         unlock();
         return ret;
     }
 
     int remove_observer(void *observer, st_plugin_int *plugin)
     {
-        int ret= FALSE;
+        int ret = FALSE;
+
         if (!inited)
             return TRUE;
+
         write_lock();
         Observer_info_iterator iter(observer_info_list);
-        Observer_info *info= iter++;
+        Observer_info *info = iter++;
+
         while (info && info->observer != observer)
-            info= iter++;
+            info = iter++;
+
         if (info) {
             iter.remove();
             delete info;
+
         } else
-            ret= TRUE;
+            ret = TRUE;
+
         unlock();
         return ret;
     }
@@ -97,6 +110,7 @@ public:
     {
         if (!inited)
             return TRUE;
+
         return rw_rdlock(&lock);
     }
 
@@ -104,6 +118,7 @@ public:
     {
         if (!inited)
             return TRUE;
+
         return rw_wrlock(&lock);
     }
 
@@ -111,6 +126,7 @@ public:
     {
         if (!inited)
             return TRUE;
+
         return rw_unlock(&lock);
     }
 
@@ -121,15 +137,17 @@ public:
 
     Delegate()
     {
-        inited= FALSE;
+        inited = FALSE;
+
         if (my_rwlock_init(&lock, NULL))
             return;
+
         init_sql_alloc(&memroot, 1024, 0);
-        inited= TRUE;
+        inited = TRUE;
     }
     ~Delegate()
     {
-        inited= FALSE;
+        inited = FALSE;
         rwlock_destroy(&lock);
         free_root(&memroot, MYF(0));
     }
@@ -142,7 +160,7 @@ private:
 };
 
 class Trans_delegate
-    :public Delegate
+    : public Delegate
 {
 public:
     typedef Trans_observer Observer;
@@ -153,7 +171,7 @@ public:
 };
 
 class Binlog_storage_delegate
-    :public Delegate
+    : public Delegate
 {
 public:
     typedef Binlog_storage_observer Observer;
@@ -163,7 +181,7 @@ public:
 
 #ifdef HAVE_REPLICATION
 class Binlog_transmit_delegate
-    :public Delegate
+    : public Delegate
 {
 public:
     typedef Binlog_transmit_observer Observer;
@@ -181,7 +199,7 @@ public:
 };
 
 class Binlog_relay_IO_delegate
-    :public Delegate
+    : public Delegate
 {
 public:
     typedef Binlog_relay_IO_observer Observer;
@@ -206,8 +224,8 @@ void delegates_destroy();
 extern Trans_delegate *transaction_delegate;
 extern Binlog_storage_delegate *binlog_storage_delegate;
 #ifdef HAVE_REPLICATION
-extern Binlog_transmit_delegate *binlog_transmit_delegate;
-extern Binlog_relay_IO_delegate *binlog_relay_io_delegate;
+    extern Binlog_transmit_delegate *binlog_transmit_delegate;
+    extern Binlog_relay_IO_delegate *binlog_relay_io_delegate;
 #endif /* HAVE_REPLICATION */
 
 /*
@@ -215,7 +233,7 @@ extern Binlog_relay_IO_delegate *binlog_relay_io_delegate;
   immediately.
 */
 #define RUN_HOOK(group, hook, args)             \
-  (group ##_delegate->is_empty() ?              \
-   0 : group ##_delegate->hook args)
+    (group ##_delegate->is_empty() ?              \
+     0 : group ##_delegate->hook args)
 
 #endif /* RPL_HANDLER_H */

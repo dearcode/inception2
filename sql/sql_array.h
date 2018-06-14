@@ -41,14 +41,14 @@ public:
 
     void reset()
     {
-        m_array= NULL;
-        m_size= 0;
+        m_array = NULL;
+        m_size = 0;
     }
 
     void reset(Element_type *array, size_t size)
     {
-        m_array= array;
-        m_size= size;
+        m_array = array;
+        m_size = size;
     }
 
     /**
@@ -59,7 +59,7 @@ public:
     void resize(size_t new_size)
     {
         DBUG_ASSERT(new_size <= m_size);
-        m_size= new_size;
+        m_size = new_size;
     }
 
     Element_type &operator[](size_t n)
@@ -91,8 +91,8 @@ public:
     void pop_front()
     {
         DBUG_ASSERT(m_size > 0);
-        m_array+= 1;
-        m_size-= 1;
+        m_array += 1;
+        m_size -= 1;
     }
 
     Element_type *array() const
@@ -100,11 +100,11 @@ public:
         return m_array;
     }
 
-    bool operator==(const Bounds_checked_array<Element_type>&rhs) const
+    bool operator==(const Bounds_checked_array<Element_type> &rhs) const
     {
         return m_array == rhs.m_array && m_size == rhs.m_size;
     }
-    bool operator!=(const Bounds_checked_array<Element_type>&rhs) const
+    bool operator!=(const Bounds_checked_array<Element_type> &rhs) const
     {
         return m_array != rhs.m_array || m_size != rhs.m_size;
     }
@@ -122,12 +122,12 @@ template <class Elem> class Dynamic_array
 {
     DYNAMIC_ARRAY  array;
 public:
-    Dynamic_array(uint prealloc=16, uint increment=16)
+    Dynamic_array(uint prealloc = 16, uint increment = 16)
     {
         init(prealloc, increment);
     }
 
-    void init(uint prealloc=16, uint increment=16)
+    void init(uint prealloc = 16, uint increment = 16)
     {
         my_init_dynamic_array(&array, sizeof(Elem), prealloc, increment);
     }
@@ -136,42 +136,42 @@ public:
        @note Though formally this could be declared "const" it would be
        misleading at it returns a non-const pointer to array's data.
     */
-    Elem& at(int idx)
+    Elem &at(int idx)
     {
-        return *(((Elem*)array.buffer) + idx);
+        return *(((Elem *)array.buffer) + idx);
     }
     /// Const variant of at(), which cannot change data
-    const Elem& at(int idx) const
+    const Elem &at(int idx) const
     {
-        return *(((Elem*)array.buffer) + idx);
+        return *(((Elem *)array.buffer) + idx);
     }
 
     /// @returns pointer to first element; undefined behaviour if array is empty
     Elem *front()
     {
         DBUG_ASSERT(array.elements >= 1);
-        return (Elem*)array.buffer;
+        return (Elem *)array.buffer;
     }
 
     /// @returns pointer to first element; undefined behaviour if array is empty
     const Elem *front() const
     {
         DBUG_ASSERT(array.elements >= 1);
-        return (const Elem*)array.buffer;
+        return (const Elem *)array.buffer;
     }
 
     /// @returns pointer to last element; undefined behaviour if array is empty.
     Elem *back()
     {
         DBUG_ASSERT(array.elements >= 1);
-        return ((Elem*)array.buffer) + (array.elements - 1);
+        return ((Elem *)array.buffer) + (array.elements - 1);
     }
 
     /// @returns pointer to last element; undefined behaviour if array is empty.
     const Elem *back() const
     {
         DBUG_ASSERT(array.elements >= 1);
-        return ((const Elem*)array.buffer) + (array.elements - 1);
+        return ((const Elem *)array.buffer) + (array.elements - 1);
     }
 
     /**
@@ -184,9 +184,9 @@ public:
     }
 
     /// Pops the last element. Does nothing if array is empty.
-    Elem& pop()
+    Elem &pop()
     {
-        return *((Elem*)pop_dynamic(&array));
+        return *((Elem *)pop_dynamic(&array));
     }
 
     void del(uint idx)
@@ -202,7 +202,7 @@ public:
     void elements(uint num_elements)
     {
         DBUG_ASSERT(num_elements <= array.max_element);
-        array.elements= num_elements;
+        array.elements = num_elements;
     }
 
     void clear()

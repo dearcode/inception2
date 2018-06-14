@@ -120,15 +120,15 @@ typedef union {
     void *ptr;
 } NdbValue;
 
-int get_ndb_blobs_value(TABLE* table, NdbValue* value_array,
-                        uchar*& buffer, uint& buffer_size,
+int get_ndb_blobs_value(TABLE *table, NdbValue *value_array,
+                        uchar *&buffer, uint &buffer_size,
                         my_ptrdiff_t ptrdiff);
 
 #include "ndb_share.h"
 
 struct Ndb_tuple_id_range_guard
 {
-    Ndb_tuple_id_range_guard(NDB_SHARE* _share) :
+    Ndb_tuple_id_range_guard(NDB_SHARE *_share) :
         share(_share),
         range(share->tuple_id_range)
     {
@@ -138,8 +138,8 @@ struct Ndb_tuple_id_range_guard
     {
         pthread_mutex_unlock(&share->mutex);
     }
-    NDB_SHARE* share;
-    Ndb::TupleIdRange& range;
+    NDB_SHARE *share;
+    Ndb::TupleIdRange &range;
 };
 
 /* NDB_SHARE.flags */
@@ -152,12 +152,12 @@ struct Ndb_tuple_id_range_guard
 inline void set_binlog_logging(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_logging"));
-    share->flags&= ~NSF_NO_BINLOG;
+    share->flags &= ~NSF_NO_BINLOG;
 }
 inline void set_binlog_nologging(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_nologging"));
-    share->flags|= NSF_NO_BINLOG;
+    share->flags |= NSF_NO_BINLOG;
 }
 inline my_bool get_binlog_nologging(NDB_SHARE *share)
 {
@@ -166,12 +166,12 @@ inline my_bool get_binlog_nologging(NDB_SHARE *share)
 inline void set_binlog_updated_only(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_updated_only"));
-    share->flags&= ~NSF_BINLOG_FULL;
+    share->flags &= ~NSF_BINLOG_FULL;
 }
 inline void set_binlog_full(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_full"));
-    share->flags|= NSF_BINLOG_FULL;
+    share->flags |= NSF_BINLOG_FULL;
 }
 inline my_bool get_binlog_full(NDB_SHARE *share)
 {
@@ -180,12 +180,12 @@ inline my_bool get_binlog_full(NDB_SHARE *share)
 inline void set_binlog_use_write(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_use_write"));
-    share->flags&= ~NSF_BINLOG_USE_UPDATE;
+    share->flags &= ~NSF_BINLOG_USE_UPDATE;
 }
 inline void set_binlog_use_update(NDB_SHARE *share)
 {
     DBUG_PRINT("info", ("set_binlog_use_update"));
-    share->flags|= NSF_BINLOG_USE_UPDATE;
+    share->flags |= NSF_BINLOG_USE_UPDATE;
 }
 inline my_bool get_binlog_use_update(NDB_SHARE *share)
 {
@@ -238,7 +238,7 @@ struct st_ndb_status
         memset(this, 0, sizeof(struct st_ndb_status));
     }
     long cluster_node_id;
-    const char * connected_host;
+    const char *connected_host;
     long connected_port;
     long number_of_replicas;
     long number_of_data_nodes;
@@ -271,9 +271,9 @@ public:
     int close(void);
     void local_close(THD *thd, bool release_metadata);
 
-    int optimize(THD* thd, HA_CHECK_OPT* check_opt);
-    int analyze(THD* thd, HA_CHECK_OPT* check_opt);
-    int analyze_index(THD* thd);
+    int optimize(THD *thd, HA_CHECK_OPT *check_opt);
+    int analyze(THD *thd, HA_CHECK_OPT *check_opt);
+    int analyze_index(THD *thd);
 
     int write_row(uchar *buf);
     int update_row(const uchar *old_data, uchar *new_data);
@@ -289,21 +289,21 @@ public:
     int index_prev(uchar *buf);
     int index_first(uchar *buf);
     int index_last(uchar *buf);
-    int index_read_last(uchar * buf, const uchar * key, uint key_len);
+    int index_read_last(uchar *buf, const uchar *key, uint key_len);
     int rnd_init(bool scan);
     int rnd_end();
     int rnd_next(uchar *buf);
     int rnd_pos(uchar *buf, uchar *pos);
     void position(const uchar *record);
     int read_first_row(uchar *buf, uint primary_key);
-    virtual int cmp_ref(const uchar * ref1, const uchar * ref2);
+    virtual int cmp_ref(const uchar *ref1, const uchar *ref2);
     int read_range_first(const key_range *start_key,
                          const key_range *end_key,
                          bool eq_range, bool sorted);
     int read_range_first_to_buf(const key_range *start_key,
                                 const key_range *end_key,
                                 bool eq_range, bool sorted,
-                                uchar* buf);
+                                uchar *buf);
     int read_range_next();
 
 #ifndef NDB_WITH_NEW_MRR_INTERFACE
@@ -311,7 +311,7 @@ public:
      * Multi range stuff
      */
     int read_multi_range_first(KEY_MULTI_RANGE **found_range_p,
-                               KEY_MULTI_RANGE*ranges, uint range_count,
+                               KEY_MULTI_RANGE *ranges, uint range_count,
                                bool sorted, HANDLER_BUFFER *buffer);
     int read_multi_range_next(KEY_MULTI_RANGE **found_range_p);
     bool null_value_index_search(KEY_MULTI_RANGE *ranges,
@@ -341,8 +341,8 @@ public:
     int start_stmt(THD *thd, thr_lock_type lock_type);
     void update_create_info(HA_CREATE_INFO *create_info);
     void print_error(int error, myf errflag);
-    const char * table_type() const;
-    const char ** bas_ext() const;
+    const char *table_type() const;
+    const char **bas_ext() const;
     ulonglong table_flags(void) const;
     void set_part_info(partition_info *part_info, bool early);
     ulong index_flags(uint idx, uint part, bool all_parts) const;
@@ -368,6 +368,7 @@ public:
         if (!handler::is_fatal_error(error, flags) ||
                 error == HA_ERR_NO_PARTITION_FOUND)
             return FALSE;
+
         return TRUE;
     }
 
@@ -377,7 +378,7 @@ public:
 
     bool low_byte_first() const;
 
-    const char* index_type(uint key_number);
+    const char *index_type(uint key_number);
 
     double scan_time();
     ha_rows records_in_range(uint inx, key_range *min_key, key_range *max_key);
@@ -399,7 +400,7 @@ public:
       static member function as it needs to access private
       NdbTransaction methods
     */
-    static void release_completed_operations(NdbTransaction*);
+    static void release_completed_operations(NdbTransaction *);
 
     /*
       Condition pushdown
@@ -440,24 +441,24 @@ public:
     */
     void cond_pop();
 
-    bool maybe_pushable_join(const char*& reason) const;
-    int assign_pushed_join(const ndb_pushed_join* pushed_join);
+    bool maybe_pushable_join(const char *&reason) const;
+    int assign_pushed_join(const ndb_pushed_join *pushed_join);
 
     uint number_of_pushed_joins() const;
-    const TABLE* root_of_pushed_join() const;
-    const TABLE* parent_of_pushed_join() const;
+    const TABLE *root_of_pushed_join() const;
+    const TABLE *parent_of_pushed_join() const;
 
     int index_read_pushed(uchar *buf, const uchar *key,
                           key_part_map keypart_map);
 
-    int index_next_pushed(uchar * buf);
+    int index_next_pushed(uchar *buf);
 
     uint8 table_cache_type();
 
     /*
      * Internal to ha_ndbcluster, used by C functions
      */
-    int ndb_err(NdbTransaction*, bool have_lock= FALSE);
+    int ndb_err(NdbTransaction *, bool have_lock = FALSE);
 
     my_bool register_query_cache_table(THD *thd, char *table_key,
                                        uint key_length,
@@ -492,11 +493,11 @@ public:
 private:
 #ifdef HAVE_NDB_BINLOG
     int prepare_conflict_detection(enum_conflicting_op_type op_type,
-                                   const NdbRecord* key_rec,
-                                   const uchar* old_data,
-                                   const uchar* new_data,
-                                   NdbInterpretedCode* code,
-                                   NdbOperation::OperationOptions* options);
+                                   const NdbRecord *key_rec,
+                                   const uchar *old_data,
+                                   const uchar *new_data,
+                                   NdbInterpretedCode *code,
+                                   NdbOperation::OperationOptions *options);
 #endif
     void setup_key_ref_for_ndb_record(const NdbRecord **key_rec,
                                       const uchar **key_row,
@@ -531,8 +532,8 @@ private:
     int add_hidden_pk_ndb_record(NdbDictionary::Dictionary *dict);
     int add_index_ndb_record(NdbDictionary::Dictionary *dict,
                              KEY *key_info, uint index_no);
-    int check_default_values(const NdbDictionary::Table* ndbtab);
-    int get_metadata(THD *thd, const char* path);
+    int check_default_values(const NdbDictionary::Table *ndbtab);
+    int get_metadata(THD *thd, const char *path);
     void release_metadata(THD *thd, Ndb *ndb);
     NDB_INDEX_TYPE get_index_type(uint idx_no) const;
     NDB_INDEX_TYPE get_index_type_from_table(uint index_no) const;
@@ -542,33 +543,33 @@ private:
     bool check_index_fields_not_null(KEY *key_info);
 
     bool check_if_pushable(int type, //NdbQueryOperationDef::Type,
-                           uint idx= MAX_KEY,
-                           bool rootSorted= false) const;
+                           uint idx = MAX_KEY,
+                           bool rootSorted = false) const;
     bool check_is_pushed() const;
-    int create_pushed_join(const NdbQueryParamValue* keyFieldParams=NULL,
-                           uint paramCnt= 0);
+    int create_pushed_join(const NdbQueryParamValue *keyFieldParams = NULL,
+                           uint paramCnt = 0);
 
     int set_up_partition_info(partition_info *part_info,
-                              NdbDictionary::Table&) const;
-    int set_range_data(const partition_info* part_info,
-                       NdbDictionary::Table&) const;
-    int set_list_data(const partition_info* part_info,
-                      NdbDictionary::Table&) const;
+                              NdbDictionary::Table &) const;
+    int set_range_data(const partition_info *part_info,
+                       NdbDictionary::Table &) const;
+    int set_list_data(const partition_info *part_info,
+                      NdbDictionary::Table &) const;
     int ndb_pk_update_row(THD *thd,
                           const uchar *old_data, uchar *new_data,
                           uint32 old_part_id);
     int pk_read(const uchar *key, uint key_len, uchar *buf, uint32 *part_id);
     int ordered_index_scan(const key_range *start_key,
                            const key_range *end_key,
-                           bool sorted, bool descending, uchar* buf,
+                           bool sorted, bool descending, uchar *buf,
                            part_id_range *part_spec);
     int unique_index_read(const uchar *key, uint key_len,
                           uchar *buf);
-    int full_table_scan(const KEY* key_info,
+    int full_table_scan(const KEY *key_info,
                         const key_range *start_key,
                         const key_range *end_key,
                         uchar *buf);
-    int flush_bulk_insert(bool allow_batch= FALSE);
+    int flush_bulk_insert(bool allow_batch = FALSE);
     int ndb_write_row(uchar *record, bool primary_key_update,
                       bool batched_update);
 
@@ -576,7 +577,7 @@ private:
     int end_bulk_delete();
     int ndb_delete_row(const uchar *record, bool primary_key_update);
 
-    int ndb_optimize_table(THD* thd, uint delay);
+    int ndb_optimize_table(THD *thd, uint delay);
 
 #ifndef NDB_WITHOUT_ONLINE_ALTER
     int alter_frm(THD *thd, const char *file, NDB_ALTER_DATA *alter_data);
@@ -588,7 +589,7 @@ private:
                                         uint errcode);
     int peek_indexed_rows(const uchar *record, NDB_WRITE_OP write_op);
     int scan_handle_lock_tuple(NdbScanOperation *scanOp, NdbTransaction *trans);
-    int fetch_next(NdbScanOperation* op);
+    int fetch_next(NdbScanOperation *op);
     int fetch_next_pushed();
     int set_auto_inc(THD *thd, Field *field);
     int set_auto_inc_val(THD *thd, Uint64 value);
@@ -605,7 +606,7 @@ private:
     }
     const NdbDictionary::Column *get_partition_id_column()
     {
-        Uint32 index= table_share->fields + (table_share->primary_key == MAX_KEY);
+        Uint32 index = table_share->fields + (table_share->primary_key == MAX_KEY);
         return m_table->getColumn(index);
     }
 
@@ -642,7 +643,7 @@ private:
 
     int read_multi_range_fetch_next();
 
-    int primary_key_cmp(const uchar * old_row, const uchar * new_row);
+    int primary_key_cmp(const uchar *old_row, const uchar *new_row);
     void print_results();
 
     virtual void get_auto_increment(ulonglong offset, ulonglong increment,
@@ -653,11 +654,11 @@ private:
 
     static inline bool isManualBinlogExec(THD *thd);
 
-    char *update_table_comment(const char * comment);
+    char *update_table_comment(const char *comment);
 
     int write_ndb_file(const char *name);
 
-    int check_ndb_connection(THD* thd);
+    int check_ndb_connection(THD *thd);
 
     void set_rec_per_key();
     int records_update();
@@ -669,7 +670,7 @@ private:
     int ndb_index_stat_query(uint inx,
                              const key_range *min_key,
                              const key_range *max_key,
-                             NdbIndexStat::Stat& stat,
+                             NdbIndexStat::Stat &stat,
                              int from);
     int ndb_index_stat_get_rir(uint inx,
                                key_range *min_key,
@@ -685,6 +686,7 @@ private:
     {
         if (m_thd_ndb->trans)
             return m_thd_ndb->trans;
+
         return start_transaction_part_id(part_id, error);
     }
 
@@ -693,6 +695,7 @@ private:
     {
         if (m_thd_ndb->trans)
             return m_thd_ndb->trans;
+
         return start_transaction(error);
     }
 
@@ -703,9 +706,9 @@ private:
                                           const uchar *key_data,
                                           int &error);
 
-    friend int check_completed_operations_pre_commit(Thd_ndb*,
-            NdbTransaction*,
-            const NdbOperation*,
+    friend int check_completed_operations_pre_commit(Thd_ndb *,
+            NdbTransaction *,
+            const NdbOperation *,
             uint *ignore_count);
     friend int ndbcluster_commit(handlerton *hton, THD *thd, bool all);
     int start_statement(THD *thd, Thd_ndb *thd_ndb, uint table_count);
@@ -725,13 +728,13 @@ private:
     /* Bitmap used for NdbRecord operation column mask. */
     MY_BITMAP m_bitmap;
     my_bitmap_map m_bitmap_buf[(NDB_MAX_ATTRIBUTES_IN_TABLE +
-                                8*sizeof(my_bitmap_map) - 1) /
-                               (8*sizeof(my_bitmap_map))]; // Buffer for m_bitmap
+                                8 * sizeof(my_bitmap_map) - 1) /
+                               (8 * sizeof(my_bitmap_map))]; // Buffer for m_bitmap
     /* Bitmap with bit set for all primary key columns. */
     MY_BITMAP *m_pk_bitmap_p;
     my_bitmap_map m_pk_bitmap_buf[(NDB_MAX_ATTRIBUTES_IN_TABLE +
-                                   8*sizeof(my_bitmap_map) - 1) /
-                                  (8*sizeof(my_bitmap_map))]; // Buffer for m_pk_bitmap
+                                   8 * sizeof(my_bitmap_map) - 1) /
+                                  (8 * sizeof(my_bitmap_map))]; // Buffer for m_pk_bitmap
     struct Ndb_local_table_statistics *m_table_info;
     struct Ndb_local_table_statistics m_table_info_instance;
     char m_dbname[FN_HEADLEN];
@@ -798,11 +801,11 @@ private:
     const ndb_pushed_join
     *m_pushed_join_member;            // Pushed join def. I am member of
     int m_pushed_join_operation;           // Op. id. in above pushed join
-    static const int PUSHED_ROOT= 0;       // Op. id. if I'm root
+    static const int PUSHED_ROOT = 0;      // Op. id. if I'm root
 
     bool m_disable_pushed_join;            // Pushed execution allowed?
-    NdbQuery* m_active_query;              // Pushed query instance executing
-    NdbQueryOperation* m_pushed_operation; // Pushed operation instance
+    NdbQuery *m_active_query;              // Pushed query instance executing
+    NdbQueryOperation *m_pushed_operation; // Pushed operation instance
 
     ha_ndbcluster_cond *m_cond;
     bool m_disable_multi_read;
@@ -817,19 +820,19 @@ private:
     NdbIndexScanOperation *m_multi_cursor;
     Ndb *get_ndb(THD *thd);
 
-    int update_stats(THD *thd, bool do_read_stat, bool have_lock= FALSE,
-                     uint part_id= ~(uint)0);
-    int add_handler_to_open_tables(THD*, Thd_ndb*, ha_ndbcluster* handler);
+    int update_stats(THD *thd, bool do_read_stat, bool have_lock = FALSE,
+                     uint part_id = ~(uint)0);
+    int add_handler_to_open_tables(THD *, Thd_ndb *, ha_ndbcluster *handler);
 };
 
-int ndbcluster_discover(THD* thd, const char* dbname, const char* name,
-                        const void** frmblob, uint* frmlen);
-int ndbcluster_table_exists_in_engine(THD* thd,
+int ndbcluster_discover(THD *thd, const char *dbname, const char *name,
+                        const void **frmblob, uint *frmlen);
+int ndbcluster_table_exists_in_engine(THD *thd,
                                       const char *db, const char *name);
 void ndbcluster_print_error(int error, const NdbOperation *error_op);
 
-static const char ndbcluster_hton_name[]= "ndbcluster";
-static const int ndbcluster_hton_name_length=sizeof(ndbcluster_hton_name)-1;
+static const char ndbcluster_hton_name[] = "ndbcluster";
+static const int ndbcluster_hton_name_length = sizeof(ndbcluster_hton_name) - 1;
 extern int ndbcluster_terminating;
 extern int ndb_util_thread_running;
 extern pthread_cond_t COND_ndb_util_ready;

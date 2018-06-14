@@ -30,7 +30,7 @@
 */
 typedef struct event_coordinates
 {
-    char * file_name; // binlog file name (directories stripped)
+    char *file_name;  // binlog file name (directories stripped)
     my_off_t  pos;       // event's position in the binlog file
 } LOG_POS_COORD;
 
@@ -59,8 +59,8 @@ public:
         RESULT_INCONSISTENT
     };
 
-    virtual int open(const char *opt_name)=0;
-    virtual void close()=0;
+    virtual int open(const char *opt_name) = 0;
+    virtual void close() = 0;
 
     /**
        Log a commit record of the transaction to the transaction
@@ -228,7 +228,7 @@ extern TC_LOG_DUMMY tc_log_dummy;
 #define LOG_WARN_UNIQUE_FN_EXT_LEFT 1000
 
 #ifdef HAVE_PSI_INTERFACE
-extern PSI_mutex_key key_LOG_INFO_lock;
+    extern PSI_mutex_key key_LOG_INFO_lock;
 #endif
 
 /*
@@ -398,21 +398,21 @@ class Log_event_handler
 {
 public:
     Log_event_handler() {}
-    virtual bool init()= 0;
-    virtual void cleanup()= 0;
+    virtual bool init() = 0;
+    virtual void cleanup() = 0;
 
     virtual bool log_slow(THD *thd, time_t current_time,
                           time_t query_start_arg, const char *user_host,
                           uint user_host_len, ulonglong query_utime,
                           ulonglong lock_utime, bool is_command,
-                          const char *sql_text, uint sql_text_len)= 0;
+                          const char *sql_text, uint sql_text_len) = 0;
     virtual bool log_error(enum loglevel level, const char *format,
-                           va_list args)= 0;
+                           va_list args) = 0;
     virtual bool log_general(THD *thd, time_t event_time, const char *user_host,
                              uint user_host_len, my_thread_id thread_id,
                              const char *command_type, uint command_type_len,
                              const char *sql_text, uint sql_text_len,
-                             const CHARSET_INFO *client_cs)= 0;
+                             const CHARSET_INFO *client_cs) = 0;
     virtual ~Log_event_handler() {}
 };
 
@@ -541,7 +541,7 @@ public:
     bool error_log_print(enum loglevel level, const char *format,
                          va_list args);
     bool slow_log_print(THD *thd, const char *query, uint query_length);
-    bool general_log_print(THD *thd,enum enum_server_command command,
+    bool general_log_print(THD *thd, enum enum_server_command command,
                            const char *format, va_list args);
     bool general_log_write(THD *thd, enum enum_server_command command,
                            const char *query, uint query_length);
@@ -553,18 +553,20 @@ public:
     void init_error_log(uint error_log_printer);
     void init_slow_log(uint slow_log_printer);
     void init_general_log(uint general_log_printer);
-    void deactivate_log_handler(THD* thd, uint log_type);
-    bool activate_log_handler(THD* thd, uint log_type);
+    void deactivate_log_handler(THD *thd, uint log_type);
+    bool activate_log_handler(THD *thd, uint log_type);
     MYSQL_QUERY_LOG *get_slow_log_file_handler() const
     {
         if (file_log_handler)
             return file_log_handler->get_mysql_slow_log();
+
         return NULL;
     }
     MYSQL_QUERY_LOG *get_log_file_handler() const
     {
         if (file_log_handler)
             return file_log_handler->get_mysql_log();
+
         return NULL;
     }
 };
@@ -572,19 +574,19 @@ public:
 enum enum_binlog_row_image
 {
     /** PKE in the before image and changed columns in the after image */
-    BINLOG_ROW_IMAGE_MINIMAL= 0,
+    BINLOG_ROW_IMAGE_MINIMAL = 0,
     /** Whenever possible, before and after image contain all columns except blobs. */
-    BINLOG_ROW_IMAGE_NOBLOB= 1,
+    BINLOG_ROW_IMAGE_NOBLOB = 1,
     /** All columns in both before and after image. */
-    BINLOG_ROW_IMAGE_FULL= 2
+    BINLOG_ROW_IMAGE_FULL = 2
 };
 
 enum enum_binlog_format
 {
-    BINLOG_FORMAT_MIXED= 0, ///< statement if safe, otherwise row - autodetected
-    BINLOG_FORMAT_STMT=  1, ///< statement-based
-    BINLOG_FORMAT_ROW=   2, ///< row-based
-    BINLOG_FORMAT_UNSPEC=3  ///< thd_binlog_format() returns it when binlog is closed
+    BINLOG_FORMAT_MIXED = 0, ///< statement if safe, otherwise row - autodetected
+    BINLOG_FORMAT_STMT =  1, ///< statement-based
+    BINLOG_FORMAT_ROW =   2, ///< row-based
+    BINLOG_FORMAT_UNSPEC = 3 ///< thd_binlog_format() returns it when binlog is closed
 };
 
 int query_error_code(THD *thd, bool not_killed);
@@ -605,7 +607,7 @@ int error_log_print(enum loglevel level, const char *format,
 bool slow_log_print(THD *thd, const char *query, uint query_length);
 
 bool general_log_print(THD *thd, enum enum_server_command command,
-                       const char *format,...);
+                       const char *format, ...);
 
 bool general_log_write(THD *thd, enum enum_server_command command,
                        const char *query, uint query_length);
@@ -613,7 +615,7 @@ bool general_log_write(THD *thd, enum enum_server_command command,
 void sql_perror(const char *message);
 bool flush_error_log();
 
-char *make_log_name(char *buff, const char *name, const char* log_ext);
+char *make_log_name(char *buff, const char *name, const char *log_ext);
 
 extern LOGGER logger;
 

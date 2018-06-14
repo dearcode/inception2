@@ -78,7 +78,7 @@ typedef ulonglong nested_join_map;
 enum enum_table_ref_type
 {
     /** Initial value set by the parser */
-    TABLE_REF_NULL= 0,
+    TABLE_REF_NULL = 0,
     TABLE_REF_VIEW,
     TABLE_REF_BASE_TABLE,
     TABLE_REF_I_S_TABLE,
@@ -101,7 +101,7 @@ typedef struct str_struct str_t;
 struct str_struct
 {
     char	str_buf[NAME_CHAR_LEN];
-    char*	str;
+    char	*str;
     int		str_len;
 };
 
@@ -118,12 +118,12 @@ struct select_info_struct
     "index_merge"
     */
     char	join_type[NAME_CHAR_LEN];
-    char**	possible_keys;
+    char	**possible_keys;
     char	key[NAME_CHAR_LEN];
     int		key_len;
     char	ref[NAME_CHAR_LEN];
     int		rows;
-    char*	extra;
+    char	*extra;
 
     LIST_NODE_T(select_info_t) link;
 };
@@ -434,7 +434,7 @@ enum enum_table_category
     /**
       Unknown value.
     */
-    TABLE_UNKNOWN_CATEGORY=0,
+    TABLE_UNKNOWN_CATEGORY = 0,
 
     /**
       Temporary table.
@@ -447,7 +447,7 @@ enum enum_table_category
       can be used on temporary tables.
       Temporary tables are not part of the table cache.
     */
-    TABLE_CATEGORY_TEMPORARY=1,
+    TABLE_CATEGORY_TEMPORARY = 1,
 
     /**
       User table.
@@ -457,7 +457,7 @@ enum enum_table_category
       - SET GLOBAL READ_ONLY = ON
       User tables are cached in the table cache.
     */
-    TABLE_CATEGORY_USER=2,
+    TABLE_CATEGORY_USER = 2,
 
     /**
       System table, maintained by the server.
@@ -469,7 +469,7 @@ enum enum_table_category
       the server implementation, not explicitly be a user.
       System tables are cached in the table cache.
     */
-    TABLE_CATEGORY_SYSTEM=3,
+    TABLE_CATEGORY_SYSTEM = 3,
 
     /**
       Information schema tables.
@@ -491,7 +491,7 @@ enum enum_table_category
       to I_S tables in the table cache, which should use
       this table type.
     */
-    TABLE_CATEGORY_INFORMATION=4,
+    TABLE_CATEGORY_INFORMATION = 4,
 
     /**
       Log tables.
@@ -513,7 +513,7 @@ enum enum_table_category
       The server implementation perform writes.
       Log tables are cached in the table cache.
     */
-    TABLE_CATEGORY_LOG=5,
+    TABLE_CATEGORY_LOG = 5,
 
     /**
       Performance schema tables.
@@ -535,7 +535,7 @@ enum enum_table_category
       The server implementation perform writes.
       Performance tables are cached in the table cache.
     */
-    TABLE_CATEGORY_PERFORMANCE=6,
+    TABLE_CATEGORY_PERFORMANCE = 6,
 
     /**
       Replication Information Tables.
@@ -554,7 +554,7 @@ enum enum_table_category
       User queries do not write directly to these tables.
       Replication tables are cached in the table cache.
     */
-    TABLE_CATEGORY_RPL_INFO=7
+    TABLE_CATEGORY_RPL_INFO = 7
 };
 typedef enum enum_table_category TABLE_CATEGORY;
 
@@ -582,7 +582,7 @@ typedef struct st_table_field_def
 class Table_check_intact
 {
 protected:
-    virtual void report_error(uint code, const char *fmt, ...)= 0;
+    virtual void report_error(uint code, const char *fmt, ...) = 0;
 
 public:
     Table_check_intact() {}
@@ -654,7 +654,7 @@ struct TABLE_SHARE
     TYPELIB fieldnames;			/* Pointer to fieldnames */
     TYPELIB *intervals;			/* pointer to interval info */
     mysql_mutex_t LOCK_ha_data;           /* To protect access to ha_data */
-    TABLE_SHARE *next, **prev;            /* Link to unused shares */
+    TABLE_SHARE *next, * *prev;           /* Link to unused shares */
     /**
       Array of table_cache_instances pointers to elements of table caches
       respresenting this table in each of Table_cache instances.
@@ -709,7 +709,7 @@ struct TABLE_SHARE
     inline handlerton *db_type() const	/* table_type for handler */
     {
         // DBUG_ASSERT(db_plugin);
-        return db_plugin ? plugin_data(db_plugin, handlerton*) : NULL;
+        return db_plugin ? plugin_data(db_plugin, handlerton *) : NULL;
     }
     enum row_type row_type;		/* How rows are stored */
     enum tmp_table_type tmp_table;
@@ -828,16 +828,16 @@ struct TABLE_SHARE
 
     void set_table_cache_key(char *key_buff, uint key_length)
     {
-        table_cache_key.str= key_buff;
-        table_cache_key.length= key_length;
+        table_cache_key.str = key_buff;
+        table_cache_key.length = key_length;
         /*
           Let us use the fact that the key is "db/0/table_name/0" + optional
           part for temporary tables.
         */
-        db.str=            table_cache_key.str;
-        db.length=         strlen(db.str);
-        table_name.str=    db.str + db.length + 1;
-        table_name.length= strlen(table_name.str);
+        db.str =            table_cache_key.str;
+        db.length =         strlen(db.str);
+        table_name.str =    db.str + db.length + 1;
+        table_name.length = strlen(table_name.str);
     }
 
 
@@ -889,11 +889,14 @@ struct TABLE_SHARE
     {
         if (is_view)
             return TABLE_REF_VIEW;
+
         switch (tmp_table) {
         case NO_TMP_TABLE:
             return TABLE_REF_BASE_TABLE;
+
         case SYSTEM_TMP_TABLE:
             return TABLE_REF_I_S_TABLE;
+
         default:
             return TABLE_REF_TMP_TABLE;
         }
@@ -984,7 +987,7 @@ private:
     */
     bool truncated_value;
 public:
-    Blob_mem_storage() :truncated_value(false)
+    Blob_mem_storage() : truncated_value(false)
     {
         init_alloc_root(&storage, MAX_FIELD_VARCHARLENGTH, 0);
     }
@@ -995,7 +998,7 @@ public:
     void reset()
     {
         free_root(&storage, MYF(MY_MARK_BLOCKS_FREE));
-        truncated_value= false;
+        truncated_value = false;
     }
     /**
        Fuction creates duplicate of 'from'
@@ -1009,11 +1012,11 @@ public:
     */
     char *store(const char *from, uint length)
     {
-        return (char*) memdup_root(&storage, from, length);
+        return (char *) memdup_root(&storage, from, length);
     }
     void set_truncated_value(bool is_truncated_value)
     {
-        truncated_value= is_truncated_value;
+        truncated_value = is_truncated_value;
     }
     bool is_truncated_value()
     {
@@ -1054,7 +1057,7 @@ private:
        Declared as private to avoid direct manipulation with those objects.
        One should use methods of I_P_List template instead.
     */
-    TABLE *cache_next, **cache_prev;
+    TABLE *cache_next, * *cache_prev;
 
     /*
       Give Table_cache_element access to the above two members to allow
@@ -1157,7 +1160,7 @@ public:
     uint          lock_position;          /* Position in MYSQL_LOCK.table */
     uint          lock_data_start;        /* Start pos. in MYSQL_LOCK.locks */
     uint          lock_count;             /* Number of locks */
-    uint		tablenr,used_fields;
+    uint		tablenr, used_fields;
     uint          temp_pool_slot;		/* Used by intern temp tables */
     uint		db_stat;		/* mode of file as in handler.h */
     int		current_lock;           /* Type of lock on table */
@@ -1195,7 +1198,7 @@ public:
       See TABLE_LIST::process_index_hints().
     */
     my_bool force_index_group;
-    my_bool distinct,const_table,no_rows;
+    my_bool distinct, const_table, no_rows;
 
     /**
        If set, the optimizer has found that row retrieval should access index
@@ -1265,16 +1268,17 @@ public:
     inline void column_bitmaps_set(MY_BITMAP *read_set_arg,
                                    MY_BITMAP *write_set_arg)
     {
-        read_set= read_set_arg;
-        write_set= write_set_arg;
+        read_set = read_set_arg;
+        write_set = write_set_arg;
+
         if (file && created)
             file->column_bitmaps_signal();
     }
     inline void column_bitmaps_set_no_signal(MY_BITMAP *read_set_arg,
             MY_BITMAP *write_set_arg)
     {
-        read_set= read_set_arg;
-        write_set= write_set_arg;
+        read_set = read_set_arg;
+        write_set = write_set_arg;
     }
     inline void use_all_columns()
     {
@@ -1282,8 +1286,8 @@ public:
     }
     inline void default_column_bitmaps()
     {
-        read_set= &def_read_set;
-        write_set= &def_write_set;
+        read_set = &def_read_set;
+        write_set = &def_write_set;
     }
     /** Should this instance of the table be reopened? */
     inline bool needs_reopen()
@@ -1297,12 +1301,16 @@ public:
     void set_keyread(bool flag)
     {
         DBUG_ASSERT(file);
+
         if (flag && !key_read) {
-            key_read= 1;
+            key_read = 1;
+
             if (is_created())
                 file->extra(HA_EXTRA_KEYREAD);
+
         } else if (!flag && key_read) {
-            key_read= 0;
+            key_read = 0;
+
             if (is_created())
                 file->extra(HA_EXTRA_NO_KEYREAD);
         }
@@ -1326,9 +1334,11 @@ public:
     {
         if (created)
             return;
+
         if (key_read)
             file->extra(HA_EXTRA_KEYREAD);
-        created= true;
+
+        created = true;
     }
     /**
       Set the contents of table to be "deleted", ie "not created", after having
@@ -1336,14 +1346,14 @@ public:
     */
     void set_deleted()
     {
-        created= false;
+        created = false;
     }
 };
 
 
 enum enum_schema_table_state
 {
-    NOT_PROCESSED= 0,
+    NOT_PROCESSED = 0,
     PROCESSED_BY_CREATE_SORT_INDEX,
     PROCESSED_BY_JOIN_EXEC
 };
@@ -1375,7 +1385,7 @@ typedef struct st_field_info
     /**
         This is used as column name.
     */
-    const char* field_name;
+    const char *field_name;
     /**
        For string-type columns, this is the maximum number of
        characters. Otherwise, it is the 'display-length' for the column.
@@ -1397,7 +1407,7 @@ typedef struct st_field_info
        defined in table.h.
      */
     uint field_flags;        // Field atributes(maybe_null, signed, unsigned etc.)
-    const char* old_name;
+    const char *old_name;
     /**
        This should be one of @c SKIP_OPEN_TABLE,
        @c OPEN_FRM_ONLY or @c OPEN_FULL_TABLE.
@@ -1410,7 +1420,7 @@ struct TABLE_LIST;
 
 typedef struct st_schema_table
 {
-    const char* table_name;
+    const char *table_name;
     ST_FIELD_INFO *fields_info;
     /* Create information_schema table */
     TABLE *(*create_table)  (THD *thd, TABLE_LIST *table_list);
@@ -1502,7 +1512,7 @@ public:
 
 enum enum_open_type
 {
-    OT_TEMPORARY_OR_BASE= 0, OT_TEMPORARY_ONLY, OT_BASE_ONLY
+    OT_TEMPORARY_OR_BASE = 0, OT_TEMPORARY_ONLY, OT_BASE_ONLY
 };
 
 /**
@@ -1576,17 +1586,17 @@ struct TABLE_LIST
                                enum thr_lock_type lock_type_arg)
     {
         memset(this, 0, sizeof(*this));
-        db= (char*) db_name_arg;
-        db_length= db_length_arg;
-        table_name= (char*) table_name_arg;
-        table_name_length= table_name_length_arg;
-        alias= (char*) alias_arg;
-        lock_type= lock_type_arg;
+        db = (char *) db_name_arg;
+        db_length = db_length_arg;
+        table_name = (char *) table_name_arg;
+        table_name_length = table_name_length_arg;
+        alias = (char *) alias_arg;
+        lock_type = lock_type_arg;
 //     mdl_request.init(MDL_key::TABLE, db, table_name,
 //                      (lock_type >= TL_WRITE_ALLOW_WRITE) ?
 //                      MDL_SHARED_WRITE : MDL_SHARED_READ,
 //                      MDL_TRANSACTION);
-        callback_func= 0;
+        callback_func = 0;
     }
 
     /*
@@ -1597,7 +1607,7 @@ struct TABLE_LIST
     */
     TABLE_LIST *next_local;
     /* link in a global list of all queries tables */
-    TABLE_LIST *next_global, **prev_global;
+    TABLE_LIST *next_global, * *prev_global;
     char		*db, *alias, *table_name, *schema_table_name;
     char          *option;                /* Used by cache index  */
 
@@ -1614,7 +1624,7 @@ public:
     }
     Item          *set_join_cond(Item *val)
     {
-        return m_join_cond= val;
+        return m_join_cond = val;
     }
     /*
       The structure of the join condition presented in the member above
@@ -1850,7 +1860,7 @@ public:
     enum
     {
         /* Normal open. */
-        OPEN_NORMAL= 0,
+        OPEN_NORMAL = 0,
         /* Associate a table share only if the the table exists. */
         OPEN_IF_EXISTS,
         /* Don't associate a table share. */
@@ -1939,14 +1949,16 @@ public:
     inline TABLE_LIST *top_table()
     {
         return
-            const_cast<TABLE_LIST*>(const_cast<const TABLE_LIST*>(this)->top_table());
+            const_cast<TABLE_LIST *>(const_cast<const TABLE_LIST *>(this)->top_table());
     }
 
     inline bool prepare_check_option(THD *thd)
     {
-        bool res= FALSE;
+        bool res = FALSE;
+
         if (effective_with_check)
-            res= prep_check_option(thd, effective_with_check);
+            res = prep_check_option(thd, effective_with_check);
+
         return res;
     }
     inline bool prepare_where(THD *thd, Item **conds,
@@ -1954,6 +1966,7 @@ public:
     {
         if (effective_algorithm == VIEW_ALGORITHM_MERGE)
             return prep_where(thd, conds, no_where_clause);
+
         return FALSE;
     }
     /**
@@ -2028,8 +2041,8 @@ public:
     void set_table_ref_id(enum_table_ref_type table_ref_type_arg,
                           ulong table_ref_version_arg)
     {
-        m_table_ref_type= table_ref_type_arg;
-        m_table_ref_version= table_ref_version_arg;
+        m_table_ref_type = table_ref_type_arg;
+        m_table_ref_version = table_ref_version_arg;
     }
 
     /**
@@ -2064,9 +2077,9 @@ public:
         return view != NULL ? view_name.str : table_name;
     }
     int fetch_number_of_rows();
-    bool update_derived_keys(Field*, Item**, uint);
+    bool update_derived_keys(Field *, Item **, uint);
     bool generate_keys();
-    bool handle_derived(LEX *lex, bool (*processor)(THD*, LEX*, TABLE_LIST*));
+    bool handle_derived(LEX *lex, bool (*processor)(THD *, LEX *, TABLE_LIST *));
     st_select_lex_unit *get_unit() const;
 
     /**
@@ -2090,8 +2103,10 @@ public:
     {
         if (!embedding)
             return NULL;
+
         if (embedding->sj_on_expr)
             return embedding->embedding;
+
         return embedding;
     }
 
@@ -2117,12 +2132,12 @@ class Field_iterator: public Sql_alloc
 public:
     Field_iterator() {}                         /* Remove gcc warning */
     virtual ~Field_iterator() {}
-    virtual void set(TABLE_LIST *)= 0;
-    virtual void next()= 0;
-    virtual bool end_of_fields()= 0;              /* Return 1 at end of list */
-    virtual const char *name()= 0;
-    virtual Item *create_item(THD *)= 0;
-    virtual Field *field()= 0;
+    virtual void set(TABLE_LIST *) = 0;
+    virtual void next() = 0;
+    virtual bool end_of_fields() = 0;             /* Return 1 at end of list */
+    virtual const char *name() = 0;
+    virtual Item *create_item(THD *) = 0;
+    virtual Field *field() = 0;
 };
 
 
@@ -2135,14 +2150,14 @@ class Field_iterator_table: public Field_iterator
 {
     Field **ptr;
 public:
-    Field_iterator_table() :ptr(0) {}
+    Field_iterator_table() : ptr(0) {}
     void set(TABLE_LIST *table)
     {
-        ptr= table->table->field;
+        ptr = table->table->field;
     }
     void set_table(TABLE *table)
     {
-        ptr= table->field;
+        ptr = table->field;
     }
     void next()
     {
@@ -2168,7 +2183,7 @@ class Field_iterator_view: public Field_iterator
     Field_translator *ptr, *array_end;
     TABLE_LIST *view;
 public:
-    Field_iterator_view() :ptr(0), array_end(0) {}
+    Field_iterator_view() : ptr(0), array_end(0) {}
     void set(TABLE_LIST *table);
     void next()
     {
@@ -2209,7 +2224,7 @@ class Field_iterator_natural_join: public Field_iterator
     List_iterator_fast<Natural_join_column> column_ref_it;
     Natural_join_column *cur_column_ref;
 public:
-    Field_iterator_natural_join() :cur_column_ref(NULL) {}
+    Field_iterator_natural_join() : cur_column_ref(NULL) {}
     ~Field_iterator_natural_join() {}
     void set(TABLE_LIST *table);
     void next();
@@ -2261,7 +2276,7 @@ class Field_iterator_table_ref: public Field_iterator
     Field_iterator *field_it;
     void set_field_iterator();
 public:
-    Field_iterator_table_ref() :field_it(NULL) {}
+    Field_iterator_table_ref() : field_it(NULL) {}
     void set(TABLE_LIST *table);
     void next();
     bool end_of_fields()
@@ -2384,16 +2399,16 @@ typedef struct st_changed_table_list
 typedef struct st_open_table_list
 {
     struct st_open_table_list *next;
-    char	*db,*table;
-    uint32 in_use,locked;
+    char	*db, *table;
+    uint32 in_use, locked;
 } OPEN_TABLE_LIST;
 
 
 static inline my_bitmap_map *tmp_use_all_columns(TABLE *table,
         MY_BITMAP *bitmap)
 {
-    my_bitmap_map *old= bitmap->bitmap;
-    bitmap->bitmap= table->s->all_set.bitmap;// does not repoint last_word_ptr
+    my_bitmap_map *old = bitmap->bitmap;
+    bitmap->bitmap = table->s->all_set.bitmap; // does not repoint last_word_ptr
     return old;
 }
 
@@ -2401,7 +2416,7 @@ static inline my_bitmap_map *tmp_use_all_columns(TABLE *table,
 static inline void tmp_restore_column_map(MY_BITMAP *bitmap,
         my_bitmap_map *old)
 {
-    bitmap->bitmap= old;
+    bitmap->bitmap = old;
 }
 
 /* The following is only needed for debugging */
@@ -2435,8 +2450,8 @@ static inline void dbug_tmp_use_all_columns(TABLE *table,
         MY_BITMAP *write_set)
 {
 #ifndef DBUG_OFF
-    save[0]= read_set->bitmap;
-    save[1]= write_set->bitmap;
+    save[0] = read_set->bitmap;
+    save[1] = write_set->bitmap;
     (void) tmp_use_all_columns(table, read_set);
     (void) tmp_use_all_columns(table, write_set);
 #endif
@@ -2476,17 +2491,17 @@ enum_ident_name_check check_and_convert_db_name(LEX_STRING *db,
 bool check_column_name(const char *name, int check_case);
 enum_ident_name_check check_table_name(const char *name, size_t length,
                                        bool check_for_path_chars);
-int rename_file_ext(const char * from,const char * to,const char * ext);
+int rename_file_ext(const char *from, const char *to, const char *ext);
 char *get_field(MEM_ROOT *mem, Field *field);
 bool get_field(MEM_ROOT *mem, Field *field, class String *res);
 
 int closefrm(TABLE *table, bool free_share);
-int read_string(File file, uchar* *to, size_t length);
+int read_string(File file, uchar * *to, size_t length);
 void free_blobs(TABLE *table);
 void free_field_buffers_larger_than(TABLE *table, uint32 size);
-int set_zone(int nr,int min_zone,int max_zone);
+int set_zone(int nr, int min_zone, int max_zone);
 ulong get_form_pos(File file, uchar *head, TYPELIB *save_names);
-ulong make_new_entry(File file,uchar *fileinfo,TYPELIB *formnames,
+ulong make_new_entry(File file, uchar *fileinfo, TYPELIB *formnames,
                      const char *newname);
 ulong next_io_size(ulong pos);
 void append_unescaped(String *res, const char *pos, uint length);
@@ -2528,16 +2543,16 @@ TYPELIB *typelib(MEM_ROOT *mem_root, List<String> &strings);
 /**
   return true if the table was created explicitly.
 */
-inline bool is_user_table(TABLE * table)
+inline bool is_user_table(TABLE *table)
 {
-    const char *name= table->s->table_name.str;
+    const char *name = table->s->table_name.str;
     return strncmp(name, tmp_file_prefix, tmp_file_prefix_length);
 }
 
 inline void mark_as_null_row(TABLE *table)
 {
-    table->null_row=1;
-    table->status|=STATUS_NULL_ROW;
+    table->null_row = 1;
+    table->status |= STATUS_NULL_ROW;
 }
 
 bool is_simple_order(ORDER *order);
@@ -2551,7 +2566,7 @@ int mysql_prepare_create_table(THD *thd, HA_CREATE_INFO *create_info,
 
 void
 mysql_errmsg_append(
-    THD *	thd
+    THD 	*thd
 );
 
 

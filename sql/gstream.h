@@ -39,7 +39,7 @@ public:
     };
 
     Gis_read_stream(const CHARSET_INFO *charset, const char *buffer, int size)
-        :m_cur(buffer), m_limit(buffer + size), m_err_msg(NULL), m_charset(charset)
+        : m_cur(buffer), m_limit(buffer + size), m_err_msg(NULL), m_charset(charset)
     {}
     Gis_read_stream(): m_cur(NullS), m_limit(NullS), m_err_msg(NullS)
     {}
@@ -62,8 +62,10 @@ public:
     inline bool skip_char(char skip)
     {
         skip_space();
+
         if ((m_cur >= m_limit) || *m_cur != skip)
             return 1;					/* Didn't find char */
+
         m_cur++;
         return 0;
     }
@@ -73,7 +75,7 @@ public:
     char *get_error_msg()
     {
         char *err_msg = m_err_msg;
-        m_err_msg= NullS;
+        m_err_msg = NullS;
         return err_msg;
     }
 

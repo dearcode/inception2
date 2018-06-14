@@ -154,7 +154,7 @@ public:
        @param   length   query's length
        @param   charset  charset which was used to encode this query
     */
-    void set_query(const char* query, size_t length,
+    void set_query(const char *query, size_t length,
                    const CHARSET_INFO *charset);
 
     /**
@@ -186,9 +186,9 @@ public:
     /** Flags' numeric values for @@@@optimizer_trace variable */
     enum
     {
-        FLAG_DEFAULT=    0,
-        FLAG_ENABLED=    1 << 0,
-        FLAG_ONE_LINE=   1 << 1
+        FLAG_DEFAULT =    0,
+        FLAG_ENABLED =    1 << 0,
+        FLAG_ONE_LINE =   1 << 1
     };
 
     /**
@@ -207,10 +207,10 @@ public:
     /** Features' numeric values for @@@@optimizer_trace_features variable */
     enum feature_value
     {
-        GREEDY_SEARCH=      1 << 0,
-        RANGE_OPTIMIZER=    1 << 1,
-        DYNAMIC_RANGE=      1 << 2,
-        REPEATED_SUBSELECT= 1 << 3,
+        GREEDY_SEARCH =      1 << 0,
+        RANGE_OPTIMIZER =    1 << 1,
+        DYNAMIC_RANGE =      1 << 2,
+        REPEATED_SUBSELECT = 1 << 3,
         /*
           If you add here, update feature_value of empty implementation
           and default_features!
@@ -221,7 +221,7 @@ public:
            This feature cannot be disabled by the user; for this it is important
            that it always has biggest flag; flag's value itself does not matter.
         */
-        MISC=               1 << 7
+        MISC =               1 << 7
     };
 
     /**
@@ -267,6 +267,7 @@ public:
     void disable_I_S_for_this_and_children()
     {
         ++I_S_disabled;
+
         if (unlikely(pimpl != NULL))
             pimpl->disable_I_S_for_this_and_children();
     }
@@ -279,6 +280,7 @@ public:
     {
         --I_S_disabled;
         DBUG_ASSERT(I_S_disabled >= 0);
+
         if (unlikely(pimpl != NULL))
             pimpl->restore_I_S();
     }
@@ -406,9 +408,9 @@ private:
     size_t allowed_mem_size_for_current_stmt() const;
 
     /// Not defined copy constructor, to disallow copy.
-    Opt_trace_context(const Opt_trace_context&);
+    Opt_trace_context(const Opt_trace_context &);
     /// Not defined assignment operator, to disallow assignment.
-    Opt_trace_context& operator=(const Opt_trace_context&);
+    Opt_trace_context &operator=(const Opt_trace_context &);
 };
 
 #else /* OPTIMIZER_TRACE */
@@ -420,17 +422,17 @@ public:
     /// We need those enums even if tracing is disabled
     enum feature_value
     {
-        GREEDY_SEARCH=      1 << 0,
-        RANGE_OPTIMIZER=    1 << 1,
-        DYNAMIC_RANGE=      1 << 2,
-        REPEATED_SUBSELECT= 1 << 3,
-        MISC=               1 << 7
+        GREEDY_SEARCH =      1 << 0,
+        RANGE_OPTIMIZER =    1 << 1,
+        DYNAMIC_RANGE =      1 << 2,
+        REPEATED_SUBSELECT = 1 << 3,
+        MISC =               1 << 7
     };
     enum
     {
-        FLAG_DEFAULT=    0,
-        FLAG_ENABLED=    1 << 0,
-        FLAG_ONE_LINE=   1 << 1
+        FLAG_DEFAULT =    0,
+        FLAG_ENABLED =    1 << 0,
+        FLAG_ONE_LINE =   1 << 1
     };
     static bool is_started()
     {

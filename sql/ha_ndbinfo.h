@@ -97,7 +97,7 @@ private:
 
     bool is_offline(void) const;
 
-    struct ha_ndbinfo_impl& m_impl;
+    struct ha_ndbinfo_impl &m_impl;
 
 };
 

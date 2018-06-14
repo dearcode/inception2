@@ -56,7 +56,7 @@ typedef union ndb_item_qualification {
 
 typedef struct ndb_item_field_value
 {
-    Field* field;
+    Field *field;
     int column_no;
 } NDB_ITEM_FIELD_VALUE;
 
@@ -76,7 +76,7 @@ struct negated_function_mapping
   Define what functions can be negated in condition pushdown.
   Note, these HAVE to be in the same order as in definition enum
 */
-static const negated_function_mapping neg_map[]= {
+static const negated_function_mapping neg_map[] = {
     {NDB_EQ_FUNC, NDB_NE_FUNC},
     {NDB_NE_FUNC, NDB_EQ_FUNC},
     {NDB_LT_FUNC, NDB_GE_FUNC},
@@ -118,50 +118,53 @@ public:
     {
         switch(item_type) {
         case(NDB_VALUE):
-            value.item= item_value;
+            value.item = item_value;
             break;
+
         case(NDB_FIELD): {
-            NDB_ITEM_FIELD_VALUE *field_value= new NDB_ITEM_FIELD_VALUE();
-            Item_field *field_item= (Item_field *) item_value;
-            field_value->field= field_item->field;
-            field_value->column_no= -1; // Will be fetched at scan filter generation
-            value.field_value= field_value;
+            NDB_ITEM_FIELD_VALUE *field_value = new NDB_ITEM_FIELD_VALUE();
+            Item_field *field_item = (Item_field *) item_value;
+            field_value->field = field_item->field;
+            field_value->column_no = -1; // Will be fetched at scan filter generation
+            value.field_value = field_value;
             break;
         }
+
         case(NDB_FUNCTION):
-            value.item= item_value;
-            value.arg_count= ((Item_func *) item_value)->argument_count();
+            value.item = item_value;
+            value.arg_count = ((Item_func *) item_value)->argument_count();
             break;
+
         case(NDB_END_COND):
             break;
         }
     };
     Ndb_item(Field *field, int column_no) : type(NDB_FIELD)
     {
-        NDB_ITEM_FIELD_VALUE *field_value= new NDB_ITEM_FIELD_VALUE();
-        qualification.field_type= field->real_type();
-        field_value->field= field;
-        field_value->column_no= column_no;
-        value.field_value= field_value;
+        NDB_ITEM_FIELD_VALUE *field_value = new NDB_ITEM_FIELD_VALUE();
+        qualification.field_type = field->real_type();
+        field_value->field = field;
+        field_value->column_no = column_no;
+        value.field_value = field_value;
     };
     Ndb_item(Item_func::Functype func_type, const Item *item_value)
         : type(NDB_FUNCTION)
     {
-        qualification.function_type= item_func_to_ndb_func(func_type);
-        value.item= item_value;
-        value.arg_count= ((Item_func *) item_value)->argument_count();
+        qualification.function_type = item_func_to_ndb_func(func_type);
+        value.item = item_value;
+        value.arg_count = ((Item_func *) item_value)->argument_count();
     };
     Ndb_item(Item_func::Functype func_type, uint no_args)
         : type(NDB_FUNCTION)
     {
-        qualification.function_type= item_func_to_ndb_func(func_type);
-        value.arg_count= no_args;
+        qualification.function_type = item_func_to_ndb_func(func_type);
+        value.arg_count = no_args;
     };
     ~Ndb_item()
     {
         if (type == NDB_FIELD) {
             delete value.field_value;
-            value.field_value= NULL;
+            value.field_value = NULL;
         }
     };
 
@@ -171,9 +174,12 @@ public:
         case(NDB_VALUE):
             if(qualification.value_type == Item::STRING_ITEM)
                 return value.item->str_value.length();
+
             break;
+
         case(NDB_FIELD):
             return value.field_value->field->pack_length();
+
         default:
             break;
         }
@@ -181,7 +187,7 @@ public:
         return 0;
     };
 
-    Field * get_field()
+    Field *get_field()
     {
         return value.field_value->field;
     };
@@ -196,15 +202,18 @@ public:
         return value.arg_count;
     };
 
-    const char* get_val()
+    const char *get_val()
     {
         switch(type) {
         case(NDB_VALUE):
             if(qualification.value_type == Item::STRING_ITEM)
                 return value.item->str_value.ptr();
+
             break;
+
         case(NDB_FIELD):
-            return (char*) value.field_value->field->ptr;
+            return (char *) value.field_value->field->ptr;
+
         default:
             break;
         }
@@ -216,19 +225,23 @@ public:
     {
         DBUG_ENTER("save_in_field");
         Field *field = field_item->value.field_value->field;
-        const Item *item= value.item;
+        const Item *item = value.item;
+
         if (item && field) {
             DBUG_PRINT("info", ("item length %u, field length %u",
                                 item->max_length, field->field_length));
+
             if (item->max_length > field->field_length) {
                 DBUG_PRINT("info", ("Comparing field with longer value"));
                 DBUG_PRINT("info", ("Field can store %u", field->field_length));
             }
-            my_bitmap_map *old_map=
+
+            my_bitmap_map *old_map =
                 dbug_tmp_use_all_columns(field->table, field->table->write_set);
             ((Item *)item)->save_in_field(field, FALSE);
             dbug_tmp_restore_column_map(field->table->write_set, old_map);
         }
+
         DBUG_VOID_RETURN;
     };
 
@@ -238,45 +251,59 @@ public:
         case (Item_func::EQ_FUNC): {
             return NDB_EQ_FUNC;
         }
+
         case (Item_func::NE_FUNC): {
             return NDB_NE_FUNC;
         }
+
         case (Item_func::LT_FUNC): {
             return NDB_LT_FUNC;
         }
+
         case (Item_func::LE_FUNC): {
             return NDB_LE_FUNC;
         }
+
         case (Item_func::GT_FUNC): {
             return NDB_GT_FUNC;
         }
+
         case (Item_func::GE_FUNC): {
             return NDB_GE_FUNC;
         }
+
         case (Item_func::ISNULL_FUNC): {
             return NDB_ISNULL_FUNC;
         }
+
         case (Item_func::ISNOTNULL_FUNC): {
             return NDB_ISNOTNULL_FUNC;
         }
+
         case (Item_func::LIKE_FUNC): {
             return NDB_LIKE_FUNC;
         }
+
         case (Item_func::NOT_FUNC): {
             return NDB_NOT_FUNC;
         }
+
         case (Item_func::NEG_FUNC): {
             return NDB_UNKNOWN_FUNC;
         }
+
         case (Item_func::UNKNOWN_FUNC): {
             return NDB_UNKNOWN_FUNC;
         }
+
         case (Item_func::COND_AND_FUNC): {
             return NDB_COND_AND_FUNC;
         }
+
         case (Item_func::COND_OR_FUNC): {
             return NDB_COND_OR_FUNC;
         }
+
         default: {
             return NDB_UNSUPPORTED_FUNC;
         }
@@ -285,7 +312,7 @@ public:
 
     static NDB_FUNC_TYPE negate(NDB_FUNC_TYPE fun)
     {
-        uint i= (uint) fun;
+        uint i = (uint) fun;
         DBUG_ASSERT(fun == neg_map[i].pos_fun);
         return  neg_map[i].neg_fun;
     };
@@ -306,21 +333,25 @@ public:
     Ndb_cond() : ndb_item(NULL), next(NULL), prev(NULL) {};
     ~Ndb_cond()
     {
-        if (ndb_item) delete ndb_item;
-        ndb_item= NULL;
+        if (ndb_item)
+            delete ndb_item;
+
+        ndb_item = NULL;
         /*
           First item in the linked list deletes all in a loop
           Note - doing it recursively causes stack issues for
           big IN clauses
         */
-        Ndb_cond *n= next;
+        Ndb_cond *n = next;
+
         while (n) {
-            Ndb_cond *tmp= n;
-            n= n->next;
-            tmp->next= NULL;
+            Ndb_cond *tmp = n;
+            n = n->next;
+            tmp->next = NULL;
             delete tmp;
         }
-        next= prev= NULL;
+
+        next = prev = NULL;
     };
     Ndb_item *ndb_item;
     Ndb_cond *next;
@@ -340,10 +371,15 @@ public:
     Ndb_cond_stack() : ndb_cond(NULL), next(NULL) {};
     ~Ndb_cond_stack()
     {
-        if (ndb_cond) delete ndb_cond;
-        ndb_cond= NULL;
-        if (next) delete next;
-        next= NULL;
+        if (ndb_cond)
+            delete ndb_cond;
+
+        ndb_cond = NULL;
+
+        if (next)
+            delete next;
+
+        next = NULL;
     };
     Ndb_cond *ndb_cond;
     Ndb_cond_stack *next;
@@ -380,30 +416,32 @@ public:
     {
         if (next)
             delete next;
-        next= NULL;
+
+        next = NULL;
     }
-    void push(Ndb_expect_stack* expect_next)
+    void push(Ndb_expect_stack *expect_next)
     {
-        next= expect_next;
+        next = expect_next;
     }
     void pop()
     {
         if (next) {
-            Ndb_expect_stack* expect_next= next;
+            Ndb_expect_stack *expect_next = next;
             bitmap_clear_all(&expect_mask);
             bitmap_union(&expect_mask, &next->expect_mask);
             bitmap_clear_all(&expect_field_type_mask);
             bitmap_union(&expect_field_type_mask, &next->expect_field_type_mask);
             bitmap_clear_all(&expect_field_result_mask);
             bitmap_union(&expect_field_result_mask, &next->expect_field_result_mask);
-            collation= next->collation;
-            next= next->next;
+            collation = next->collation;
+            next = next->next;
             delete expect_next;
         }
     }
     void expect(Item::Type type)
     {
         bitmap_set_bit(&expect_mask, (uint) type);
+
         if (type == Item::FIELD_ITEM)
             expect_all_field_types();
     }
@@ -417,6 +455,7 @@ public:
             // Unknown type, can't be expected
             return false;
         }
+
         return bitmap_is_set(&expect_mask, (uint) type);
     }
     void expect_nothing()
@@ -447,6 +486,7 @@ public:
             // Unknown type, can't be expected
             return false;
         }
+
         return bitmap_is_set(&expect_field_type_mask, (uint) type);
     }
     void expect_no_field_type()
@@ -473,6 +513,7 @@ public:
             // Unknown result, can't be expected
             return false;
         }
+
         return bitmap_is_set(&expect_field_result_mask,
                              (uint) result);
     }
@@ -489,26 +530,25 @@ public:
         expect_no_field_result();
         expect_field_result(result);
     }
-    void expect_collation(const CHARSET_INFO* col)
+    void expect_collation(const CHARSET_INFO *col)
     {
-        collation= col;
+        collation = col;
     }
-    bool expecting_collation(const CHARSET_INFO* col)
+    bool expecting_collation(const CHARSET_INFO *col)
     {
-        bool matching= (!collation)
-                       ? true
-                       : (collation == col);
-        collation= NULL;
-
+        bool matching = (!collation)
+                        ? true
+                        : (collation == col);
+        collation = NULL;
         return matching;
     }
     void expect_length(Uint32 len)
     {
-        length= len;
+        length = len;
     }
     void expect_max_length(Uint32 max)
     {
-        max_length= max;
+        max_length = max;
     }
     bool expecting_length(Uint32 len)
     {
@@ -520,7 +560,7 @@ public:
     }
     void expect_no_length()
     {
-        length= max_length= 0;
+        length = max_length = 0;
     }
 
 private:
@@ -533,10 +573,10 @@ private:
     MY_BITMAP expect_mask;
     MY_BITMAP expect_field_type_mask;
     MY_BITMAP expect_field_result_mask;
-    const CHARSET_INFO* collation;
+    const CHARSET_INFO *collation;
     Uint32 length;
     Uint32 max_length;
-    Ndb_expect_stack* next;
+    Ndb_expect_stack *next;
 };
 
 class Ndb_rewrite_context : public Sql_alloc
@@ -546,7 +586,8 @@ public:
         : func_item(func), left_hand_item(NULL), count(0) {};
     ~Ndb_rewrite_context()
     {
-        if (next) delete next;
+        if (next)
+            delete next;
     }
     const Item_func *func_item;
     const Item *left_hand_item;
@@ -565,17 +606,18 @@ class Ndb_cond_traverse_context : public Sql_alloc
 {
 public:
     Ndb_cond_traverse_context(TABLE *tab, const NdbDictionary::Table *ndb_tab,
-                              Ndb_cond_stack* stack)
+                              Ndb_cond_stack *stack)
         : table(tab), ndb_table(ndb_tab),
           supported(TRUE), cond_stack(stack), cond_ptr(NULL),
           skip(0), rewrite_stack(NULL)
     {
         if (stack)
-            cond_ptr= stack->ndb_cond;
+            cond_ptr = stack->ndb_cond;
     }
     ~Ndb_cond_traverse_context()
     {
-        if (rewrite_stack) delete rewrite_stack;
+        if (rewrite_stack)
+            delete rewrite_stack;
     }
     inline void expect(Item::Type type)
     {
@@ -647,11 +689,11 @@ public:
     {
         expect_stack.expect_only_field_result(result);
     }
-    inline void expect_collation(const CHARSET_INFO* col)
+    inline void expect_collation(const CHARSET_INFO *col)
     {
         expect_stack.expect_collation(col);
     }
-    inline bool expecting_collation(const CHARSET_INFO* col)
+    inline bool expecting_collation(const CHARSET_INFO *col)
     {
         return expect_stack.expecting_collation(col);
     }
@@ -677,11 +719,11 @@ public:
     }
 
 
-    TABLE* table;
+    TABLE *table;
     const NdbDictionary::Table *ndb_table;
     bool supported;
-    Ndb_cond_stack* cond_stack;
-    Ndb_cond* cond_ptr;
+    Ndb_cond_stack *cond_stack;
+    Ndb_cond *cond_ptr;
     Ndb_expect_stack expect_stack;
     uint skip;
     Ndb_rewrite_context *rewrite_stack;
@@ -697,30 +739,31 @@ public:
     {}
     ~ha_ndbcluster_cond()
     {
-        if (m_cond_stack) delete m_cond_stack;
+        if (m_cond_stack)
+            delete m_cond_stack;
     }
     const Item *cond_push(const Item *cond,
                           TABLE *table, const NdbDictionary::Table *ndb_table);
     void cond_pop();
     void cond_clear();
-    int generate_scan_filter(NdbInterpretedCode* code,
-                             NdbScanOperation::ScanOptions* options);
-    int generate_scan_filter_from_cond(NdbScanFilter& filter);
-    int generate_scan_filter_from_key(NdbInterpretedCode* code,
-                                      NdbScanOperation::ScanOptions* options,
-                                      const KEY* key_info,
+    int generate_scan_filter(NdbInterpretedCode *code,
+                             NdbScanOperation::ScanOptions *options);
+    int generate_scan_filter_from_cond(NdbScanFilter &filter);
+    int generate_scan_filter_from_key(NdbInterpretedCode *code,
+                                      NdbScanOperation::ScanOptions *options,
+                                      const KEY *key_info,
                                       const key_range *start_key,
                                       const key_range *end_key,
                                       uchar *buf);
 private:
     bool serialize_cond(const Item *cond, Ndb_cond_stack *ndb_cond,
                         TABLE *table, const NdbDictionary::Table *ndb_table);
-    int build_scan_filter_predicate(Ndb_cond* &cond,
-                                    NdbScanFilter* filter,
-                                    bool negated= false);
-    int build_scan_filter_group(Ndb_cond* &cond,
-                                NdbScanFilter* filter);
-    int build_scan_filter(Ndb_cond* &cond, NdbScanFilter* filter);
+    int build_scan_filter_predicate(Ndb_cond *&cond,
+                                    NdbScanFilter *filter,
+                                    bool negated = false);
+    int build_scan_filter_group(Ndb_cond *&cond,
+                                NdbScanFilter *filter);
+    int build_scan_filter(Ndb_cond *&cond, NdbScanFilter *filter);
 
     Ndb_cond_stack *m_cond_stack;
 };

@@ -36,39 +36,39 @@
 class Ndb_local_connection
 {
 public:
-    Ndb_local_connection(THD* thd);
+    Ndb_local_connection(THD *thd);
 
-    bool truncate_table(const char* db, size_t db_length,
-                        const char* table, size_t table_length,
+    bool truncate_table(const char *db, size_t db_length,
+                        const char *table, size_t table_length,
                         bool ignore_no_such_table);
 
-    bool flush_table(const char* db, size_t db_length,
-                     const char* table, size_t table_length);
+    bool flush_table(const char *db, size_t db_length,
+                     const char *table, size_t table_length);
 
-    bool delete_rows(const char* db, size_t db_length,
-                     const char* table, size_t table_length,
+    bool delete_rows(const char *db, size_t db_length,
+                     const char *table, size_t table_length,
                      bool ignore_no_such_table,
                      ... /* where clause, NULL terminated list of strings */);
 
-    bool create_sys_table(const char* db, size_t db_length,
-                          const char* table, size_t table_length,
+    bool create_sys_table(const char *db, size_t db_length,
+                          const char *table, size_t table_length,
                           bool create_if_not_exists,
-                          const char* create_definiton,
-                          const char* create_options);
+                          const char *create_definiton,
+                          const char *create_options);
 
     /* Don't use this function for new implementation, backward compat. only */
-    bool raw_run_query(const char* query, size_t query_length,
-                       const int* suppress_errors);
+    bool raw_run_query(const char *query, size_t query_length,
+                       const int *suppress_errors);
 
 private:
     bool execute_query(MYSQL_LEX_STRING sql_text,
-                       const unsigned int* ignore_mysql_errors,
-                       const class Suppressor* suppressor = NULL);
+                       const unsigned int *ignore_mysql_errors,
+                       const class Suppressor *suppressor = NULL);
     bool execute_query_iso(MYSQL_LEX_STRING sql_text,
-                           const unsigned int* ignore_mysql_errors,
-                           const class Suppressor* suppressor = NULL);
+                           const unsigned int *ignore_mysql_errors,
+                           const class Suppressor *suppressor = NULL);
 private:
-    THD* m_thd;
+    THD *m_thd;
     bool m_push_warnings;
 };
 

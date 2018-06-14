@@ -42,14 +42,14 @@ protected:
     select_result *result;
 public:
     Server_side_cursor(MEM_ROOT *mem_root_arg, select_result *result_arg)
-        :Query_arena(mem_root_arg, STMT_INITIALIZED), result(result_arg)
+        : Query_arena(mem_root_arg, STMT_INITIALIZED), result(result_arg)
     {}
 
-    virtual bool is_open() const= 0;
+    virtual bool is_open() const = 0;
 
-    virtual int open(JOIN *top_level_join)= 0;
-    virtual void fetch(ulong num_rows)= 0;
-    virtual void close()= 0;
+    virtual int open(JOIN *top_level_join) = 0;
+    virtual void fetch(ulong num_rows) = 0;
+    virtual void close() = 0;
     virtual ~Server_side_cursor();
 
     static void operator delete(void *ptr, size_t size);

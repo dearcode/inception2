@@ -49,50 +49,50 @@ class File_parser;
 class Key_part_spec;
 
 #ifdef MYSQL_SERVER
-/*
-  There are 8 different type of table access so there is no more than
-  combinations 2^8 = 256:
+    /*
+    There are 8 different type of table access so there is no more than
+    combinations 2^8 = 256:
 
-  . STMT_READS_TRANS_TABLE
+    . STMT_READS_TRANS_TABLE
 
-  . STMT_READS_NON_TRANS_TABLE
+    . STMT_READS_NON_TRANS_TABLE
 
-  . STMT_READS_TEMP_TRANS_TABLE
+    . STMT_READS_TEMP_TRANS_TABLE
 
-  . STMT_READS_TEMP_NON_TRANS_TABLE
+    . STMT_READS_TEMP_NON_TRANS_TABLE
 
-  . STMT_WRITES_TRANS_TABLE
+    . STMT_WRITES_TRANS_TABLE
 
-  . STMT_WRITES_NON_TRANS_TABLE
+    . STMT_WRITES_NON_TRANS_TABLE
 
-  . STMT_WRITES_TEMP_TRANS_TABLE
+    . STMT_WRITES_TEMP_TRANS_TABLE
 
-  . STMT_WRITES_TEMP_NON_TRANS_TABLE
+    . STMT_WRITES_TEMP_NON_TRANS_TABLE
 
-  The unsafe conditions for each combination is represented within a byte
-  and stores the status of the option --binlog-direct-non-trans-updates,
-  whether the trx-cache is empty or not, and whether the isolation level
-  is lower than ISO_REPEATABLE_READ:
+    The unsafe conditions for each combination is represented within a byte
+    and stores the status of the option --binlog-direct-non-trans-updates,
+    whether the trx-cache is empty or not, and whether the isolation level
+    is lower than ISO_REPEATABLE_READ:
 
-  . option (OFF/ON)
-  . trx-cache (empty/not empty)
-  . isolation (>= ISO_REPEATABLE_READ / < ISO_REPEATABLE_READ)
+    . option (OFF/ON)
+    . trx-cache (empty/not empty)
+    . isolation (>= ISO_REPEATABLE_READ / < ISO_REPEATABLE_READ)
 
-  bits 0 : . OFF, . empty, . >= ISO_REPEATABLE_READ
-  bits 1 : . OFF, . empty, . < ISO_REPEATABLE_READ
-  bits 2 : . OFF, . not empty, . >= ISO_REPEATABLE_READ
-  bits 3 : . OFF, . not empty, . < ISO_REPEATABLE_READ
-  bits 4 : . ON, . empty, . >= ISO_REPEATABLE_READ
-  bits 5 : . ON, . empty, . < ISO_REPEATABLE_READ
-  bits 6 : . ON, . not empty, . >= ISO_REPEATABLE_READ
-  bits 7 : . ON, . not empty, . < ISO_REPEATABLE_READ
-*/
-extern uint binlog_unsafe_map[256];
-/*
-  Initializes the array with unsafe combinations and its respective
-  conditions.
-*/
-void binlog_unsafe_map_init();
+    bits 0 : . OFF, . empty, . >= ISO_REPEATABLE_READ
+    bits 1 : . OFF, . empty, . < ISO_REPEATABLE_READ
+    bits 2 : . OFF, . not empty, . >= ISO_REPEATABLE_READ
+    bits 3 : . OFF, . not empty, . < ISO_REPEATABLE_READ
+    bits 4 : . ON, . empty, . >= ISO_REPEATABLE_READ
+    bits 5 : . ON, . empty, . < ISO_REPEATABLE_READ
+    bits 6 : . ON, . not empty, . >= ISO_REPEATABLE_READ
+    bits 7 : . ON, . not empty, . < ISO_REPEATABLE_READ
+    */
+    extern uint binlog_unsafe_map[256];
+    /*
+    Initializes the array with unsafe combinations and its respective
+    conditions.
+    */
+    void binlog_unsafe_map_init();
 #endif
 
 /**
@@ -105,23 +105,23 @@ struct sys_var_with_base
 };
 
 #ifdef MYSQL_SERVER
-/*
-  The following hack is needed because mysql_yacc.cc does not define
-  YYSTYPE before including this file
-*/
-#ifdef MYSQL_YACC
-#define LEX_YYSTYPE void *
-#else
-#include "lex_symbol.h"
-#if MYSQL_LEX
-#include "item_func.h"            /* Cast_target used in sql_yacc.h */
-#include "sql_get_diagnostics.h"  /* Types used in sql_yacc.h */
-#include "sql_yacc.h"
-#define LEX_YYSTYPE YYSTYPE *
-#else
-#define LEX_YYSTYPE void *
-#endif
-#endif
+    /*
+    The following hack is needed because mysql_yacc.cc does not define
+    YYSTYPE before including this file
+    */
+    #ifdef MYSQL_YACC
+        #define LEX_YYSTYPE void *
+    #else
+        #include "lex_symbol.h"
+        #if MYSQL_LEX
+            #include "item_func.h"            /* Cast_target used in sql_yacc.h */
+            #include "sql_get_diagnostics.h"  /* Types used in sql_yacc.h */
+            #include "sql_yacc.h"
+            #define LEX_YYSTYPE YYSTYPE *
+        #else
+            #define LEX_YYSTYPE void *
+        #endif
+    #endif
 #endif
 
 #include "sql_cmd.h"
@@ -140,14 +140,14 @@ struct sys_var_with_base
 
 enum enum_sp_suid_behaviour
 {
-    SP_IS_DEFAULT_SUID= 0,
+    SP_IS_DEFAULT_SUID = 0,
     SP_IS_NOT_SUID,
     SP_IS_SUID
 };
 
 enum enum_sp_data_access
 {
-    SP_DEFAULT_ACCESS= 0,
+    SP_DEFAULT_ACCESS = 0,
     SP_CONTAINS_SQL,
     SP_NO_SQL,
     SP_READS_SQL_DATA,
@@ -167,7 +167,7 @@ enum enum_sp_data_access
 */
 enum enum_sp_type
 {
-    SP_TYPE_FUNCTION= 1,
+    SP_TYPE_FUNCTION = 1,
     SP_TYPE_PROCEDURE,
     SP_TYPE_TRIGGER
 };
@@ -185,7 +185,7 @@ enum enum_sp_type
 #define TYPE_ENUM_TRIGGER   3
 #define TYPE_ENUM_PROXY     4
 
-const LEX_STRING sp_data_access_name[]= {
+const LEX_STRING sp_data_access_name[] = {
     { C_STRING_WITH_LEN("") },
     { C_STRING_WITH_LEN("CONTAINS SQL") },
     { C_STRING_WITH_LEN("NO SQL") },
@@ -217,7 +217,7 @@ enum enum_drop_mode
 #define TL_OPTION_ALIAS         8
 
 typedef List<Item> List_item;
-typedef Mem_root_array<ORDER*, true> Group_list_ptrs;
+typedef Mem_root_array<ORDER *, true> Group_list_ptrs;
 
 /* SERVERS CACHE CHANGES */
 typedef struct st_lex_server_options
@@ -245,7 +245,7 @@ typedef struct st_lex_master_info
     ulong server_id, retry_count;
     char *gtid;
     enum
-    {UNTIL_SQL_BEFORE_GTIDS= 0, UNTIL_SQL_AFTER_GTIDS} gtid_until_condition;
+    {UNTIL_SQL_BEFORE_GTIDS = 0, UNTIL_SQL_AFTER_GTIDS} gtid_until_condition;
     bool until_after_gaps;
 
     /*
@@ -253,9 +253,9 @@ typedef struct st_lex_master_info
       changed variable or if it should be left at old value
      */
     enum
-    {LEX_MI_UNCHANGED= 0, LEX_MI_DISABLE, LEX_MI_ENABLE}
+    {LEX_MI_UNCHANGED = 0, LEX_MI_DISABLE, LEX_MI_ENABLE}
     ssl, ssl_verify_server_cert, heartbeat_opt, repl_ignore_server_ids_opt,
-    retry_count_opt, auto_position;
+         retry_count_opt, auto_position;
     char *ssl_key, *ssl_cert, *ssl_ca, *ssl_capath, *ssl_cipher;
     char *ssl_crl, *ssl_crlpath;
     char *relay_log_name;
@@ -272,7 +272,7 @@ typedef struct st_lex_reset_slave
 
 enum sub_select_type
 {
-    UNSPECIFIED_TYPE,UNION_TYPE, INTERSECT_TYPE,
+    UNSPECIFIED_TYPE, UNION_TYPE, INTERSECT_TYPE,
     EXCEPT_TYPE, GLOBAL_OPTIONS_TYPE, DERIVED_TABLE_TYPE, OLAP_TYPE
 };
 
@@ -285,7 +285,7 @@ enum olap_type
   String names used to print a statement with index hints.
   Keep in sync with index_hint_type.
 */
-extern const char * index_hint_type_name[];
+extern const char *index_hint_type_name[];
 typedef uchar index_clause_map;
 
 /*
@@ -317,8 +317,8 @@ public:
                 char *str, uint length) :
         type(type_arg), clause(clause_arg)
     {
-        key_name.str= str;
-        key_name.length= length;
+        key_name.str = str;
+        key_name.length = length;
     }
 
     void print(THD *thd, String *str);
@@ -450,9 +450,9 @@ class st_select_lex_unit;
 class st_select_lex_node
 {
 protected:
-    st_select_lex_node *next, **prev,   /* neighbor list */
+    st_select_lex_node *next, * *prev,  /* neighbor list */
                        *master, *slave,                  /* vertical links */
-                       *link_next, **link_prev;          /* list of whole SELECT_LEX */
+                       *link_next, * *link_prev;         /* list of whole SELECT_LEX */
 public:
 
     ulonglong options;
@@ -484,9 +484,9 @@ public:
     }
     static void *operator new(size_t size, MEM_ROOT *mem_root) throw ()
     {
-        return (void*) alloc_root(mem_root, (uint) size);
+        return (void *) alloc_root(mem_root, (uint) size);
     }
-    static void operator delete(void *ptr,size_t size)
+    static void operator delete(void *ptr, size_t size)
     {
         TRASH(ptr, size);
     }
@@ -502,7 +502,7 @@ public:
     }
     virtual ~st_select_lex_node() {}
 
-    inline st_select_lex_node* get_master()
+    inline st_select_lex_node *get_master()
     {
         return master;
     }
@@ -514,23 +514,23 @@ public:
     void include_global(st_select_lex_node **plink);
     void exclude();
 
-    virtual st_select_lex_unit* master_unit()= 0;
-    virtual st_select_lex* outer_select()= 0;
+    virtual st_select_lex_unit *master_unit() = 0;
+    virtual st_select_lex *outer_select() = 0;
 
     virtual bool set_braces(bool value);
     virtual bool inc_in_sum_expr();
     virtual uint get_in_sum_expr();
-    virtual TABLE_LIST* get_table_list();
-    virtual List<Item>* get_item_list();
+    virtual TABLE_LIST *get_table_list();
+    virtual List<Item> *get_item_list();
     virtual ulong get_table_join_options();
     virtual TABLE_LIST *add_table_to_list(THD *thd, Table_ident *table,
                                           LEX_STRING *alias,
                                           ulong table_options,
-                                          thr_lock_type flags= TL_UNLOCK,
-                                          enum_mdl_type mdl_type= MDL_SHARED_READ,
-                                          List<Index_hint> *hints= 0,
-                                          List<String> *partition_names= 0,
-                                          LEX_STRING *option= 0);
+                                          thr_lock_type flags = TL_UNLOCK,
+                                          enum_mdl_type mdl_type = MDL_SHARED_READ,
+                                          List<Index_hint> *hints = 0,
+                                          List<String> *partition_names = 0,
+                                          LEX_STRING *option = 0);
     virtual void set_lock_for_tables(thr_lock_type lock_type) {}
 
     friend class st_select_lex_unit;
@@ -624,15 +624,15 @@ public:
     int explain_marker;
 
     void init_query();
-    st_select_lex_unit* master_unit();
-    st_select_lex* outer_select();
-    st_select_lex* first_select()
+    st_select_lex_unit *master_unit();
+    st_select_lex *outer_select();
+    st_select_lex *first_select()
     {
-        return reinterpret_cast<st_select_lex*>(slave);
+        return reinterpret_cast<st_select_lex *>(slave);
     }
-    st_select_lex_unit* next_unit()
+    st_select_lex_unit *next_unit()
     {
-        return reinterpret_cast<st_select_lex_unit*>(next);
+        return reinterpret_cast<st_select_lex_unit *>(next);
     }
     void exclude_level();
     void exclude_tree();
@@ -649,7 +649,7 @@ public:
     bool cleanup();
     inline void unclean()
     {
-        cleaned= 0;
+        cleaned = 0;
     }
     void reinit_exec_mechanism();
 
@@ -666,7 +666,7 @@ public:
     void set_limit(st_select_lex *values);
     void set_thd(THD *thd_arg)
     {
-        thd= thd_arg;
+        thd = thd_arg;
     }
     inline bool is_union ();
 
@@ -678,7 +678,7 @@ public:
 };
 
 typedef class st_select_lex_unit SELECT_LEX_UNIT;
-typedef Bounds_checked_array<Item*> Ref_ptr_array;
+typedef Bounds_checked_array<Item *> Ref_ptr_array;
 
 /*
   SELECT_LEX - store information of parsed SELECT statment
@@ -692,8 +692,8 @@ public:
       possible, and in which condition tree the subquery predicate is located.
     */
     enum Resolve_place
-    { RESOLVE_NONE, RESOLVE_JOIN_NEST, RESOLVE_CONDITION,
-      RESOLVE_HAVING
+    {   RESOLVE_NONE, RESOLVE_JOIN_NEST, RESOLVE_CONDITION,
+        RESOLVE_HAVING
     };
     Resolve_place resolve_place; // Indicates part of query being resolved
     TABLE_LIST *resolve_nest;    // Used when resolving outer join condition
@@ -758,7 +758,7 @@ public:
     */
     enum type_enum
     {
-        SLT_NONE= 0,
+        SLT_NONE = 0,
         SLT_PRIMARY,
         SLT_SIMPLE,
         SLT_DERIVED,
@@ -851,7 +851,7 @@ public:
     List<Item_field> non_agg_fields;
 
     /// @See cur_pos_in_all_fields below
-    static const int ALL_FIELDS_UNDEF_POS= INT_MIN;
+    static const int ALL_FIELDS_UNDEF_POS = INT_MIN;
 
     /**
        Used only for ONLY_FULL_GROUP_BY.
@@ -891,30 +891,32 @@ public:
 
     void init_query();
     void init_select();
-    st_select_lex_unit* master_unit();
-    st_select_lex_unit* first_inner_unit()
+    st_select_lex_unit *master_unit();
+    st_select_lex_unit *first_inner_unit()
     {
-        return (st_select_lex_unit*) slave;
+        return (st_select_lex_unit *) slave;
     }
-    st_select_lex* outer_select();
-    st_select_lex* next_select()
+    st_select_lex *outer_select();
+    st_select_lex *next_select()
     {
-        return (st_select_lex*) next;
+        return (st_select_lex *) next;
     }
 
-    st_select_lex* last_select()
+    st_select_lex *last_select()
     {
-        st_select_lex* mylast= this;
-        for (; mylast->next_select(); mylast= mylast->next_select())
+        st_select_lex *mylast = this;
+
+        for (; mylast->next_select(); mylast = mylast->next_select())
         {}
+
         return mylast;
     }
 
-    st_select_lex* next_select_in_list()
+    st_select_lex *next_select_in_list()
     {
-        return (st_select_lex*) link_next;
+        return (st_select_lex *) link_next;
     }
-    st_select_lex_node** next_select_in_list_addr()
+    st_select_lex_node **next_select_in_list_addr()
     {
         return &link_next;
     }
@@ -928,28 +930,28 @@ public:
     bool add_group_to_list(THD *thd, Item *item, bool asc);
     bool add_ftfunc_to_list(Item_func_match *func);
     bool add_order_to_list(THD *thd, Item *item, bool asc);
-    TABLE_LIST* add_table_to_list(THD *thd, Table_ident *table,
+    TABLE_LIST *add_table_to_list(THD *thd, Table_ident *table,
                                   LEX_STRING *alias,
                                   ulong table_options,
-                                  thr_lock_type flags= TL_UNLOCK,
-                                  enum_mdl_type mdl_type= MDL_SHARED_READ,
-                                  List<Index_hint> *hints= 0,
-                                  List<String> *partition_names= 0,
-                                  LEX_STRING *option= 0);
-    TABLE_LIST* get_table_list();
+                                  thr_lock_type flags = TL_UNLOCK,
+                                  enum_mdl_type mdl_type = MDL_SHARED_READ,
+                                  List<Index_hint> *hints = 0,
+                                  List<String> *partition_names = 0,
+                                  LEX_STRING *option = 0);
+    TABLE_LIST *get_table_list();
     bool init_nested_join(THD *thd);
     TABLE_LIST *end_nested_join(THD *thd);
     TABLE_LIST *nest_last_join(THD *thd);
     void add_joined_table(TABLE_LIST *table);
     TABLE_LIST *convert_right_join();
-    List<Item>* get_item_list();
+    List<Item> *get_item_list();
     ulong get_table_join_options();
     void set_lock_for_tables(thr_lock_type lock_type);
     inline void init_order()
     {
-        order_list.elements= 0;
-        order_list.first= 0;
-        order_list.next= &order_list.first;
+        order_list.elements = 0;
+        order_list.first = 0;
+        order_list.next = &order_list.first;
     }
     /*
       This method created for reiniting LEX in mysql_admin_table() and can be
@@ -959,7 +961,7 @@ public:
     */
     void cut_subtree()
     {
-        slave= 0;
+        slave = 0;
     }
     bool test_limit();
 
@@ -1002,18 +1004,18 @@ public:
     /* make a list to hold index hints */
     void alloc_index_hints (THD *thd);
     /* read and clear the index hints */
-    List<Index_hint>* pop_index_hints(void)
+    List<Index_hint> *pop_index_hints(void)
     {
-        List<Index_hint> *hints= index_hints;
-        index_hints= NULL;
+        List<Index_hint> *hints = index_hints;
+        index_hints = NULL;
         return hints;
     }
 
     void clear_index_hints(void)
     {
-        index_hints= NULL;
+        index_hints = NULL;
     }
-    bool handle_derived(LEX *lex, bool (*processor)(THD*, LEX*, TABLE_LIST*));
+    bool handle_derived(LEX *lex, bool (*processor)(THD *, LEX *, TABLE_LIST *));
     bool is_part_of_union()
     {
         return master_unit()->is_union();
@@ -1036,11 +1038,11 @@ public:
 
     void set_non_agg_field_used(bool val)
     {
-        m_non_agg_field_used= val;
+        m_non_agg_field_used = val;
     }
     void set_agg_func_used(bool val)
     {
-        m_agg_func_used= val;
+        m_agg_func_used = val;
     }
 
     /// Lookup for SELECT_LEX type
@@ -1096,15 +1098,15 @@ public:
         : rp(NULL), saved_rp()
     {
         if (apply) {
-            rp= rp_ptr;
-            saved_rp= *rp;
-            *rp= new_rp;
+            rp = rp_ptr;
+            saved_rp = *rp;
+            *rp = new_rp;
         }
     }
     ~Switch_resolve_place()
     {
         if (rp)
-            *rp= saved_rp;
+            *rp = saved_rp;
     }
 private:
     SELECT_LEX::Resolve_place *rp;
@@ -1142,8 +1144,8 @@ struct st_trg_chistics
 extern sys_var *trg_new_row_fake_var;
 
 enum xa_option_words
-{XA_NONE, XA_JOIN, XA_RESUME, XA_ONE_PHASE,
- XA_SUSPEND, XA_FOR_MIGRATE
+{   XA_NONE, XA_JOIN, XA_RESUME, XA_ONE_PHASE,
+    XA_SUSPEND, XA_FOR_MIGRATE
 };
 
 extern const LEX_STRING null_lex_str;
@@ -1190,7 +1192,7 @@ public:
       (Note that we use lazy-initialization for this hash).
     */
     enum
-    { START_SROUTINES_HASH_SIZE= 16 };
+    { START_SROUTINES_HASH_SIZE = 16 };
     HASH sroutines;
     /*
       List linking elements of 'sroutines' set. Allows you to add new elements
@@ -1249,7 +1251,7 @@ public:
     void destroy_query_tables_list();
     void set_query_tables_list(Query_tables_list *state)
     {
-        *this= *state;
+        *this = *state;
     }
 
     /*
@@ -1259,8 +1261,8 @@ public:
     */
     void add_to_query_tables(TABLE_LIST *table)
     {
-        *(table->prev_global= query_tables_last)= table;
-        query_tables_last= &table->next_global;
+        *(table->prev_global = query_tables_last) = table;
+        query_tables_last = &table->next_global;
     }
     bool requires_prelocking()
     {
@@ -1268,19 +1270,19 @@ public:
     }
     void mark_as_requiring_prelocking(TABLE_LIST **tables_own_last)
     {
-        query_tables_own_last= tables_own_last;
+        query_tables_own_last = tables_own_last;
     }
     /* Return pointer to first not-own table in query-tables or 0 */
-    TABLE_LIST* first_not_own_table()
+    TABLE_LIST *first_not_own_table()
     {
         return ( query_tables_own_last ? *query_tables_own_last : 0);
     }
     void chop_off_not_own_tables()
     {
         if (query_tables_own_last) {
-            *query_tables_own_last= 0;
-            query_tables_last= query_tables_own_last;
-            query_tables_own_last= 0;
+            *query_tables_own_last = 0;
+            query_tables_last = query_tables_own_last;
+            query_tables_own_last = 0;
         }
     }
 
@@ -1289,9 +1291,9 @@ public:
     {
         /* Don't use offsetof() macro in order to avoid warnings. */
         return query_tables ?
-               (TABLE_LIST*) ((char*) query_tables_last -
-                              ((char*) &(query_tables->next_global) -
-                               (char*) query_tables)) :
+               (TABLE_LIST *) ((char *) query_tables_last -
+                               ((char *) & (query_tables->next_global) -
+                                (char *) query_tables)) :
                0;
     }
 
@@ -1308,7 +1310,7 @@ public:
           SELECT..LIMIT is unsafe because the set of rows returned cannot
           be predicted.
         */
-        BINLOG_STMT_UNSAFE_LIMIT= 0,
+        BINLOG_STMT_UNSAFE_LIMIT = 0,
         /**
           INSERT DELAYED is unsafe because the time when rows are inserted
           cannot be predicted.
@@ -1438,7 +1440,7 @@ public:
       This has all flags from 0 (inclusive) to BINLOG_STMT_FLAG_COUNT
       (exclusive) set.
     */
-    static const int BINLOG_STMT_UNSAFE_ALL_FLAGS=
+    static const int BINLOG_STMT_UNSAFE_ALL_FLAGS =
         ((1 << BINLOG_STMT_UNSAFE_COUNT) - 1);
 
     /**
@@ -1468,7 +1470,7 @@ public:
     {
         DBUG_ENTER("set_stmt_unsafe");
         DBUG_ASSERT(unsafe_type >= 0 && unsafe_type < BINLOG_STMT_UNSAFE_COUNT);
-        binlog_stmt_flags|= (1U << unsafe_type);
+        binlog_stmt_flags |= (1U << unsafe_type);
         DBUG_VOID_RETURN;
     }
 
@@ -1484,7 +1486,7 @@ public:
     {
         DBUG_ENTER("set_stmt_unsafe_flags");
         DBUG_ASSERT((flags & ~BINLOG_STMT_UNSAFE_ALL_FLAGS) == 0);
-        binlog_stmt_flags|= flags;
+        binlog_stmt_flags |= flags;
         DBUG_VOID_RETURN;
     }
 
@@ -1508,7 +1510,7 @@ public:
     inline void clear_stmt_unsafe()
     {
         DBUG_ENTER("clear_stmt_unsafe");
-        binlog_stmt_flags&= ~BINLOG_STMT_UNSAFE_ALL_FLAGS;
+        binlog_stmt_flags &= ~BINLOG_STMT_UNSAFE_ALL_FLAGS;
         DBUG_VOID_RETURN;
     }
 
@@ -1532,7 +1534,7 @@ public:
     inline void set_stmt_row_injection()
     {
         DBUG_ENTER("set_stmt_row_injection");
-        binlog_stmt_flags|=
+        binlog_stmt_flags |=
             (1U << (BINLOG_STMT_UNSAFE_COUNT + BINLOG_STMT_TYPE_ROW_INJECTION));
         DBUG_VOID_RETURN;
     }
@@ -1543,7 +1545,7 @@ public:
            If a transactional table is about to be read. Note that
            a write implies a read.
         */
-        STMT_READS_TRANS_TABLE= 0,
+        STMT_READS_TRANS_TABLE = 0,
         /*
            If a non-transactional table is about to be read. Note that
            a write implies a read.
@@ -1589,32 +1591,41 @@ public:
         case STMT_READS_TRANS_TABLE:
             return "STMT_READS_TRANS_TABLE";
             break;
+
         case STMT_READS_NON_TRANS_TABLE:
             return "STMT_READS_NON_TRANS_TABLE";
             break;
+
         case STMT_READS_TEMP_TRANS_TABLE:
             return "STMT_READS_TEMP_TRANS_TABLE";
             break;
+
         case STMT_READS_TEMP_NON_TRANS_TABLE:
             return "STMT_READS_TEMP_NON_TRANS_TABLE";
             break;
+
         case STMT_WRITES_TRANS_TABLE:
             return "STMT_WRITES_TRANS_TABLE";
             break;
+
         case STMT_WRITES_NON_TRANS_TABLE:
             return "STMT_WRITES_NON_TRANS_TABLE";
             break;
+
         case STMT_WRITES_TEMP_TRANS_TABLE:
             return "STMT_WRITES_TEMP_TRANS_TABLE";
             break;
+
         case STMT_WRITES_TEMP_NON_TRANS_TABLE:
             return "STMT_WRITES_TEMP_NON_TRANS_TABLE";
             break;
+
         case STMT_ACCESS_TABLE_COUNT:
         default:
             DBUG_ASSERT(0);
             break;
         }
+
         MY_ASSERT_UNREACHABLE();
         return "";
     }
@@ -1646,10 +1657,8 @@ public:
     inline void set_stmt_accessed_table(enum_stmt_accessed_table accessed_table)
     {
         DBUG_ENTER("LEX::set_stmt_accessed_table");
-
         DBUG_ASSERT(accessed_table >= 0 && accessed_table < STMT_ACCESS_TABLE_COUNT);
         stmt_accessed_table_flag |= (1U << accessed_table);
-
         DBUG_VOID_RETURN;
     }
 
@@ -1667,9 +1676,7 @@ public:
     inline bool stmt_accessed_table(enum_stmt_accessed_table accessed_table)
     {
         DBUG_ENTER("LEX::stmt_accessed_table");
-
         DBUG_ASSERT(accessed_table >= 0 && accessed_table < STMT_ACCESS_TABLE_COUNT);
-
         DBUG_RETURN((stmt_accessed_table_flag & (1U << accessed_table)) != 0);
     }
 
@@ -1693,38 +1700,37 @@ public:
                                      bool trx_cache_is_not_empty,
                                      uint tx_isolation)
     {
-        bool unsafe= FALSE;
+        bool unsafe = FALSE;
 
         if (in_multi_stmt_transaction_mode) {
-            uint condition=
+            uint condition =
                 (binlog_direct ? BINLOG_DIRECT_ON : BINLOG_DIRECT_OFF) &
                 (trx_cache_is_not_empty ? TRX_CACHE_NOT_EMPTY : TRX_CACHE_EMPTY) &
                 (tx_isolation >= ISO_REPEATABLE_READ ? IL_GTE_REPEATABLE : IL_LT_REPEATABLE);
-
-            unsafe= (binlog_unsafe_map[stmt_accessed_table_flag] & condition);
-
+            unsafe = (binlog_unsafe_map[stmt_accessed_table_flag] & condition);
 #if !defined(DBUG_OFF)
             DBUG_PRINT("LEX::is_mixed_stmt_unsafe", ("RESULT %02X %02X %02X\n", condition,
                        binlog_unsafe_map[stmt_accessed_table_flag],
                        (binlog_unsafe_map[stmt_accessed_table_flag] & condition)));
+            int type_in = 0;
 
-            int type_in= 0;
             for (; type_in < STMT_ACCESS_TABLE_COUNT; type_in++) {
                 if (stmt_accessed_table((enum_stmt_accessed_table) type_in))
                     DBUG_PRINT("LEX::is_mixed_stmt_unsafe", ("ACCESSED %s ",
                                stmt_accessed_table_string((enum_stmt_accessed_table) type_in)));
             }
+
 #endif
         }
 
         if (stmt_accessed_table(STMT_WRITES_NON_TRANS_TABLE) &&
                 stmt_accessed_table(STMT_READS_TRANS_TABLE) &&
                 tx_isolation < ISO_REPEATABLE_READ)
-            unsafe= TRUE;
+            unsafe = TRUE;
         else if (stmt_accessed_table(STMT_WRITES_TEMP_NON_TRANS_TABLE) &&
                  stmt_accessed_table(STMT_READS_TRANS_TABLE) &&
                  tx_isolation < ISO_REPEATABLE_READ)
-            unsafe= TRUE;
+            unsafe = TRUE;
 
         return(unsafe);
     }
@@ -1870,19 +1876,19 @@ public:
     */
     void set_echo(bool echo)
     {
-        m_echo= echo;
+        m_echo = echo;
     }
 
     void save_in_comment_state()
     {
-        m_echo_saved= m_echo;
-        in_comment_saved= in_comment;
+        m_echo_saved = m_echo;
+        in_comment_saved = in_comment;
     }
 
     void restore_in_comment_state()
     {
-        m_echo= m_echo_saved;
-        in_comment= in_comment_saved;
+        m_echo = m_echo_saved;
+        in_comment = in_comment_saved;
     }
 
     /**
@@ -1895,6 +1901,7 @@ public:
             memcpy(m_cpp_ptr, m_ptr, n);
             m_cpp_ptr += n;
         }
+
         m_ptr += n;
     }
 
@@ -1904,9 +1911,11 @@ public:
     */
     unsigned char yyGet()
     {
-        char c= *m_ptr++;
+        char c = *m_ptr++;
+
         if (m_echo)
             *m_cpp_ptr++ = c;
+
         return c;
     }
 
@@ -1944,6 +1953,7 @@ public:
     void yyUnget()
     {
         m_ptr--;
+
         if (m_echo)
             m_cpp_ptr--;
     }
@@ -1969,6 +1979,7 @@ public:
             memcpy(m_cpp_ptr, m_ptr, n);
             m_cpp_ptr += n;
         }
+
         m_ptr += n;
     }
 
@@ -1980,9 +1991,11 @@ public:
     */
     char *yyUnput(char ch)
     {
-        *--m_ptr= ch;
+        *--m_ptr = ch;
+
         if (m_echo)
             m_cpp_ptr--;
+
         return m_ptr;
     }
 
@@ -1995,7 +2008,7 @@ public:
     */
     char *cpp_inject(char ch)
     {
-        *m_cpp_ptr= ch;
+        *m_cpp_ptr = ch;
         return ++m_cpp_ptr;
     }
 
@@ -2039,13 +2052,12 @@ public:
     /** Mark the stream position as the start of a new token. */
     void start_token()
     {
-        m_tok_start_prev= m_tok_start;
-        m_tok_start= m_ptr;
-        m_tok_end= m_ptr;
-
-        m_cpp_tok_start_prev= m_cpp_tok_start;
-        m_cpp_tok_start= m_cpp_ptr;
-        m_cpp_tok_end= m_cpp_ptr;
+        m_tok_start_prev = m_tok_start;
+        m_tok_start = m_ptr;
+        m_tok_end = m_ptr;
+        m_cpp_tok_start_prev = m_cpp_tok_start;
+        m_cpp_tok_start = m_cpp_ptr;
+        m_cpp_tok_end = m_cpp_ptr;
     }
 
     /**
@@ -2054,8 +2066,8 @@ public:
     */
     void restart_token()
     {
-        m_tok_start= m_ptr;
-        m_cpp_tok_start= m_cpp_ptr;
+        m_tok_start = m_ptr;
+        m_cpp_tok_start = m_cpp_ptr;
     }
 
     /** Get the token start position, in the raw buffer. */
@@ -2273,7 +2285,7 @@ public:
     /**
       Current statement digest instrumentation.
     */
-    PSI_digest_locker* m_digest_psi;
+    PSI_digest_locker *m_digest_psi;
 };
 
 
@@ -2304,11 +2316,11 @@ struct LEX: public Query_tables_list
     /* list of all SELECT_LEX */
     SELECT_LEX *all_selects_list;
 
-    char *length,*dec,*change;
+    char *length, *dec, *change;
     LEX_STRING name;
     char *help_arg;
-    char* to_log;                                 /* For PURGE MASTER LOGS TO */
-    char* x509_subject,*x509_issuer,*ssl_cipher;
+    char *to_log;                                 /* For PURGE MASTER LOGS TO */
+    char *x509_subject, *x509_issuer, *ssl_cipher;
     String *wild;
     sql_exchange *exchange;
     select_result *result;
@@ -2331,9 +2343,9 @@ struct LEX: public Query_tables_list
     LEX_STRING create_view_select;
 
     /** Start of 'ON table', in trigger statements.  */
-    const char* raw_trg_on_table_name_begin;
+    const char *raw_trg_on_table_name_begin;
     /** End of 'ON table', in trigger statements. */
-    const char* raw_trg_on_table_name_end;
+    const char *raw_trg_on_table_name_end;
 
     /* Partition info structure filled in by PARTITION BY parse part */
     partition_info *part_info;
@@ -2349,7 +2361,7 @@ struct LEX: public Query_tables_list
     List<String>	      interval_list;
     List<LEX_USER>      users_list;
     List<LEX_COLUMN>    columns;
-    List<Item>	      *insert_list,field_list,value_list,update_list;
+    List<Item>	      *insert_list, field_list, value_list, update_list;
     List<List_item>     many_values;
     List<set_var_base>  var_list;
     List<Item_func_set_user_var> set_var_list; // in-query assignment list
@@ -2490,7 +2502,7 @@ public:
        @todo If lex_start () were a member function of LEX, the "broken"
        argument could always be "true" and thus could be removed.
     */
-    void mark_broken(bool broken= true)
+    void mark_broken(bool broken = true)
     {
         if (broken) {
             /*
@@ -2501,9 +2513,10 @@ public:
               as broken only if tables are used.
             */
             if (is_metadata_used())
-                m_broken= true;
+                m_broken = true;
+
         } else
-            m_broken= false;
+            m_broken = false;
     }
 
     sp_pcontext *get_sp_current_parsing_ctx()
@@ -2513,7 +2526,7 @@ public:
 
     void set_sp_current_parsing_ctx(sp_pcontext *ctx)
     {
-        sp_current_parsing_ctx= ctx;
+        sp_current_parsing_ctx = ctx;
     }
 
     /// Check if the current statement uses meta-data (uses a table or a stored
@@ -2611,8 +2624,7 @@ public:
 
     inline void uncacheable(uint8 cause)
     {
-        safe_to_cache_query= 0;
-
+        safe_to_cache_query = 0;
         /*
           There are no sense to mark select_lex and union fields of LEX,
           but we should merk all subselects as uncacheable from current till
@@ -2620,11 +2632,12 @@ public:
         */
         SELECT_LEX *sl;
         SELECT_LEX_UNIT *un;
-        for (sl= current_select, un= sl->master_unit();
+
+        for (sl = current_select, un = sl->master_unit();
                 un != &unit;
-                sl= sl->outer_select(), un= sl->master_unit()) {
-            sl->uncacheable|= cause;
-            un->uncacheable|= cause;
+                sl = sl->outer_select(), un = sl->master_unit()) {
+            sl->uncacheable |= cause;
+            un->uncacheable |= cause;
         }
     }
     void set_trg_event_type_for_tables();
@@ -2660,6 +2673,7 @@ public:
         case SQLCOM_REPLACE_SELECT:
         case SQLCOM_LOAD:
             return TRUE;
+
         default:
             return FALSE;
         }
@@ -2712,6 +2726,7 @@ public:
             DBUG_ASSERT(!all_selects_list->next_select_in_list());
             return TRUE;
         }
+
         return FALSE;
     }
 };
@@ -2729,7 +2744,7 @@ public:
     Set_signal_information() {}
 
     /** Copy constructor. */
-    Set_signal_information(const Set_signal_information& set);
+    Set_signal_information(const Set_signal_information &set);
 
     /** Destructor. */
     ~Set_signal_information()
@@ -2743,7 +2758,7 @@ public:
       that represents the expression assigned, if any.
       m_item[] is an array indexed by Diag_condition_item_name.
     */
-    Item *m_item[LAST_DIAG_SET_PROPERTY+1];
+    Item *m_item[LAST_DIAG_SET_PROPERTY + 1];
 };
 
 
@@ -2762,12 +2777,12 @@ public:
 
     void reset()
     {
-        yacc_yyss= NULL;
-        yacc_yyvs= NULL;
+        yacc_yyss = NULL;
+        yacc_yyvs = NULL;
         m_set_signal_info.clear();
-        m_lock_type= TL_READ_DEFAULT;
-        m_mdl_type= MDL_SHARED_READ;
-        m_ha_rkey_mode= HA_READ_KEY_EXACT;
+        m_lock_type = TL_READ_DEFAULT;
+        m_mdl_type = MDL_SHARED_READ;
+        m_ha_rkey_mode = HA_READ_KEY_EXACT;
     }
 
     ~Yacc_state();
@@ -2778,9 +2793,9 @@ public:
     */
     void reset_before_substatement()
     {
-        m_lock_type= TL_READ_DEFAULT;
-        m_mdl_type= MDL_SHARED_READ;
-        m_ha_rkey_mode= HA_READ_KEY_EXACT; /* Let us be future-proof. */
+        m_lock_type = TL_READ_DEFAULT;
+        m_mdl_type = MDL_SHARED_READ;
+        m_ha_rkey_mode = HA_READ_KEY_EXACT; /* Let us be future-proof. */
     }
 
     /**
@@ -2880,9 +2895,9 @@ struct st_lex_local: public LEX
     }
     static void *operator new(size_t size, MEM_ROOT *mem_root) throw()
     {
-        return (void*) alloc_root(mem_root, (uint) size);
+        return (void *) alloc_root(mem_root, (uint) size);
     }
-    static void operator delete(void *ptr,size_t size)
+    static void operator delete(void *ptr, size_t size)
     {
         TRASH(ptr, size);
     }
@@ -2907,7 +2922,7 @@ extern bool is_lex_native_function(const LEX_STRING *name);
 void my_missing_function_error(const LEX_STRING &token, const char *name);
 bool is_keyword(const char *name, uint len);
 bool db_is_default_db(const char *db, size_t db_len, const THD *thd);
-SYMBOL *get_hash_symbol(const char *s, unsigned int len,bool function);
+SYMBOL *get_hash_symbol(const char *s, unsigned int len, bool function);
 
 #endif /* MYSQL_SERVER */
 #endif /* SQL_LEX_INCLUDED */

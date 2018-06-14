@@ -46,12 +46,12 @@ typedef struct st_rollup
     List<Item> *fields;
 } ROLLUP;
 
-class JOIN :public Sql_alloc
+class JOIN : public Sql_alloc
 {
     JOIN(const JOIN &rhs);                        /**< not implemented */
-    JOIN& operator=(const JOIN &rhs);             /**< not implemented */
+    JOIN &operator=(const JOIN &rhs);             /**< not implemented */
 public:
-    JOIN_TAB *join_tab,**best_ref;
+    JOIN_TAB *join_tab, * *best_ref;
     JOIN_TAB **map2table;    ///< mapping between table indexes and JOIN_TABs
     TABLE    **table;
     /*
@@ -95,7 +95,7 @@ public:
       @see make_group_fields, alloc_group_fields, JOIN::exec
     */
     bool     sort_and_group;
-    bool     first_record,full_join, no_field_update;
+    bool     first_record, full_join, no_field_update;
     bool     group;            ///< If query contains GROUP BY clause
     bool     do_send_rows;
     table_map all_table_map;   ///< Set of tables contained in query
@@ -110,7 +110,7 @@ public:
     table_map outer_join;      ///< Bitmap of all inner tables from outer joins
     /* Number of records produced after join + group operation */
     ha_rows  send_records;
-    ha_rows found_records,examined_rows,row_limit;
+    ha_rows found_records, examined_rows, row_limit;
     // m_select_limit is used to decide if we are likely to scan the whole table.
     ha_rows m_select_limit;
     /**
@@ -156,9 +156,9 @@ public:
     List<Item> *fields;
     List<Cached_item> group_fields, group_fields_cache;
     THD	   *thd;
-    Item_sum  **sum_funcs, ***sum_funcs_end;
+    Item_sum  **sum_funcs, * **sum_funcs_end;
     /** second copy of sumfuncs (for queries with 2 temporary tables */
-    Item_sum  **sum_funcs2, ***sum_funcs_end2;
+    Item_sum  **sum_funcs2, * **sum_funcs_end2;
     ulonglong  select_options;
     select_result *result;
     TMP_TABLE_PARAM tmp_table_param;
@@ -311,26 +311,26 @@ public:
             return order;
         }
 
-        ORDER* operator->() const
+        ORDER *operator->() const
         {
             return order;
         }
 
         void clean()
         {
-            order= NULL;
-            src= ESC_none;
-            flags= ESP_none;
+            order = NULL;
+            src = ESC_none;
+            flags = ESP_none;
         }
 
         void set_flag(Explain_sort_property flag)
         {
             DBUG_ASSERT(order);
-            flags|= flag;
+            flags |= flag;
         }
         void reset_flag(Explain_sort_property flag)
         {
-            flags&= ~flag;
+            flags &= ~flag;
         }
         bool get_flag(Explain_sort_property flag) const
         {
@@ -418,7 +418,7 @@ public:
     bool allow_outer_refs;
 
     // true: No need to run DTORs on pointers.
-    Mem_root_array<Item_exists_subselect*, true> sj_subselects;
+    Mem_root_array<Item_exists_subselect *, true> sj_subselects;
 
     /* Temporary tables used to weed-out semi-join duplicates */
     List<TABLE> sj_tmp_tables;
@@ -442,63 +442,63 @@ public:
     void init(THD *thd_arg, List<Item> &fields_arg, ulonglong select_options_arg,
               select_result *result_arg)
     {
-        join_tab= 0;
-        tables= 0;
-        primary_tables= 0;
-        const_tables= 0;
-        tmp_tables= 0;
-        const_table_map= 0;
-        join_list= 0;
-        implicit_grouping= FALSE;
-        sort_and_group= 0;
-        first_record= 0;
-        do_send_rows= 1;
-        send_records= 0;
-        found_records= 0;
-        fetch_limit= HA_POS_ERROR;
-        min_ft_matches= HA_POS_ERROR;
-        examined_rows= 0;
-        thd= thd_arg;
-        sum_funcs= sum_funcs2= 0;
-        having= having_for_explain= 0;
-        select_options= select_options_arg;
-        result= result_arg;
-        lock= thd_arg->lock;
-        select_lex= 0; //for safety
-        select_distinct= test(select_options & SELECT_DISTINCT);
-        no_order= 0;
-        simple_order= 0;
-        simple_group= 0;
-        ordered_index_usage= ordered_index_void;
-        skip_sort_order= 0;
-        need_tmp= 0;
-        hidden_group_fields= 0; /*safety*/
-        error= 0;
-        return_tab= 0;
+        join_tab = 0;
+        tables = 0;
+        primary_tables = 0;
+        const_tables = 0;
+        tmp_tables = 0;
+        const_table_map = 0;
+        join_list = 0;
+        implicit_grouping = FALSE;
+        sort_and_group = 0;
+        first_record = 0;
+        do_send_rows = 1;
+        send_records = 0;
+        found_records = 0;
+        fetch_limit = HA_POS_ERROR;
+        min_ft_matches = HA_POS_ERROR;
+        examined_rows = 0;
+        thd = thd_arg;
+        sum_funcs = sum_funcs2 = 0;
+        having = having_for_explain = 0;
+        select_options = select_options_arg;
+        result = result_arg;
+        lock = thd_arg->lock;
+        select_lex = 0; //for safety
+        select_distinct = test(select_options & SELECT_DISTINCT);
+        no_order = 0;
+        simple_order = 0;
+        simple_group = 0;
+        ordered_index_usage = ordered_index_void;
+        skip_sort_order = 0;
+        need_tmp = 0;
+        hidden_group_fields = 0; /*safety*/
+        error = 0;
+        return_tab = 0;
         ref_ptrs.reset();
         items0.reset();
         items1.reset();
         items2.reset();
         items3.reset();
-        zero_result_cause= 0;
-        optimized= child_subquery_can_materialize= false;
-        cond_equal= 0;
-        group_optimized_away= 0;
+        zero_result_cause = 0;
+        optimized = child_subquery_can_materialize = false;
+        cond_equal = 0;
+        group_optimized_away = 0;
+        all_fields = fields_arg;
 
-        all_fields= fields_arg;
         if (&fields_list != &fields_arg)      /* Avoid valgrind-warning */
-            fields_list= fields_arg;
+            fields_list = fields_arg;
+
         keyuse.clear();
         tmp_table_param.init();
-        tmp_table_param.end_write_records= HA_POS_ERROR;
-        rollup.state= ROLLUP::STATE_NONE;
-
-        no_const_tables= FALSE;
+        tmp_table_param.end_write_records = HA_POS_ERROR;
+        rollup.state = ROLLUP::STATE_NONE;
+        no_const_tables = FALSE;
         /* can help debugging (makes smaller test cases): */
-        DBUG_EXECUTE_IF("no_const_tables",no_const_tables= TRUE;);
-        first_select= sub_select;
-        set_group_rpa= false;
-        group_sent= 0;
+        DBUG_EXECUTE_IF("no_const_tables", no_const_tables = TRUE;);
+        first_select = sub_select;
+        set_group_rpa = false;
+        group_sent = 0;
     }
 
     /// True if plan is const, ie it will return zero or one rows.
@@ -531,12 +531,12 @@ public:
     bool flatten_subqueries();
     bool make_sum_func_list(List<Item> &all_fields,
                             List<Item> &send_fields,
-                            bool before_group_by, bool recompute= FALSE);
+                            bool before_group_by, bool recompute = FALSE);
 
     /// Initialzes a slice, see comments for ref_ptrs above.
     Ref_ptr_array ref_ptr_array_slice(size_t slice_num)
     {
-        size_t slice_sz= select_lex->ref_pointer_array.size() / 5U;
+        size_t slice_sz = select_lex->ref_pointer_array.size() / 5U;
         DBUG_ASSERT(select_lex->ref_pointer_array.size() % 5 == 0);
         DBUG_ASSERT(slice_num < 5U);
         return Ref_ptr_array(&select_lex->ref_pointer_array[slice_num * slice_sz],
@@ -551,8 +551,8 @@ public:
     void copy_ref_ptr_array(Ref_ptr_array dst_arr, Ref_ptr_array src_arr)
     {
         DBUG_ASSERT(dst_arr.size() >= src_arr.size());
-        void *dest= dst_arr.array();
-        const void *src= src_arr.array();
+        void *dest = dst_arr.array();
+        const void *src = src_arr.array();
         memcpy(dest, src, src_arr.size() * src_arr.element_size());
     }
 
@@ -560,15 +560,15 @@ public:
     void set_items_ref_array(Ref_ptr_array src_arr)
     {
         copy_ref_ptr_array(ref_ptrs, src_arr);
-        current_ref_ptrs= src_arr;
+        current_ref_ptrs = src_arr;
     }
 
     /// Initializes 'items0' and remembers that it is 'current'.
     void init_items_ref_array()
     {
-        items0= ref_ptr_array_slice(1);
+        items0 = ref_ptr_array_slice(1);
         copy_ref_ptr_array(items0, ref_ptrs);
-        current_ref_ptrs= items0;
+        current_ref_ptrs = items0;
     }
 
     bool rollup_init();
@@ -706,7 +706,7 @@ private:
        @param field_name Name of the field to search for
        @param new_item Replacement item
     */
-    void replace_item_field(const char* field_name, Item* new_item);
+    void replace_item_field(const char *field_name, Item *new_item);
 
     /**
       TRUE if the query contains an aggregate function but has no GROUP
@@ -750,7 +750,7 @@ Item *remove_eq_conds(THD *thd, Item *cond, Item::cond_result *cond_value);
 Item *optimize_cond(THD *thd, Item *conds, COND_EQUAL **cond_equal,
                     List<TABLE_LIST> *join_list,
                     bool build_equalities, Item::cond_result *cond_value);
-Item* substitute_for_best_equal_field(Item *cond,
+Item *substitute_for_best_equal_field(Item *cond,
                                       COND_EQUAL *cond_equal,
                                       void *table_join_idx);
 Item *build_equal_items(THD *thd, Item *cond,

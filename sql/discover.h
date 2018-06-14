@@ -19,6 +19,6 @@
 #include "my_global.h"                          /* uchar */
 
 int readfrm(const char *name, uchar **data, size_t *length);
-int writefrm(const char* name, const uchar* data, size_t len);
+int writefrm(const char *name, const uchar *data, size_t len);
 
 #endif /* DISCOVER_INCLUDED */

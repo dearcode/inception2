@@ -38,7 +38,7 @@ private:
     /* This property represents the number of fields. */
     int ninfo;
 
-    Rpl_info_values& operator=(const Rpl_info_values& values);
-    Rpl_info_values(const Rpl_info_values& values);
+    Rpl_info_values &operator=(const Rpl_info_values &values);
+    Rpl_info_values(const Rpl_info_values &values);
 };
 #endif /* RPL_INFO_VALUES_H */

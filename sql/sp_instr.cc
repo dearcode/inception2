@@ -35,8 +35,8 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-static int cmp_splocal_locations(Item_splocal * const *a,
-                                 Item_splocal * const *b)
+static int cmp_splocal_locations(Item_splocal *const *a,
+                                 Item_splocal *const *b)
 {
     return (int)((*a)->pos_in_query - (*b)->pos_in_query);
 }
@@ -137,15 +137,16 @@ static int cmp_splocal_locations(Item_splocal * const *a,
 */
 static bool subst_spvars(THD *thd, sp_instr *instr, LEX_STRING *query_str)
 {
-    Dynamic_array<Item_splocal*> sp_vars_uses;
+    Dynamic_array<Item_splocal *> sp_vars_uses;
     char *pbuf, *cur, buffer[512];
     String qbuf(buffer, sizeof(buffer), &my_charset_bin);
     int prev_pos, res, buf_len;
 
     /* Find all instances of Item_splocal used in this statement */
-    for (Item *item= instr->free_list; item; item= item->next) {
+    for (Item *item = instr->free_list; item; item = item->next) {
         if (item->is_splocal()) {
-            Item_splocal *item_spl= (Item_splocal*)item;
+            Item_splocal *item_spl = (Item_splocal *)item;
+
             if (item_spl->pos_in_query)
                 sp_vars_uses.append(item_spl);
         }
@@ -156,60 +157,63 @@ static bool subst_spvars(THD *thd, sp_instr *instr, LEX_STRING *query_str)
 
     /* Sort SP var refs by their occurrences in the query */
     sp_vars_uses.sort(cmp_splocal_locations);
-
     /*
       Construct a statement string where SP local var refs are replaced
       with "NAME_CONST(name, value)"
     */
     qbuf.length(0);
-    cur= query_str->str;
-    prev_pos= res= 0;
-    thd->query_name_consts= 0;
+    cur = query_str->str;
+    prev_pos = res = 0;
+    thd->query_name_consts = 0;
 
-    for (Item_splocal **splocal= sp_vars_uses.front();
+    for (Item_splocal **splocal = sp_vars_uses.front();
             splocal <= sp_vars_uses.back(); splocal++) {
         Item *val;
-
         char str_buffer[STRING_BUFFER_USUAL_SIZE];
         String str_value_holder(str_buffer, sizeof(str_buffer),
                                 &my_charset_latin1);
         String *str_value;
-
         /* append the text between sp ref occurrences */
-        res|= qbuf.append(cur + prev_pos, (*splocal)->pos_in_query - prev_pos);
-        prev_pos= (*splocal)->pos_in_query + (*splocal)->len_in_query;
+        res |= qbuf.append(cur + prev_pos, (*splocal)->pos_in_query - prev_pos);
+        prev_pos = (*splocal)->pos_in_query + (*splocal)->len_in_query;
+        res |= (*splocal)->fix_fields(thd, (Item **) splocal);
 
-        res|= (*splocal)->fix_fields(thd, (Item **) splocal);
         if (res)
             break;
 
         if ((*splocal)->limit_clause_param) {
-            res|= qbuf.append_ulonglong((*splocal)->val_uint());
+            res |= qbuf.append_ulonglong((*splocal)->val_uint());
+
             if (res)
                 break;
+
             continue;
         }
 
         /* append the spvar substitute */
-        res|= qbuf.append(STRING_WITH_LEN(" NAME_CONST('"));
-        res|= qbuf.append((*splocal)->m_name);
-        res|= qbuf.append(STRING_WITH_LEN("',"));
+        res |= qbuf.append(STRING_WITH_LEN(" NAME_CONST('"));
+        res |= qbuf.append((*splocal)->m_name);
+        res |= qbuf.append(STRING_WITH_LEN("',"));
 
         if (res)
             break;
 
-        val= (*splocal)->this_item();
-        str_value= sp_get_item_value(thd, val, &str_value_holder);
+        val = (*splocal)->this_item();
+        str_value = sp_get_item_value(thd, val, &str_value_holder);
+
         if (str_value)
-            res|= qbuf.append(*str_value);
+            res |= qbuf.append(*str_value);
         else
-            res|= qbuf.append(STRING_WITH_LEN("NULL"));
-        res|= qbuf.append(')');
+            res |= qbuf.append(STRING_WITH_LEN("NULL"));
+
+        res |= qbuf.append(')');
+
         if (res)
             break;
 
         thd->query_name_consts++;
     }
+
     if (res ||
             qbuf.append(cur + prev_pos, query_str->length - prev_pos))
         return true;
@@ -226,17 +230,18 @@ static bool subst_spvars(THD *thd, sp_instr *instr, LEX_STRING *query_str)
               <db_name>     Name of current database
               <flags>       Flags struct
     */
-    buf_len= qbuf.length() + 1 + sizeof(size_t) + thd->db_length +
-             QUERY_CACHE_FLAGS_SIZE + 1;
-    if ((pbuf= (char *) alloc_root(thd->mem_root, buf_len))) {
+    buf_len = qbuf.length() + 1 + sizeof(size_t) + thd->db_length +
+              QUERY_CACHE_FLAGS_SIZE + 1;
+
+    if ((pbuf = (char *) alloc_root(thd->mem_root, buf_len))) {
         memcpy(pbuf, qbuf.ptr(), qbuf.length());
-        pbuf[qbuf.length()]= 0;
-        memcpy(pbuf+qbuf.length()+1, (char *) &thd->db_length, sizeof(size_t));
+        pbuf[qbuf.length()] = 0;
+        memcpy(pbuf + qbuf.length() + 1, (char *) &thd->db_length, sizeof(size_t));
+
     } else
         return true;
 
     thd->set_query(pbuf, qbuf.length());
-
     return false;
 }
 
@@ -256,23 +261,18 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
         uint *nextp,
         bool open_tables)
 {
-    bool rc= false;
-
+    bool rc = false;
     /*
       The flag is saved at the entry to the following substatement.
       It's reset further in the common code part.
       It's merged with the saved parent's value at the exit of this func.
     */
-
-    unsigned int parent_unsafe_rollback_flags=
+    unsigned int parent_unsafe_rollback_flags =
         thd->transaction.stmt.get_unsafe_rollback_flags();
     thd->transaction.stmt.reset_unsafe_rollback_flags();
-
     /* Check pre-conditions. */
-
     DBUG_ASSERT(!thd->derived_tables);
     DBUG_ASSERT(thd->change_list.is_empty());
-
     /*
       Use our own lex.
 
@@ -281,12 +281,9 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
       in order to properly behave in case of ER_NEED_REPREPARE error
       (when ER_NEED_REPREPARE happened, and we failed to re-parse the query).
     */
-
-    LEX *lex_saved= thd->lex;
-    thd->lex= m_lex;
-
+    LEX *lex_saved = thd->lex;
+    thd->lex = m_lex;
     /* Set new query id. */
-
     thd->set_query_id(next_query_id());
 
     if (thd->locked_tables_mode <= LTM_LOCK_TABLES) {
@@ -301,35 +298,31 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
               Attach the list of tables that need to be prelocked and mark m_lex
               as having such list attached.
             */
-            *m_lex_query_tables_own_last= m_prelocking_tables;
+            *m_lex_query_tables_own_last = m_prelocking_tables;
             m_lex->mark_as_requiring_prelocking(m_lex_query_tables_own_last);
         }
     }
 
     /* Reset LEX-object before re-use. */
-
     reinit_stmt_before_use(thd, m_lex);
 
     /* Open tables if needed. */
 
     if (open_tables) {
         if (!rc)
-            rc= open_and_lock_tables(thd, m_lex->query_tables, true, 0);
+            rc = open_and_lock_tables(thd, m_lex->query_tables, true, 0);
 
         if (!rc) {
-            rc= exec_core(thd, nextp);
-            DBUG_PRINT("info",("exec_core returned: %d", rc));
+            rc = exec_core(thd, nextp);
+            DBUG_PRINT("info", ("exec_core returned: %d", rc));
         }
 
         /*
           Call after unit->cleanup() to close open table
           key read.
         */
-
 //     m_lex->unit.cleanup();
-
         /* Here we also commit or rollback the current statement. */
-
 //     if (! thd->in_sub_stmt)
 //     {
 //       thd->get_stmt_da()->set_overwrite_status(true);
@@ -344,9 +337,10 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
             thd->mdl_context.release_transactional_locks();
         else if (! thd->in_sub_stmt)
             thd->mdl_context.release_statement_locks();
+
     } else {
-        rc= exec_core(thd, nextp);
-        DBUG_PRINT("info",("exec_core returned: %d", rc));
+        rc = exec_core(thd, nextp);
+        DBUG_PRINT("info", ("exec_core returned: %d", rc));
     }
 
     if (m_lex->query_tables_own_last) {
@@ -359,14 +353,13 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
           attached it above in this function).
           Now we'll save the 'tail', and detach it.
         */
-        m_lex_query_tables_own_last= m_lex->query_tables_own_last;
-        m_prelocking_tables= *m_lex_query_tables_own_last;
-        *m_lex_query_tables_own_last= NULL;
+        m_lex_query_tables_own_last = m_lex->query_tables_own_last;
+        m_prelocking_tables = *m_lex_query_tables_own_last;
+        *m_lex_query_tables_own_last = NULL;
         m_lex->mark_as_requiring_prelocking(NULL);
     }
 
     /* Rollback changes to the item tree during execution. */
-
     thd->rollback_item_tree_changes();
 
     /*
@@ -378,19 +371,15 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
             (thd->get_stmt_da()->sql_errno() != ER_CANT_REOPEN_TABLE &&
              thd->get_stmt_da()->sql_errno() != ER_NO_SUCH_TABLE &&
              thd->get_stmt_da()->sql_errno() != ER_UPDATE_TABLE_USED))
-        thd->stmt_arena->state= Query_arena::STMT_EXECUTED;
+        thd->stmt_arena->state = Query_arena::STMT_EXECUTED;
 
     /*
       Merge here with the saved parent's values
       what is needed from the substatement gained
     */
-
     thd->transaction.stmt.add_unsafe_rollback_flags(parent_unsafe_rollback_flags);
-
     /* Restore original lex. */
-
-    thd->lex= lex_saved;
-
+    thd->lex = lex_saved;
     /*
       Unlike for PS we should not call Item's destructors for newly created
       items after execution of each instruction in stored routine. This is
@@ -400,7 +389,6 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
 
       cleanup_items() is called in sp_head::execute()
     */
-
     return rc || thd->is_error();
 }
 
@@ -408,9 +396,8 @@ bool sp_lex_instr::reset_lex_and_exec_core(THD *thd,
 LEX *sp_lex_instr::parse_expr(THD *thd, sp_head *sp)
 {
     String sql_query;
-    PSI_statement_locker *parent_locker= thd->m_statement_psi;
+    PSI_statement_locker *parent_locker = thd->m_statement_psi;
     sql_query.set_charset(system_charset_info);
-
     get_query(&sql_query);
 
     if (sql_query.length() == 0) {
@@ -424,45 +411,32 @@ LEX *sp_lex_instr::parse_expr(THD *thd, sp_head *sp)
 
     // Prepare parser state. It can be done just before parse_sql(), do it here
     // only to simplify exit in case of failure (out-of-memory error).
-
     Parser_state parser_state;
 
     if (parser_state.init(thd, sql_query.c_ptr(), sql_query.length()))
         return NULL;
 
     // Cleanup current THD from previously held objects before new parsing.
-
     cleanup_before_parsing(thd);
-
     // Switch mem-roots. We need to store new LEX and its Items in the persistent
     // SP-memory (memory which is not freed between executions).
-
-    MEM_ROOT *execution_mem_root= thd->mem_root;
-
-    thd->mem_root= thd->sp_runtime_ctx->sp->get_persistent_mem_root();
-
+    MEM_ROOT *execution_mem_root = thd->mem_root;
+    thd->mem_root = thd->sp_runtime_ctx->sp->get_persistent_mem_root();
     // Switch THD::free_list. It's used to remember the newly created set of Items
     // during parsing. We should clean those items after each execution.
-
-    Item *execution_free_list= thd->free_list;
-    thd->free_list= NULL;
-
+    Item *execution_free_list = thd->free_list;
+    thd->free_list = NULL;
     // Create a new LEX and intialize it.
-
-    LEX *lex_saved= thd->lex;
-
-    thd->lex= new (thd->mem_root) st_lex_local;
+    LEX *lex_saved = thd->lex;
+    thd->lex = new (thd->mem_root) st_lex_local;
     lex_start(thd);
-
-    thd->lex->sphead= sp;
+    thd->lex->sphead = sp;
     thd->lex->set_sp_current_parsing_ctx(get_parsing_ctx());
     sp->m_parser_data.set_current_stmt_start_ptr(sql_query.c_ptr());
-
     // Parse the just constructed SELECT-statement.
-
-    thd->m_statement_psi= NULL;
-    bool parsing_failed= parse_sql(thd, &parser_state, NULL);
-    thd->m_statement_psi= parent_locker;
+    thd->m_statement_psi = NULL;
+    bool parsing_failed = parse_sql(thd, &parser_state, NULL);
+    thd->m_statement_psi = parent_locker;
 
     if (!parsing_failed) {
         thd->lex->set_trg_event_type_for_tables();
@@ -476,44 +450,33 @@ LEX *sp_lex_instr::parse_expr(THD *thd, sp_head *sp)
               (e.g.  SELECT)... Anyway some things can be checked only during trigger
               execution.
             */
+            Table_triggers_list *ttl = sp->m_trg_list;
+            int event = sp->m_trg_chistics.event;
+            int action_time = sp->m_trg_chistics.action_time;
+            GRANT_INFO *grant_table = &ttl->subject_table_grants[event][action_time];
 
-            Table_triggers_list *ttl= sp->m_trg_list;
-            int event= sp->m_trg_chistics.event;
-            int action_time= sp->m_trg_chistics.action_time;
-            GRANT_INFO *grant_table= &ttl->subject_table_grants[event][action_time];
-
-            for (Item_trigger_field *trg_field= sp->m_trg_table_fields.first;
+            for (Item_trigger_field *trg_field = sp->m_trg_table_fields.first;
                     trg_field;
-                    trg_field= trg_field->next_trg_field) {
+                    trg_field = trg_field->next_trg_field)
                 trg_field->setup_field(thd, ttl->trigger_table, grant_table);
-            }
         }
 
         // Call after-parsing callback.
-
-        parsing_failed= on_after_expr_parsing(thd);
-
+        parsing_failed = on_after_expr_parsing(thd);
         // Append newly created Items to the list of Items, owned by this
         // instruction.
-
-        free_list= thd->free_list;
+        free_list = thd->free_list;
     }
 
     // Restore THD::lex.
-
-    thd->lex->sphead= NULL;
+    thd->lex->sphead = NULL;
     thd->lex->set_sp_current_parsing_ctx(NULL);
-
-    LEX *expr_lex= thd->lex;
-    thd->lex= lex_saved;
-
+    LEX *expr_lex = thd->lex;
+    thd->lex = lex_saved;
     // Restore execution mem-root and THD::free_list.
-
-    thd->mem_root= execution_mem_root;
-    thd->free_list= execution_free_list;
-
+    thd->mem_root = execution_mem_root;
+    thd->free_list = execution_free_list;
     // That's it.
-
     return parsing_failed ? NULL : expr_lex;
 }
 
@@ -523,18 +486,17 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
         bool open_tables)
 {
     Reprepare_observer reprepare_observer;
-    int reprepare_attempt= 0;
+    int reprepare_attempt = 0;
 
     while (true) {
         if (is_invalid()) {
-            LEX *lex= parse_expr(thd, thd->sp_runtime_ctx->sp);
+            LEX *lex = parse_expr(thd, thd->sp_runtime_ctx->sp);
 
             if (!lex)
                 return true;
 
             set_lex(lex, true);
-
-            m_first_execution= true;
+            m_first_execution = true;
         }
 
         /*
@@ -543,8 +505,7 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
           the observer method will be invoked to push an error into
           the error stack.
         */
-        Reprepare_observer *stmt_reprepare_observer= NULL;
-
+        Reprepare_observer *stmt_reprepare_observer = NULL;
         /*
           Meta-data versions are stored in the LEX-object on the first execution.
           Thus, the reprepare observer should not be installed for the first
@@ -555,7 +516,6 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
           the SQL-command is SQLCOM_END, which means that the LEX-object is
           representing an expression, so the exact SQL-command does not matter.
         */
-
 //     if (!m_first_execution &&
 //         (sql_command_flags[m_lex->sql_command] & CF_REEXECUTION_FRAGILE ||
 //          m_lex->sql_command == SQLCOM_END))
@@ -563,14 +523,10 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
 //       reprepare_observer.reset_reprepare_observer();
 //       stmt_reprepare_observer= &reprepare_observer;
 //     }
-
         thd->push_reprepare_observer(stmt_reprepare_observer);
-
-        bool rc= reset_lex_and_exec_core(thd, nextp, open_tables);
-
+        bool rc = reset_lex_and_exec_core(thd, nextp, open_tables);
         thd->pop_reprepare_observer();
-
-        m_first_execution= false;
+        m_first_execution = false;
 
         if (!rc)
             return false;
@@ -593,10 +549,10 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
                 thd->get_stmt_da()->sql_errno() == ER_NEED_REPREPARE &&
                 reprepare_attempt++ < 3) {
             DBUG_ASSERT(stmt_reprepare_observer->is_invalidated());
-
             thd->clear_error();
             free_lex();
             invalidate();
+
         } else
             return true;
     }
@@ -606,13 +562,12 @@ bool sp_lex_instr::validate_lex_and_execute_core(THD *thd,
 void sp_lex_instr::set_lex(LEX *lex, bool is_lex_owner)
 {
     free_lex();
-
-    m_lex= lex;
-    m_is_lex_owner= is_lex_owner;
-    m_lex_query_tables_own_last= NULL;
+    m_lex = lex;
+    m_is_lex_owner = is_lex_owner;
+    m_lex_query_tables_own_last = NULL;
 
     if (m_lex)
-        m_lex->sp_lex_in_use= true;
+        m_lex->sp_lex_in_use = true;
 }
 
 
@@ -622,13 +577,12 @@ void sp_lex_instr::free_lex()
         return;
 
     /* Prevent endless recursion. */
-    m_lex->sphead= NULL;
+    m_lex->sphead = NULL;
     lex_end(m_lex);
     delete (st_lex_local *) m_lex;
-
-    m_lex= NULL;
-    m_is_lex_owner= false;
-    m_lex_query_tables_own_last= NULL;
+    m_lex = NULL;
+    m_is_lex_owner = false;
+    m_lex_query_tables_own_last = NULL;
 }
 
 
@@ -638,17 +592,17 @@ void sp_lex_instr::cleanup_before_parsing(THD *thd)
       Destroy items in the instruction's free list before re-parsing the
       statement query string (and thus, creating new items).
     */
-    Item *p= free_list;
+    Item *p = free_list;
+
     while (p) {
-        Item *next= p->next;
+        Item *next = p->next;
         p->delete_self();
-        p= next;
+        p = next;
     }
 
-    free_list= NULL;
-
+    free_list = NULL;
     // Remove previously stored trigger-field items.
-    sp_head *sp= thd->sp_runtime_ctx->sp;
+    sp_head *sp = thd->sp_runtime_ctx->sp;
 
     if (sp->m_type == SP_TYPE_TRIGGER)
         sp->m_trg_table_fields.empty();
@@ -657,7 +611,7 @@ void sp_lex_instr::cleanup_before_parsing(THD *thd)
 
 void sp_lex_instr::get_query(String *sql_query) const
 {
-    LEX_STRING expr_query= this->get_expr_query();
+    LEX_STRING expr_query = this->get_expr_query();
 
     if (!expr_query.str) {
         sql_query->length(0);
@@ -676,13 +630,10 @@ void sp_lex_instr::get_query(String *sql_query) const
 
 bool sp_instr_stmt::execute(THD *thd, uint *nextp)
 {
-    bool need_subst= false;
-    bool rc= false;
-
+    bool need_subst = false;
+    bool rc = false;
     DBUG_PRINT("info", ("query: '%.*s'", (int) m_query.length, m_query.str));
-
-    const CSET_STRING query_backup= thd->query_string;
-
+    const CSET_STRING query_backup = thd->query_string;
 #if defined(ENABLED_PROFILING)
     /* This SP-instr is profilable and will be captured. */
     thd->profiling.set_query_source(m_query.str, m_query.length);
@@ -734,22 +685,20 @@ bool sp_instr_stmt::execute(THD *thd, uint *nextp)
       (the order of query cache and subst_spvars calls is irrelevant because
       queries with SP vars can't be cached)
     */
-    if (unlikely((thd->variables.option_bits & OPTION_LOG_OFF)==0))
+    if (unlikely((thd->variables.option_bits & OPTION_LOG_OFF) == 0))
         general_log_write(thd, COM_QUERY, thd->query(), thd->query_length());
 
     if (query_cache_send_result_to_client(thd, thd->query(),
                                           thd->query_length()) <= 0) {
-        rc= validate_lex_and_execute_core(thd, nextp, false);
+        rc = validate_lex_and_execute_core(thd, nextp, false);
 
         if (thd->get_stmt_da()->is_eof()) {
             /* Finalize server status flags after executing a statement. */
             thd->update_server_status();
-
             thd->protocol->end_statement();
         }
 
         query_cache_end_of_result(thd);
-
         /*
           With the current setup, a subst_spvars() and a mysql_rewrite_query()
           (rewriting passwords etc.) will not both happen to a query.
@@ -759,11 +708,12 @@ bool sp_instr_stmt::execute(THD *thd, uint *nextp)
         */
         DBUG_ASSERT((thd->query_name_consts == 0) ||
                     (thd->rewritten_query.length() == 0));
+
     } else
-        *nextp= get_ip() + 1;
+        *nextp = get_ip() + 1;
 
     thd->set_query(query_backup);
-    thd->query_name_consts= 0;
+    thd->query_name_consts = 0;
 
     if (!thd->is_error())
         thd->get_stmt_da()->reset_diagnostics_area();
@@ -777,26 +727,31 @@ void sp_instr_stmt::print(String *str)
     /* stmt CMD "..." */
     if (str->reserve(SP_STMT_PRINT_MAXLEN + SP_INSTR_UINT_MAXLEN + 8))
         return;
+
     str->qs_append(STRING_WITH_LEN("stmt"));
     str->qs_append(STRING_WITH_LEN(" \""));
-
     /*
       Print the query string (but not too much of it), just to indicate which
       statement it is.
     */
-    uint len= m_query.length;
+    uint len = m_query.length;
+
     if (len > SP_STMT_PRINT_MAXLEN)
-        len= SP_STMT_PRINT_MAXLEN-3;
+        len = SP_STMT_PRINT_MAXLEN - 3;
 
     /* Copy the query string and replace '\n' with ' ' in the process */
-    for (uint i= 0 ; i < len ; i++) {
-        char c= m_query.str[i];
+    for (uint i = 0 ; i < len ; i++) {
+        char c = m_query.str[i];
+
         if (c == '\n')
-            c= ' ';
+            c = ' ';
+
         str->qs_append(c);
     }
+
     if (m_query.length > SP_STMT_PRINT_MAXLEN)
         str->qs_append(STRING_WITH_LEN("...")); /* Indicate truncated string */
+
     str->qs_append('"');
 }
 
@@ -809,23 +764,16 @@ bool sp_instr_stmt::exec_core(THD *thd, uint *nextp)
                            &thd->security_ctx->priv_user[0],
                            (char *)thd->security_ctx->host_or_ip,
                            3);
-
     thd->lex->set_sp_current_parsing_ctx(get_parsing_ctx());
-    thd->lex->sphead= thd->sp_runtime_ctx->sp;
-
-    PSI_statement_locker *statement_psi_saved= thd->m_statement_psi;
-    thd->m_statement_psi= NULL;
-
+    thd->lex->sphead = thd->sp_runtime_ctx->sp;
+    PSI_statement_locker *statement_psi_saved = thd->m_statement_psi;
+    thd->m_statement_psi = NULL;
 //   bool rc= mysql_execute_command(thd);
-
     thd->lex->set_sp_current_parsing_ctx(NULL);
-    thd->lex->sphead= NULL;
-    thd->m_statement_psi= statement_psi_saved;
-
+    thd->lex->sphead = NULL;
+    thd->m_statement_psi = statement_psi_saved;
     /* MYSQL_QUERY_EXEC_DONE(rc); */
-
-    *nextp= get_ip() + 1;
-
+    *nextp = get_ip() + 1;
     return 0;
 }
 
@@ -837,7 +785,7 @@ bool sp_instr_stmt::exec_core(THD *thd, uint *nextp)
 
 bool sp_instr_set::exec_core(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
+    *nextp = get_ip() + 1;
 
     if (!thd->sp_runtime_ctx->set_variable(thd, m_offset, &m_value_item))
         return false;
@@ -856,19 +804,23 @@ bool sp_instr_set::exec_core(THD *thd, uint *nextp)
 void sp_instr_set::print(String *str)
 {
     /* set name@offset ... */
-    int rsrv = SP_INSTR_UINT_MAXLEN+6;
+    int rsrv = SP_INSTR_UINT_MAXLEN + 6;
     sp_variable *var = m_parsing_ctx->find_variable(m_offset);
 
     /* 'var' should always be non-null, but just in case... */
     if (var)
-        rsrv+= var->name.length;
+        rsrv += var->name.length;
+
     if (str->reserve(rsrv))
         return;
+
     str->qs_append(STRING_WITH_LEN("set "));
+
     if (var) {
         str->qs_append(var->name.str, var->name.length);
         str->qs_append('@');
     }
+
     str->qs_append(m_offset);
     str->qs_append(' ');
     m_value_item->print(str, QT_ORDINARY);
@@ -882,8 +834,8 @@ void sp_instr_set::print(String *str)
 
 bool sp_instr_set_trigger_field::exec_core(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-    thd->count_cuted_fields= CHECK_FIELD_ERROR_FOR_NULL;
+    *nextp = get_ip() + 1;
+    thd->count_cuted_fields = CHECK_FIELD_ERROR_FOR_NULL;
     return m_trigger_field->set_value(thd, &m_value_item);
 }
 
@@ -900,18 +852,14 @@ void sp_instr_set_trigger_field::print(String *str)
 bool sp_instr_set_trigger_field::on_after_expr_parsing(THD *thd)
 {
     DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-    m_value_item= thd->lex->select_lex.item_list.head();
-
+    m_value_item = thd->lex->select_lex.item_list.head();
     DBUG_ASSERT(!m_trigger_field);
-
-    m_trigger_field=
+    m_trigger_field =
         new (thd->mem_root) Item_trigger_field(thd->lex->current_context(),
                 Item_trigger_field::NEW_ROW,
                 m_trigger_field_name.str,
                 UPDATE_ACL,
                 false);
-
     return m_value_item == NULL || m_trigger_field == NULL;
 }
 
@@ -919,8 +867,7 @@ bool sp_instr_set_trigger_field::on_after_expr_parsing(THD *thd)
 void sp_instr_set_trigger_field::cleanup_before_parsing(THD *thd)
 {
     sp_lex_instr::cleanup_before_parsing(thd);
-
-    m_trigger_field= NULL;
+    m_trigger_field = NULL;
 }
 
 
@@ -932,8 +879,9 @@ void sp_instr_set_trigger_field::cleanup_before_parsing(THD *thd)
 void sp_instr_jump::print(String *str)
 {
     /* jump dest */
-    if (str->reserve(SP_INSTR_UINT_MAXLEN+5))
+    if (str->reserve(SP_INSTR_UINT_MAXLEN + 5))
         return;
+
     str->qs_append(STRING_WITH_LEN("jump "));
     str->qs_append(m_dest);
 }
@@ -941,29 +889,35 @@ void sp_instr_jump::print(String *str)
 
 uint sp_instr_jump::opt_mark(sp_head *sp, List<sp_instr> *leads)
 {
-    m_dest= opt_shortcut_jump(sp, this);
+    m_dest = opt_shortcut_jump(sp, this);
+
     if (m_dest != get_ip() + 1)   /* Jumping to following instruction? */
-        m_marked= true;
-    m_optdest= sp->get_instr(m_dest);
+        m_marked = true;
+
+    m_optdest = sp->get_instr(m_dest);
     return m_dest;
 }
 
 
 uint sp_instr_jump::opt_shortcut_jump(sp_head *sp, sp_instr *start)
 {
-    uint dest= m_dest;
+    uint dest = m_dest;
     sp_instr *i;
 
-    while ((i= sp->get_instr(dest))) {
+    while ((i = sp->get_instr(dest))) {
         uint ndest;
 
         if (start == i || this == i)
             break;
-        ndest= i->opt_shortcut_jump(sp, start);
+
+        ndest = i->opt_shortcut_jump(sp, start);
+
         if (ndest == dest)
             break;
-        dest= ndest;
+
+        dest = ndest;
     }
+
     return dest;
 }
 
@@ -973,8 +927,9 @@ void sp_instr_jump::opt_move(uint dst, List<sp_branch_instr> *bp)
     if (m_dest > get_ip())
         bp->push_back(this);      // Forward
     else if (m_optdest)
-        m_dest= m_optdest->get_ip();  // Backward
-    m_ip= dst;
+        m_dest = m_optdest->get_ip(); // Backward
+
+    m_ip = dst;
 }
 
 
@@ -986,14 +941,12 @@ void sp_instr_jump::opt_move(uint dst, List<sp_branch_instr> *bp)
 bool sp_instr_jump_if_not::exec_core(THD *thd, uint *nextp)
 {
     DBUG_ASSERT(m_expr_item);
-
-    Item *item= sp_prepare_func_item(thd, &m_expr_item);
+    Item *item = sp_prepare_func_item(thd, &m_expr_item);
 
     if (!item)
         return true;
 
-    *nextp= item->val_bool() ? get_ip() + 1 : m_dest;
-
+    *nextp = item->val_bool() ? get_ip() + 1 : m_dest;
     return false;
 }
 
@@ -1001,8 +954,9 @@ bool sp_instr_jump_if_not::exec_core(THD *thd, uint *nextp)
 void sp_instr_jump_if_not::print(String *str)
 {
     /* jump_if_not dest(cont) ... */
-    if (str->reserve(2*SP_INSTR_UINT_MAXLEN+14+32)) // Add some for the expr. too
+    if (str->reserve(2 * SP_INSTR_UINT_MAXLEN + 14 + 32)) // Add some for the expr. too
         return;
+
     str->qs_append(STRING_WITH_LEN("jump_if_not "));
     str->qs_append(m_dest);
     str->qs_append('(');
@@ -1019,26 +973,23 @@ void sp_instr_jump_if_not::print(String *str)
 
 uint sp_lex_branch_instr::opt_mark(sp_head *sp, List<sp_instr> *leads)
 {
-    m_marked= true;
-
-    sp_instr *i= sp->get_instr(m_dest);
+    m_marked = true;
+    sp_instr *i = sp->get_instr(m_dest);
 
     if (i) {
-        m_dest= i->opt_shortcut_jump(sp, this);
-        m_optdest= sp->get_instr(m_dest);
+        m_dest = i->opt_shortcut_jump(sp, this);
+        m_optdest = sp->get_instr(m_dest);
     }
 
     sp->add_mark_lead(m_dest, leads);
-
-    i= sp->get_instr(m_cont_dest);
+    i = sp->get_instr(m_cont_dest);
 
     if (i) {
-        m_cont_dest= i->opt_shortcut_jump(sp, this);
-        m_cont_optdest= sp->get_instr(m_cont_dest);
+        m_cont_dest = i->opt_shortcut_jump(sp, this);
+        m_cont_optdest = sp->get_instr(m_cont_dest);
     }
 
     sp->add_mark_lead(m_cont_dest, leads);
-
     return get_ip() + 1;
 }
 
@@ -1055,15 +1006,17 @@ void sp_lex_branch_instr::opt_move(uint dst, List<sp_branch_instr> *bp)
         // Forward
         if (m_dest < get_ip())
             bp->push_back(this);
+
     } else if (m_cont_optdest)
-        m_cont_dest= m_cont_optdest->get_ip(); // Backward
+        m_cont_dest = m_cont_optdest->get_ip(); // Backward
 
     /* This will take care of m_dest and m_ip */
     if (m_dest > get_ip())
         bp->push_back(this);      // Forward
     else if (m_optdest)
-        m_dest= m_optdest->get_ip();  // Backward
-    m_ip= dst;
+        m_dest = m_optdest->get_ip(); // Backward
+
+    m_ip = dst;
 }
 
 
@@ -1075,14 +1028,12 @@ void sp_lex_branch_instr::opt_move(uint dst, List<sp_branch_instr> *bp)
 bool sp_instr_jump_case_when::exec_core(THD *thd, uint *nextp)
 {
     DBUG_ASSERT(m_eq_item);
-
-    Item *item= sp_prepare_func_item(thd, &m_eq_item);
+    Item *item = sp_prepare_func_item(thd, &m_eq_item);
 
     if (!item)
         return true;
 
-    *nextp= item->val_bool() ? get_ip() + 1 : m_dest;
-
+    *nextp = item->val_bool() ? get_ip() + 1 : m_dest;
     return false;
 }
 
@@ -1090,8 +1041,9 @@ bool sp_instr_jump_case_when::exec_core(THD *thd, uint *nextp)
 void sp_instr_jump_case_when::print(String *str)
 {
     /* jump_if_not dest(cont) ... */
-    if (str->reserve(2*SP_INSTR_UINT_MAXLEN+14+32)) // Add some for the expr. too
+    if (str->reserve(2 * SP_INSTR_UINT_MAXLEN + 14 + 32)) // Add some for the expr. too
         return;
+
     str->qs_append(STRING_WITH_LEN("jump_if_not_case_when "));
     str->qs_append(m_dest);
     str->qs_append('(');
@@ -1104,14 +1056,13 @@ void sp_instr_jump_case_when::print(String *str)
 bool sp_instr_jump_case_when::build_expr_items(THD *thd)
 {
     // Setup CASE-expression item (m_case_expr_item).
-
-    m_case_expr_item= new Item_case_expr(m_case_expr_id);
+    m_case_expr_item = new Item_case_expr(m_case_expr_id);
 
     if (!m_case_expr_item)
         return true;
 
 #ifndef DBUG_OFF
-    m_case_expr_item->m_sp= thd->lex->sphead;
+    m_case_expr_item->m_sp = thd->lex->sphead;
 #endif
 
     // Setup WHEN-expression item (m_expr_item) if it is not already set.
@@ -1128,13 +1079,11 @@ bool sp_instr_jump_case_when::build_expr_items(THD *thd)
 
     if (!m_expr_item) {
         DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-        m_expr_item= thd->lex->select_lex.item_list.head();
+        m_expr_item = thd->lex->select_lex.item_list.head();
     }
 
     // Setup main expression item (m_expr_item).
-
-    m_eq_item= new Item_func_eq(m_case_expr_item, m_expr_item);
+    m_eq_item = new Item_func_eq(m_case_expr_item, m_expr_item);
 
     if (!m_eq_item)
         return true;
@@ -1154,17 +1103,13 @@ bool sp_instr_freturn::exec_core(THD *thd, uint *nextp)
       RETURN is a "procedure statement" (in terms of the SQL standard).
       That means, Diagnostics Area should be clean before its execution.
     */
-
-    Diagnostics_area *da= thd->get_stmt_da();
+    Diagnostics_area *da = thd->get_stmt_da();
     da->clear_warning_info(da->warning_info_id());
-
     /*
       Change <next instruction pointer>, so that this will be the last
       instruction in the stored function.
     */
-
-    *nextp= UINT_MAX;
-
+    *nextp = UINT_MAX;
     /*
       Evaluate the value of return expression and store it in current runtime
       context.
@@ -1172,7 +1117,6 @@ bool sp_instr_freturn::exec_core(THD *thd, uint *nextp)
       NOTE: It's necessary to evaluate result item right here, because we must
       do it in scope of execution the current context/block.
     */
-
     return thd->sp_runtime_ctx->set_return_value(thd, &m_expr_item);
 }
 
@@ -1180,8 +1124,9 @@ bool sp_instr_freturn::exec_core(THD *thd, uint *nextp)
 void sp_instr_freturn::print(String *str)
 {
     /* freturn type expr... */
-    if (str->reserve(1024+8+32)) // Add some for the expr. too
+    if (str->reserve(1024 + 8 + 32)) // Add some for the expr. too
         return;
+
     str->qs_append(STRING_WITH_LEN("freturn "));
     str->qs_append((uint) m_return_field_type);
     str->qs_append(' ');
@@ -1196,8 +1141,7 @@ void sp_instr_freturn::print(String *str)
 
 bool sp_instr_hpush_jump::execute(THD *thd, uint *nextp)
 {
-    *nextp= m_dest;
-
+    *nextp = m_dest;
     return thd->sp_runtime_ctx->push_handler(m_handler, get_ip() + 1);
 }
 
@@ -1205,7 +1149,7 @@ bool sp_instr_hpush_jump::execute(THD *thd, uint *nextp)
 void sp_instr_hpush_jump::print(String *str)
 {
     /* hpush_jump dest fsize type */
-    if (str->reserve(SP_INSTR_UINT_MAXLEN*2 + 21))
+    if (str->reserve(SP_INSTR_UINT_MAXLEN * 2 + 21))
         return;
 
     str->qs_append(STRING_WITH_LEN("hpush_jump "));
@@ -1217,9 +1161,11 @@ void sp_instr_hpush_jump::print(String *str)
     case sp_handler::EXIT:
         str->qs_append(STRING_WITH_LEN(" EXIT"));
         break;
+
     case sp_handler::CONTINUE:
         str->qs_append(STRING_WITH_LEN(" CONTINUE"));
         break;
+
     default:
         // The handler type must be either CONTINUE or EXIT.
         DBUG_ASSERT(0);
@@ -1229,13 +1175,12 @@ void sp_instr_hpush_jump::print(String *str)
 
 uint sp_instr_hpush_jump::opt_mark(sp_head *sp, List<sp_instr> *leads)
 {
-    m_marked= true;
-
-    sp_instr *i= sp->get_instr(m_dest);
+    m_marked = true;
+    sp_instr *i = sp->get_instr(m_dest);
 
     if (i) {
-        m_dest= i->opt_shortcut_jump(sp, this);
-        m_optdest= sp->get_instr(m_dest);
+        m_dest = i->opt_shortcut_jump(sp, this);
+        m_optdest = sp->get_instr(m_dest);
     }
 
     sp->add_mark_lead(m_dest, leads);
@@ -1251,7 +1196,7 @@ uint sp_instr_hpush_jump::opt_mark(sp_head *sp, List<sp_instr> *leads)
       m_opt_hpop is the hpop marking the end of the handler scope.
     */
     if (m_handler->type == sp_handler::CONTINUE) {
-        for (uint scope_ip= m_dest+1; scope_ip <= m_opt_hpop; scope_ip++)
+        for (uint scope_ip = m_dest + 1; scope_ip <= m_opt_hpop; scope_ip++)
             sp->add_mark_lead(scope_ip, leads);
     }
 
@@ -1267,7 +1212,7 @@ uint sp_instr_hpush_jump::opt_mark(sp_head *sp, List<sp_instr> *leads)
 bool sp_instr_hpop::execute(THD *thd, uint *nextp)
 {
     thd->sp_runtime_ctx->pop_handlers(m_parsing_ctx);
-    *nextp= get_ip() + 1;
+    *nextp = get_ip() + 1;
     return false;
 }
 
@@ -1283,26 +1228,19 @@ bool sp_instr_hreturn::execute(THD *thd, uint *nextp)
       Remove the SQL conditions that were present in DA when the
       handler was activated.
     */
-
     thd->get_stmt_da()->remove_marked_sql_conditions();
-
     /*
       Obtain next instruction pointer (m_dest is set for EXIT handlers, retrieve
       the instruction pointer from runtime context for CONTINUE handlers).
     */
-
-    sp_rcontext *rctx= thd->sp_runtime_ctx;
-
-    *nextp= m_dest ? m_dest : rctx->get_last_handler_continue_ip();
-
+    sp_rcontext *rctx = thd->sp_runtime_ctx;
+    *nextp = m_dest ? m_dest : rctx->get_last_handler_continue_ip();
     /*
       Remove call frames for handlers, which are "below" the BEGIN..END block of
       the next instruction.
     */
-
-    sp_instr *next_instr= rctx->sp->get_instr(*nextp);
+    sp_instr *next_instr = rctx->sp->get_instr(*nextp);
     rctx->exit_handler(next_instr->get_parsing_ctx());
-
     return false;
 }
 
@@ -1310,23 +1248,25 @@ bool sp_instr_hreturn::execute(THD *thd, uint *nextp)
 void sp_instr_hreturn::print(String *str)
 {
     /* hreturn framesize dest */
-    if (str->reserve(SP_INSTR_UINT_MAXLEN*2 + 9))
+    if (str->reserve(SP_INSTR_UINT_MAXLEN * 2 + 9))
         return;
+
     str->qs_append(STRING_WITH_LEN("hreturn "));
+
     if (m_dest) {
         // NOTE: this is legacy: hreturn instruction for EXIT handler
         // should print out 0 as frame index.
         str->qs_append(STRING_WITH_LEN("0 "));
         str->qs_append(m_dest);
-    } else {
+
+    } else
         str->qs_append(m_frame);
-    }
 }
 
 
 uint sp_instr_hreturn::opt_mark(sp_head *sp, List<sp_instr> *leads)
 {
-    m_marked= true;
+    m_marked = true;
 
     if (m_dest) {
         /*
@@ -1350,42 +1290,40 @@ uint sp_instr_hreturn::opt_mark(sp_head *sp, List<sp_instr> *leads)
 
 bool sp_instr_cpush::execute(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-
+    *nextp = get_ip() + 1;
     // sp_instr_cpush::execute() just registers the cursor in the runtime context.
-
     return thd->sp_runtime_ctx->push_cursor(this);
 }
 
 
 bool sp_instr_cpush::exec_core(THD *thd, uint *nextp)
 {
-    sp_cursor *c= thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
-
+    sp_cursor *c = thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
     // sp_instr_cpush::exec_core() opens the cursor (it's called from
     // sp_instr_copen::execute().
-
     return c ? c->open(thd) : true;
 }
 
 
 void sp_instr_cpush::print(String *str)
 {
-    const LEX_STRING *cursor_name= m_parsing_ctx->find_cursor(m_cursor_idx);
-
-    uint rsrv= SP_INSTR_UINT_MAXLEN + 7 + m_cursor_query.length + 1;
+    const LEX_STRING *cursor_name = m_parsing_ctx->find_cursor(m_cursor_idx);
+    uint rsrv = SP_INSTR_UINT_MAXLEN + 7 + m_cursor_query.length + 1;
 
     if (cursor_name)
-        rsrv+= cursor_name->length;
+        rsrv += cursor_name->length;
+
     if (str->reserve(rsrv))
         return;
+
     str->qs_append(STRING_WITH_LEN("cpush "));
+
     if (cursor_name) {
         str->qs_append(cursor_name->str, cursor_name->length);
         str->qs_append('@');
     }
-    str->qs_append(m_cursor_idx);
 
+    str->qs_append(m_cursor_idx);
     str->qs_append(':');
     str->qs_append(m_cursor_query.str, m_cursor_query.length);
 }
@@ -1399,8 +1337,7 @@ void sp_instr_cpush::print(String *str)
 bool sp_instr_cpop::execute(THD *thd, uint *nextp)
 {
     thd->sp_runtime_ctx->pop_cursors(m_count);
-    *nextp= get_ip() + 1;
-
+    *nextp = get_ip() + 1;
     return false;
 }
 
@@ -1408,8 +1345,9 @@ bool sp_instr_cpop::execute(THD *thd, uint *nextp)
 void sp_instr_cpop::print(String *str)
 {
     /* cpop count */
-    if (str->reserve(SP_INSTR_UINT_MAXLEN+5))
+    if (str->reserve(SP_INSTR_UINT_MAXLEN + 5))
         return;
+
     str->qs_append(STRING_WITH_LEN("cpop "));
     str->qs_append(m_count);
 }
@@ -1422,32 +1360,25 @@ void sp_instr_cpop::print(String *str)
 
 bool sp_instr_copen::execute(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-
+    *nextp = get_ip() + 1;
     // Get the cursor pointer.
-
-    sp_cursor *c= thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
+    sp_cursor *c = thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
 
     if (!c)
         return true;
 
     // Retrieve sp_instr_cpush instance.
-
-    sp_instr_cpush *push_instr= c->get_push_instr();
-
+    sp_instr_cpush *push_instr = c->get_push_instr();
     // Switch Statement Arena to the sp_instr_cpush object. It contains the
     // free_list of the query, so new items (if any) are stored in the right
     // free_list, and we can cleanup after each open.
-
-    Query_arena *stmt_arena_saved= thd->stmt_arena;
-    thd->stmt_arena= push_instr;
-
+    Query_arena *stmt_arena_saved = thd->stmt_arena;
+    thd->stmt_arena = push_instr;
     // Switch to the cursor's lex and execute sp_instr_cpush::exec_core().
     // sp_instr_cpush::exec_core() is *not* executed during
     // sp_instr_cpush::execute(). sp_instr_cpush::exec_core() is intended to be
     // executed on cursor opening.
-
-    bool rc= push_instr->validate_lex_and_execute_core(thd, nextp, false);
+    bool rc = push_instr->validate_lex_and_execute_core(thd, nextp, false);
 
     // Cleanup the query's items.
 
@@ -1455,29 +1386,30 @@ bool sp_instr_copen::execute(THD *thd, uint *nextp)
         cleanup_items(push_instr->free_list);
 
     // Restore Statement Arena.
-
-    thd->stmt_arena= stmt_arena_saved;
-
+    thd->stmt_arena = stmt_arena_saved;
     return rc;
 }
 
 
 void sp_instr_copen::print(String *str)
 {
-    const LEX_STRING *cursor_name= m_parsing_ctx->find_cursor(m_cursor_idx);
-
+    const LEX_STRING *cursor_name = m_parsing_ctx->find_cursor(m_cursor_idx);
     /* copen name@offset */
-    uint rsrv= SP_INSTR_UINT_MAXLEN+7;
+    uint rsrv = SP_INSTR_UINT_MAXLEN + 7;
 
     if (cursor_name)
-        rsrv+= cursor_name->length;
+        rsrv += cursor_name->length;
+
     if (str->reserve(rsrv))
         return;
+
     str->qs_append(STRING_WITH_LEN("copen "));
+
     if (cursor_name) {
         str->qs_append(cursor_name->str, cursor_name->length);
         str->qs_append('@');
     }
+
     str->qs_append(m_cursor_idx);
 }
 
@@ -1489,30 +1421,31 @@ void sp_instr_copen::print(String *str)
 
 bool sp_instr_cclose::execute(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-
-    sp_cursor *c= thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
-
+    *nextp = get_ip() + 1;
+    sp_cursor *c = thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
     return c ? c->close(thd) : true;
 }
 
 
 void sp_instr_cclose::print(String *str)
 {
-    const LEX_STRING *cursor_name= m_parsing_ctx->find_cursor(m_cursor_idx);
-
+    const LEX_STRING *cursor_name = m_parsing_ctx->find_cursor(m_cursor_idx);
     /* cclose name@offset */
-    uint rsrv= SP_INSTR_UINT_MAXLEN+8;
+    uint rsrv = SP_INSTR_UINT_MAXLEN + 8;
 
     if (cursor_name)
-        rsrv+= cursor_name->length;
+        rsrv += cursor_name->length;
+
     if (str->reserve(rsrv))
         return;
+
     str->qs_append(STRING_WITH_LEN("cclose "));
+
     if (cursor_name) {
         str->qs_append(cursor_name->str, cursor_name->length);
         str->qs_append('@');
     }
+
     str->qs_append(m_cursor_idx);
 }
 
@@ -1524,10 +1457,8 @@ void sp_instr_cclose::print(String *str)
 
 bool sp_instr_cfetch::execute(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-
-    sp_cursor *c= thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
-
+    *nextp = get_ip() + 1;
+    sp_cursor *c = thd->sp_runtime_ctx->get_cursor(m_cursor_idx);
     return c ? c->fetch(thd, &m_varlist) : true;
 }
 
@@ -1536,24 +1467,29 @@ void sp_instr_cfetch::print(String *str)
 {
     List_iterator_fast<sp_variable> li(m_varlist);
     sp_variable *pv;
-    const LEX_STRING *cursor_name= m_parsing_ctx->find_cursor(m_cursor_idx);
-
+    const LEX_STRING *cursor_name = m_parsing_ctx->find_cursor(m_cursor_idx);
     /* cfetch name@offset vars... */
-    uint rsrv= SP_INSTR_UINT_MAXLEN+8;
+    uint rsrv = SP_INSTR_UINT_MAXLEN + 8;
 
     if (cursor_name)
-        rsrv+= cursor_name->length;
+        rsrv += cursor_name->length;
+
     if (str->reserve(rsrv))
         return;
+
     str->qs_append(STRING_WITH_LEN("cfetch "));
+
     if (cursor_name) {
         str->qs_append(cursor_name->str, cursor_name->length);
         str->qs_append('@');
     }
+
     str->qs_append(m_cursor_idx);
-    while ((pv= li++)) {
-        if (str->reserve(pv->name.length+SP_INSTR_UINT_MAXLEN+2))
+
+    while ((pv = li++)) {
+        if (str->reserve(pv->name.length + SP_INSTR_UINT_MAXLEN + 2))
             return;
+
         str->qs_append(' ');
         str->qs_append(pv->name.str, pv->name.length);
         str->qs_append('@');
@@ -1570,8 +1506,9 @@ void sp_instr_cfetch::print(String *str)
 void sp_instr_error::print(String *str)
 {
     /* error code */
-    if (str->reserve(SP_INSTR_UINT_MAXLEN+6))
+    if (str->reserve(SP_INSTR_UINT_MAXLEN + 6))
         return;
+
     str->qs_append(STRING_WITH_LEN("error "));
     str->qs_append(m_errcode);
 }
@@ -1584,16 +1521,14 @@ void sp_instr_error::print(String *str)
 
 bool sp_instr_set_case_expr::exec_core(THD *thd, uint *nextp)
 {
-    *nextp= get_ip() + 1;
-
-    sp_rcontext *rctx= thd->sp_runtime_ctx;
+    *nextp = get_ip() + 1;
+    sp_rcontext *rctx = thd->sp_runtime_ctx;
 
     if (rctx->set_case_expr(thd, m_case_expr_id, &m_expr_item) &&
             !rctx->get_case_expr(m_case_expr_id)) {
         // Failed to evaluate the value, the case expression is still not
         // initialized. Set to NULL so we can continue.
-
-        Item *null_item= new Item_null();
+        Item *null_item = new Item_null();
 
         if (!null_item || rctx->set_case_expr(thd, m_case_expr_id, &null_item)) {
             // If this also failed, we have to abort.
@@ -1610,7 +1545,7 @@ bool sp_instr_set_case_expr::exec_core(THD *thd, uint *nextp)
 void sp_instr_set_case_expr::print(String *str)
 {
     /* set_case_expr (cont) id ... */
-    str->reserve(2*SP_INSTR_UINT_MAXLEN+18+32); // Add some extra for expr too
+    str->reserve(2 * SP_INSTR_UINT_MAXLEN + 18 + 32); // Add some extra for expr too
     str->qs_append(STRING_WITH_LEN("set_case_expr ("));
     str->qs_append(m_cont_dest);
     str->qs_append(STRING_WITH_LEN(") "));
@@ -1622,13 +1557,12 @@ void sp_instr_set_case_expr::print(String *str)
 
 uint sp_instr_set_case_expr::opt_mark(sp_head *sp, List<sp_instr> *leads)
 {
-    m_marked= true;
-
-    sp_instr *i= sp->get_instr(m_cont_dest);
+    m_marked = true;
+    sp_instr *i = sp->get_instr(m_cont_dest);
 
     if (i) {
-        m_cont_dest= i->opt_shortcut_jump(sp, this);
-        m_cont_optdest= sp->get_instr(m_cont_dest);
+        m_cont_dest = i->opt_shortcut_jump(sp, this);
+        m_cont_optdest = sp->get_instr(m_cont_dest);
     }
 
     sp->add_mark_lead(m_cont_dest, leads);
@@ -1641,6 +1575,7 @@ void sp_instr_set_case_expr::opt_move(uint dst, List<sp_branch_instr> *bp)
     if (m_cont_dest > get_ip())
         bp->push_back(this);        // Forward
     else if (m_cont_optdest)
-        m_cont_dest= m_cont_optdest->get_ip(); // Backward
-    m_ip= dst;
+        m_cont_dest = m_cont_optdest->get_ip(); // Backward
+
+    m_ip = dst;
 }

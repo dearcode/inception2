@@ -439,25 +439,23 @@ static void debug_sync_C_callback(const char *sync_point_name,
 #ifdef HAVE_PSI_INTERFACE
 static PSI_mutex_key key_debug_sync_globals_ds_mutex;
 
-static PSI_mutex_info all_debug_sync_mutexes[]= {
+static PSI_mutex_info all_debug_sync_mutexes[] = {
     { &key_debug_sync_globals_ds_mutex, "DEBUG_SYNC::mutex", PSI_FLAG_GLOBAL}
 };
 
 static PSI_cond_key key_debug_sync_globals_ds_cond;
 
-static PSI_cond_info all_debug_sync_conds[]= {
+static PSI_cond_info all_debug_sync_conds[] = {
     { &key_debug_sync_globals_ds_cond, "DEBUG_SYNC::cond", PSI_FLAG_GLOBAL}
 };
 
 static void init_debug_sync_psi_keys(void)
 {
-    const char* category= "sql";
+    const char *category = "sql";
     int count;
-
-    count= array_elements(all_debug_sync_mutexes);
+    count = array_elements(all_debug_sync_mutexes);
     mysql_mutex_register(category, all_debug_sync_mutexes, count);
-
-    count= array_elements(all_debug_sync_conds);
+    count = array_elements(all_debug_sync_conds);
     mysql_cond_register(category, all_debug_sync_conds, count);
 }
 #endif /* HAVE_PSI_INTERFACE */
@@ -474,25 +472,24 @@ static void init_debug_sync_psi_keys(void)
 int debug_sync_init(void)
 {
     DBUG_ENTER("debug_sync_init");
-
 #ifdef HAVE_PSI_INTERFACE
     init_debug_sync_psi_keys();
 #endif
 
     if (opt_debug_sync_timeout) {
         int rc;
-
         /* Initialize the global variables. */
         debug_sync_global.ds_signal.length(0);
-        if ((rc= mysql_cond_init(key_debug_sync_globals_ds_cond,
-                                 &debug_sync_global.ds_cond, NULL)) ||
-                (rc= mysql_mutex_init(key_debug_sync_globals_ds_mutex,
-                                      &debug_sync_global.ds_mutex,
-                                      MY_MUTEX_INIT_FAST)))
+
+        if ((rc = mysql_cond_init(key_debug_sync_globals_ds_cond,
+                                  &debug_sync_global.ds_cond, NULL)) ||
+                (rc = mysql_mutex_init(key_debug_sync_globals_ds_mutex,
+                                       &debug_sync_global.ds_mutex,
+                                       MY_MUTEX_INIT_FAST)))
             DBUG_RETURN(rc); /* purecov: inspected */
 
         /* Set the call back pointer in C files. */
-        debug_sync_C_callback_ptr= debug_sync_C_callback;
+        debug_sync_C_callback_ptr = debug_sync_C_callback;
     }
 
     DBUG_RETURN(0);
@@ -513,13 +510,11 @@ void debug_sync_end(void)
     /* End the facility only if it had been initialized. */
     if (debug_sync_C_callback_ptr) {
         /* Clear the call back pointer in C files. */
-        debug_sync_C_callback_ptr= NULL;
-
+        debug_sync_C_callback_ptr = NULL;
         /* Destroy the global variables. */
         debug_sync_global.ds_signal.free();
         mysql_cond_destroy(&debug_sync_global.ds_cond);
         mysql_mutex_destroy(&debug_sync_global.ds_mutex);
-
         /* Print statistics. */
         {
             char llbuff[22];
@@ -549,13 +544,10 @@ void debug_sync_end(void)
 static void debug_sync_emergency_disable(void)
 {
     DBUG_ENTER("debug_sync_emergency_disable");
-
-    opt_debug_sync_timeout= 0;
-
+    opt_debug_sync_timeout = 0;
     DBUG_PRINT("debug_sync",
                ("Debug Sync Facility disabled due to lack of memory."));
     sql_print_error("Debug Sync Facility disabled due to lack of memory.");
-
     DBUG_VOID_RETURN;
 }
 
@@ -574,8 +566,9 @@ void debug_sync_init_thread(THD *thd)
     DBUG_ASSERT(thd);
 
     if (opt_debug_sync_timeout) {
-        thd->debug_sync_control= (st_debug_sync_control*)
-                                 my_malloc(sizeof(st_debug_sync_control), MYF(MY_WME | MY_ZEROFILL));
+        thd->debug_sync_control = (st_debug_sync_control *)
+                                  my_malloc(sizeof(st_debug_sync_control), MYF(MY_WME | MY_ZEROFILL));
+
         if (!thd->debug_sync_control) {
             /*
               Error is reported by my_malloc().
@@ -601,8 +594,7 @@ void debug_sync_end_thread(THD *thd)
     DBUG_ASSERT(thd);
 
     if (thd->debug_sync_control) {
-        st_debug_sync_control *ds_control= thd->debug_sync_control;
-
+        st_debug_sync_control *ds_control = thd->debug_sync_control;
         /*
           This synchronization point can be used to synchronize on thread end.
           This is the latest point in a THD's life, where this can be done.
@@ -610,26 +602,29 @@ void debug_sync_end_thread(THD *thd)
         DEBUG_SYNC(thd, "thread_end");
 
         if (ds_control->ds_action) {
-            st_debug_sync_action *action= ds_control->ds_action;
-            st_debug_sync_action *action_end= action + ds_control->ds_allocated;
+            st_debug_sync_action *action = ds_control->ds_action;
+            st_debug_sync_action *action_end = action + ds_control->ds_allocated;
+
             for (; action < action_end; action++) {
                 action->signal.free();
                 action->wait_for.free();
                 action->sync_point.free();
             }
+
             my_free(ds_control->ds_action);
         }
 
         /* Statistics. */
         mysql_mutex_lock(&debug_sync_global.ds_mutex);
-        debug_sync_global.dsp_hits+=           ds_control->dsp_hits;
-        debug_sync_global.dsp_executed+=       ds_control->dsp_executed;
-        if (debug_sync_global.dsp_max_active < ds_control->dsp_max_active)
-            debug_sync_global.dsp_max_active=    ds_control->dsp_max_active;
-        mysql_mutex_unlock(&debug_sync_global.ds_mutex);
+        debug_sync_global.dsp_hits +=           ds_control->dsp_hits;
+        debug_sync_global.dsp_executed +=       ds_control->dsp_executed;
 
+        if (debug_sync_global.dsp_max_active < ds_control->dsp_max_active)
+            debug_sync_global.dsp_max_active =    ds_control->dsp_max_active;
+
+        mysql_mutex_unlock(&debug_sync_global.ds_mutex);
         my_free(ds_control);
-        thd->debug_sync_control= NULL;
+        thd->debug_sync_control = NULL;
     }
 
     DBUG_VOID_RETURN;
@@ -672,46 +667,47 @@ static char *debug_sync_bmove_len(char *to, char *to_end,
 static void debug_sync_action_string(char *result, uint size,
                                      st_debug_sync_action *action)
 {
-    char  *wtxt= result;
-    char  *wend= wtxt + size - 1; /* Allow emergency '\0'. */
+    char  *wtxt = result;
+    char  *wend = wtxt + size - 1; /* Allow emergency '\0'. */
     DBUG_ASSERT(result);
     DBUG_ASSERT(action);
-
     /* If an execute count is present, signal or wait_for are needed too. */
     DBUG_ASSERT(!action->execute ||
                 action->signal.length() || action->wait_for.length());
 
     if (action->execute) {
         if (action->signal.length()) {
-            wtxt= debug_sync_bmove_len(wtxt, wend, STRING_WITH_LEN("SIGNAL "));
-            wtxt= debug_sync_bmove_len(wtxt, wend, action->signal.ptr(),
-                                       action->signal.length());
+            wtxt = debug_sync_bmove_len(wtxt, wend, STRING_WITH_LEN("SIGNAL "));
+            wtxt = debug_sync_bmove_len(wtxt, wend, action->signal.ptr(),
+                                        action->signal.length());
         }
+
         if (action->wait_for.length()) {
             if ((wtxt == result) && (wtxt < wend))
-                *(wtxt++)= ' ';
-            wtxt= debug_sync_bmove_len(wtxt, wend, STRING_WITH_LEN(" WAIT_FOR "));
-            wtxt= debug_sync_bmove_len(wtxt, wend, action->wait_for.ptr(),
-                                       action->wait_for.length());
+                *(wtxt++) = ' ';
 
-            if (action->timeout != opt_debug_sync_timeout) {
-                wtxt+= my_snprintf(wtxt, wend - wtxt, " TIMEOUT %lu", action->timeout);
-            }
+            wtxt = debug_sync_bmove_len(wtxt, wend, STRING_WITH_LEN(" WAIT_FOR "));
+            wtxt = debug_sync_bmove_len(wtxt, wend, action->wait_for.ptr(),
+                                        action->wait_for.length());
+
+            if (action->timeout != opt_debug_sync_timeout)
+                wtxt += my_snprintf(wtxt, wend - wtxt, " TIMEOUT %lu", action->timeout);
         }
-        if (action->execute != 1) {
-            wtxt+= my_snprintf(wtxt, wend - wtxt, " EXECUTE %lu", action->execute);
-        }
+
+        if (action->execute != 1)
+            wtxt += my_snprintf(wtxt, wend - wtxt, " EXECUTE %lu", action->execute);
     }
+
     if (action->hit_limit) {
-        wtxt+= my_snprintf(wtxt, wend - wtxt, "%sHIT_LIMIT %lu",
-                           (wtxt == result) ? "" : " ", action->hit_limit);
+        wtxt += my_snprintf(wtxt, wend - wtxt, "%sHIT_LIMIT %lu",
+                            (wtxt == result) ? "" : " ", action->hit_limit);
     }
 
     /*
       If (wtxt == wend) string may not be terminated.
       There is one byte left for an emergency termination.
     */
-    *wtxt= '\0';
+    *wtxt = '\0';
 }
 
 
@@ -723,7 +719,7 @@ static void debug_sync_action_string(char *result, uint size,
 
 static void debug_sync_print_actions(THD *thd)
 {
-    st_debug_sync_control *ds_control= thd->debug_sync_control;
+    st_debug_sync_control *ds_control = thd->debug_sync_control;
     uint                  idx;
     DBUG_ENTER("debug_sync_print_actions");
     DBUG_ASSERT(thd);
@@ -731,10 +727,9 @@ static void debug_sync_print_actions(THD *thd)
     if (!ds_control)
         DBUG_VOID_RETURN;
 
-    for (idx= 0; idx < ds_control->ds_active; idx++) {
-        const char *dsp_name= ds_control->ds_action[idx].sync_point.c_ptr();
+    for (idx = 0; idx < ds_control->ds_active; idx++) {
+        const char *dsp_name = ds_control->ds_action[idx].sync_point.c_ptr();
         char action_string[256];
-
         debug_sync_action_string(action_string, sizeof(action_string),
                                  ds_control->ds_action + idx);
         DBUG_PRINT("debug_sync_list", ("%s %s", dsp_name, action_string));
@@ -758,17 +753,17 @@ static void debug_sync_print_actions(THD *thd)
     @retval     > 0             length1/string1 is bigger
 */
 
-static int debug_sync_qsort_cmp(const void* arg1, const void* arg2)
+static int debug_sync_qsort_cmp(const void *arg1, const void *arg2)
 {
-    st_debug_sync_action *action1= (st_debug_sync_action*) arg1;
-    st_debug_sync_action *action2= (st_debug_sync_action*) arg2;
+    st_debug_sync_action *action1 = (st_debug_sync_action *) arg1;
+    st_debug_sync_action *action2 = (st_debug_sync_action *) arg2;
     int diff;
     DBUG_ASSERT(action1);
     DBUG_ASSERT(action2);
 
-    if (!(diff= action1->sync_point.length() - action2->sync_point.length()))
-        diff= memcmp(action1->sync_point.ptr(), action2->sync_point.ptr(),
-                     action1->sync_point.length());
+    if (!(diff = action1->sync_point.length() - action2->sync_point.length()))
+        diff = memcmp(action1->sync_point.ptr(), action2->sync_point.ptr(),
+                      action1->sync_point.length());
 
     return diff;
 }
@@ -803,24 +798,26 @@ static st_debug_sync_action *debug_sync_find(st_debug_sync_action *actionarr,
     DBUG_ASSERT(actionarr);
     DBUG_ASSERT(dsp_name);
     DBUG_ASSERT(name_len);
-
-    low= 0;
-    high= quantity;
+    low = 0;
+    high = quantity;
 
     while (low < high) {
-        mid= (low + high) / 2;
-        action= actionarr + mid;
-        if (!(diff= name_len - action->sync_point.length()) &&
-                !(diff= memcmp(dsp_name, action->sync_point.ptr(), name_len)))
+        mid = (low + high) / 2;
+        action = actionarr + mid;
+
+        if (!(diff = name_len - action->sync_point.length()) &&
+                !(diff = memcmp(dsp_name, action->sync_point.ptr(), name_len)))
             return action;
+
         if (diff > 0)
-            low= mid + 1;
+            low = mid + 1;
         else
-            high= mid - 1;
+            high = mid - 1;
     }
 
     if (low < quantity) {
-        action= actionarr + low;
+        action = actionarr + low;
+
         if ((name_len == action->sync_point.length()) &&
                 !memcmp(dsp_name, action->sync_point.ptr(), name_len))
             return action;
@@ -842,19 +839,16 @@ static st_debug_sync_action *debug_sync_find(st_debug_sync_action *actionarr,
 
 static void debug_sync_reset(THD *thd)
 {
-    st_debug_sync_control *ds_control= thd->debug_sync_control;
+    st_debug_sync_control *ds_control = thd->debug_sync_control;
     DBUG_ENTER("debug_sync_reset");
     DBUG_ASSERT(thd);
     DBUG_ASSERT(ds_control);
-
     /* Remove all actions of this thread. */
-    ds_control->ds_active= 0;
-
+    ds_control->ds_active = 0;
     /* Clear the global signal. */
     mysql_mutex_lock(&debug_sync_global.ds_mutex);
     debug_sync_global.ds_signal.length(0);
     mysql_mutex_unlock(&debug_sync_global.ds_mutex);
-
     DBUG_VOID_RETURN;
 }
 
@@ -875,13 +869,12 @@ static void debug_sync_reset(THD *thd)
 static void debug_sync_remove_action(st_debug_sync_control *ds_control,
                                      st_debug_sync_action *action)
 {
-    uint dsp_idx= action - ds_control->ds_action;
+    uint dsp_idx = action - ds_control->ds_action;
     DBUG_ENTER("debug_sync_remove_action");
     DBUG_ASSERT(ds_control);
     DBUG_ASSERT(ds_control == current_thd->debug_sync_control);
     DBUG_ASSERT(action);
     DBUG_ASSERT(dsp_idx < ds_control->ds_active);
-
     /* Decrement the number of currently active actions. */
     ds_control->ds_active--;
 
@@ -897,7 +890,6 @@ static void debug_sync_remove_action(st_debug_sync_control *ds_control,
           Its destructor would tamper with the String pointers.
         */
         uchar save_action[sizeof(st_debug_sync_action)];
-
         /*
           Copy the to-be-removed action object to temporary storage before
           the shift copies the string pointers over. Do not use assignment
@@ -907,13 +899,11 @@ static void debug_sync_remove_action(st_debug_sync_control *ds_control,
           the pointers, which are overwritten by the shift.
         */
         memmove(save_action, action, sizeof(st_debug_sync_action));
-
         /* Move actions down. */
         memmove(ds_control->ds_action + dsp_idx,
                 ds_control->ds_action + dsp_idx + 1,
                 (ds_control->ds_active - dsp_idx) *
                 sizeof(st_debug_sync_action));
-
         /*
           Copy back the saved action object to the now free array slot. This
           replaces the double references of String pointers that have been
@@ -947,7 +937,7 @@ static st_debug_sync_action *debug_sync_get_action(THD *thd,
         const char *dsp_name,
         uint name_len)
 {
-    st_debug_sync_control *ds_control= thd->debug_sync_control;
+    st_debug_sync_control *ds_control = thd->debug_sync_control;
     st_debug_sync_action  *action;
     DBUG_ENTER("debug_sync_get_action");
     DBUG_ASSERT(thd);
@@ -957,7 +947,6 @@ static st_debug_sync_action *debug_sync_get_action(THD *thd,
     DBUG_PRINT("debug_sync", ("sync_point: '%.*s'", (int) name_len, dsp_name));
     DBUG_PRINT("debug_sync", ("active: %u  allocated: %u",
                               ds_control->ds_active, ds_control->ds_allocated));
-
     /* There cannot be more active actions than allocated. */
     DBUG_ASSERT(ds_control->ds_active <= ds_control->ds_allocated);
     /* If there are active actions, the action array must be present. */
@@ -965,47 +954,53 @@ static st_debug_sync_action *debug_sync_get_action(THD *thd,
 
     /* Try to reuse existing action if there is one for this sync point. */
     if (ds_control->ds_active &&
-            (action= debug_sync_find(ds_control->ds_action, ds_control->ds_active,
-                                     dsp_name, name_len))) {
+            (action = debug_sync_find(ds_control->ds_action, ds_control->ds_active,
+                                      dsp_name, name_len))) {
         /* Reuse an already active sync point action. */
         DBUG_ASSERT((uint)(action - ds_control->ds_action) < ds_control->ds_active);
         DBUG_PRINT("debug_sync", ("reuse action idx: %ld",
                                   (long) (action - ds_control->ds_action)));
+
     } else {
         /* Create a new action. */
-        int dsp_idx= ds_control->ds_active++;
+        int dsp_idx = ds_control->ds_active++;
         set_if_bigger(ds_control->dsp_max_active, ds_control->ds_active);
+
         if (ds_control->ds_active > ds_control->ds_allocated) {
-            uint new_alloc= ds_control->ds_active + 3;
-            void *new_action= my_realloc(ds_control->ds_action,
-                                         new_alloc * sizeof(st_debug_sync_action),
-                                         MYF(MY_WME | MY_ALLOW_ZERO_PTR));
+            uint new_alloc = ds_control->ds_active + 3;
+            void *new_action = my_realloc(ds_control->ds_action,
+                                          new_alloc * sizeof(st_debug_sync_action),
+                                          MYF(MY_WME | MY_ALLOW_ZERO_PTR));
+
             if (!new_action) {
                 /* Error is reported by my_malloc(). */
                 goto err; /* purecov: tested */
             }
-            ds_control->ds_action= (st_debug_sync_action*) new_action;
-            ds_control->ds_allocated= new_alloc;
+
+            ds_control->ds_action = (st_debug_sync_action *) new_action;
+            ds_control->ds_allocated = new_alloc;
             /* Clear memory as we do not run string constructors here. */
             memset((ds_control->ds_action + dsp_idx), 0,
                    (new_alloc - dsp_idx) * sizeof(st_debug_sync_action));
         }
+
         DBUG_PRINT("debug_sync", ("added action idx: %u", dsp_idx));
-        action= ds_control->ds_action + dsp_idx;
+        action = ds_control->ds_action + dsp_idx;
+
         if (action->sync_point.copy(dsp_name, name_len, system_charset_info)) {
             /* Error is reported by my_malloc(). */
             goto err; /* purecov: tested */
         }
-        action->need_sort= TRUE;
+
+        action->need_sort = TRUE;
     }
+
     DBUG_ASSERT(action >= ds_control->ds_action);
     DBUG_ASSERT(action < ds_control->ds_action + ds_control->ds_active);
     DBUG_PRINT("debug_sync", ("action: 0x%lx  array: 0x%lx  count: %u",
                               (long) action, (long) ds_control->ds_action,
                               ds_control->ds_active));
-
     DBUG_RETURN(action);
-
     /* purecov: begin tested */
 err:
     DBUG_RETURN(NULL);
@@ -1049,23 +1044,24 @@ err:
 
 static bool debug_sync_set_action(THD *thd, st_debug_sync_action *action)
 {
-    st_debug_sync_control *ds_control= thd->debug_sync_control;
-    bool is_dsp_now= FALSE;
+    st_debug_sync_control *ds_control = thd->debug_sync_control;
+    bool is_dsp_now = FALSE;
     DBUG_ENTER("debug_sync_set_action");
     DBUG_ASSERT(thd);
     DBUG_ASSERT(action);
     DBUG_ASSERT(ds_control);
+    action->activation_count = max(action->hit_limit, action->execute);
 
-    action->activation_count= max(action->hit_limit, action->execute);
     if (!action->activation_count) {
         debug_sync_remove_action(ds_control, action);
         DBUG_PRINT("debug_sync", ("action cleared"));
+
     } else {
-        const char *dsp_name= action->sync_point.c_ptr();
+        const char *dsp_name = action->sync_point.c_ptr();
         DBUG_EXECUTE("debug_sync", {
             /* Functions as DBUG_PRINT args can change keyword and line nr. */
-            const char *sig_emit= action->signal.c_ptr();
-            const char *sig_wait= action->wait_for.c_ptr();
+            const char *sig_emit = action->signal.c_ptr();
+            const char *sig_wait = action->wait_for.c_ptr();
             DBUG_PRINT("debug_sync",
                        ("sync_point: '%s'  activation_count: %lu  hit_limit: %lu  "
                         "execute: %lu  timeout: %lu  signal: '%s'  wait_for: '%s'",
@@ -1073,22 +1069,23 @@ static bool debug_sync_set_action(THD *thd, st_debug_sync_action *action)
                         action->hit_limit, action->execute, action->timeout,
                         sig_emit, sig_wait));
         });
-
         /* Check this before sorting the array. action may move. */
-        is_dsp_now= !my_strcasecmp(system_charset_info, dsp_name, "now");
+        is_dsp_now = !my_strcasecmp(system_charset_info, dsp_name, "now");
 
         if (action->need_sort) {
-            action->need_sort= FALSE;
+            action->need_sort = FALSE;
             /* Sort actions by (name_len, name). */
             my_qsort(ds_control->ds_action, ds_control->ds_active,
                      sizeof(st_debug_sync_action), debug_sync_qsort_cmp);
         }
     }
+
     DBUG_EXECUTE("debug_sync_list", debug_sync_print_actions(thd););
 
     /* Execute the special sync point 'now' if activated above. */
     if (is_dsp_now) {
         DEBUG_SYNC(thd, "now");
+
         /*
           If HIT_LIMIT for sync point "now" was 1, the execution of the sync
           point decremented it to 0. In this case the following happened:
@@ -1170,37 +1167,35 @@ static char *debug_sync_token(char **token_p, uint *token_length_p, char *ptr)
 
     /* Skip leading space */
     while (my_isspace(system_charset_info, *ptr))
-        ptr+= my_mbcharlen(system_charset_info, (uchar) *ptr);
+        ptr += my_mbcharlen(system_charset_info, (uchar) * ptr);
 
     if (!*ptr) {
-        ptr= NULL;
+        ptr = NULL;
         goto end;
     }
 
     /* Get token start. */
-    *token_p= ptr;
+    *token_p = ptr;
 
     /* Find token end. */
     while (*ptr && !my_isspace(system_charset_info, *ptr))
-        ptr+= my_mbcharlen(system_charset_info, (uchar) *ptr);
+        ptr += my_mbcharlen(system_charset_info, (uchar) * ptr);
 
     /* Get token length. */
-    *token_length_p= ptr - *token_p;
+    *token_length_p = ptr - *token_p;
 
     /* If necessary, terminate token. */
     if (*ptr) {
         /* Get terminator character length. */
-        uint mbspacelen= my_mbcharlen(system_charset_info, (uchar) *ptr);
-
+        uint mbspacelen = my_mbcharlen(system_charset_info, (uchar) * ptr);
         /* Terminate token. */
-        *ptr= '\0';
-
+        *ptr = '\0';
         /* Skip the terminator. */
-        ptr+= mbspacelen;
+        ptr += mbspacelen;
 
         /* Skip trailing space */
         while (my_isspace(system_charset_info, *ptr))
-            ptr+= my_mbcharlen(system_charset_info, (uchar) *ptr);
+            ptr += my_mbcharlen(system_charset_info, (uchar) * ptr);
     }
 
 end:
@@ -1240,12 +1235,13 @@ static char *debug_sync_number(ulong *number_p, char *actstrptr)
     DBUG_ASSERT(actstrptr);
 
     /* Get token from string. */
-    if (!(ptr= debug_sync_token(&token, &token_length, actstrptr)))
+    if (!(ptr = debug_sync_token(&token, &token_length, actstrptr)))
         goto end;
 
-    *number_p= strtoul(token, &ept, 10);
+    *number_p = strtoul(token, &ept, 10);
+
     if (*ept)
-        ptr= NULL;
+        ptr = NULL;
 
 end:
     return ptr;
@@ -1286,11 +1282,11 @@ end:
 
 static bool debug_sync_eval_action(THD *thd, char *action_str)
 {
-    st_debug_sync_action  *action= NULL;
+    st_debug_sync_action  *action = NULL;
     const char            *errmsg;
     char                  *ptr;
     char                  *token;
-    uint                  token_length= 0;
+    uint                  token_length = 0;
     DBUG_ENTER("debug_sync_eval_action");
     DBUG_ASSERT(thd);
     DBUG_ASSERT(action_str);
@@ -1298,8 +1294,8 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     /*
       Get debug sync point name. Or a special command.
     */
-    if (!(ptr= debug_sync_token(&token, &token_length, action_str))) {
-        errmsg= "Missing synchronization point name";
+    if (!(ptr = debug_sync_token(&token, &token_length, action_str))) {
+        errmsg = "Missing synchronization point name";
         goto err;
     }
 
@@ -1308,7 +1304,8 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     */
     if (*ptr) {
         /* Get an action object to collect the requested action parameters. */
-        action= debug_sync_get_action(thd, token, token_length);
+        action = debug_sync_get_action(thd, token, token_length);
+
         if (!action) {
             /* Error message is sent. */
             DBUG_RETURN(TRUE); /* purecov: tested */
@@ -1318,7 +1315,7 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     /*
       Get kind of action to be taken at sync point.
     */
-    if (!(ptr= debug_sync_token(&token, &token_length, ptr))) {
+    if (!(ptr = debug_sync_token(&token, &token_length, ptr))) {
         /* No action present. Try special commands. Token unchanged. */
 
         /*
@@ -1331,7 +1328,7 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
         }
 
         /* Token unchanged. It still contains sync point name. */
-        errmsg= "Missing action after synchronization point name '%.*s'";
+        errmsg = "Missing action after synchronization point name '%.*s'";
         goto err;
     }
 
@@ -1347,7 +1344,7 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     if (!my_strcasecmp(system_charset_info, token, "TEST")) {
         /* It is TEST. Nothing must follow it. */
         if (*ptr) {
-            errmsg= "Nothing must follow action TEST";
+            errmsg = "Nothing must follow action TEST";
             goto err;
         }
 
@@ -1362,10 +1359,10 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
       Now check for actions that define a new action.
       Initialize action. Do not use memset(). Strings may have malloced.
     */
-    action->activation_count= 0;
-    action->hit_limit= 0;
-    action->execute= 0;
-    action->timeout= 0;
+    action->activation_count = 0;
+    action->hit_limit = 0;
+    action->execute = 0;
+    action->timeout = 0;
     action->signal.length(0);
     action->wait_for.length(0);
 
@@ -1375,7 +1372,7 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     if (!my_strcasecmp(system_charset_info, token, "CLEAR")) {
         /* It is CLEAR. Nothing must follow it. */
         if (*ptr) {
-            errmsg= "Nothing must follow action CLEAR";
+            errmsg = "Nothing must follow action CLEAR";
             goto err;
         }
 
@@ -1392,23 +1389,24 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     */
     if (!my_strcasecmp(system_charset_info, token, "SIGNAL")) {
         /* It is SIGNAL. Signal name must follow. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr))) {
-            errmsg= "Missing signal name after action SIGNAL";
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr))) {
+            errmsg = "Missing signal name after action SIGNAL";
             goto err;
         }
+
         if (action->signal.copy(token, token_length, system_charset_info)) {
             /* Error is reported by my_malloc(). */
             /* purecov: begin tested */
-            errmsg= NULL;
+            errmsg = NULL;
             goto err;
             /* purecov: end */
         }
 
         /* Set default for EXECUTE option. */
-        action->execute= 1;
+        action->execute = 1;
 
         /* Get next token. If none follows, set action. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr)))
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr)))
             goto set_action;
     }
 
@@ -1417,24 +1415,25 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     */
     if (!my_strcasecmp(system_charset_info, token, "WAIT_FOR")) {
         /* It is WAIT_FOR. Wait_for signal name must follow. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr))) {
-            errmsg= "Missing signal name after action WAIT_FOR";
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr))) {
+            errmsg = "Missing signal name after action WAIT_FOR";
             goto err;
         }
+
         if (action->wait_for.copy(token, token_length, system_charset_info)) {
             /* Error is reported by my_malloc(). */
             /* purecov: begin tested */
-            errmsg= NULL;
+            errmsg = NULL;
             goto err;
             /* purecov: end */
         }
 
         /* Set default for EXECUTE and TIMEOUT options. */
-        action->execute= 1;
-        action->timeout= opt_debug_sync_timeout;
+        action->execute = 1;
+        action->timeout = opt_debug_sync_timeout;
 
         /* Get next token. If none follows, set action. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr)))
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr)))
             goto set_action;
 
         /*
@@ -1442,13 +1441,13 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
         */
         if (!my_strcasecmp(system_charset_info, token, "TIMEOUT")) {
             /* It is TIMEOUT. Number must follow. */
-            if (!(ptr= debug_sync_number(&action->timeout, ptr))) {
-                errmsg= "Missing valid number after TIMEOUT";
+            if (!(ptr = debug_sync_number(&action->timeout, ptr))) {
+                errmsg = "Missing valid number after TIMEOUT";
                 goto err;
             }
 
             /* Get next token. If none follows, set action. */
-            if (!(ptr= debug_sync_token(&token, &token_length, ptr)))
+            if (!(ptr = debug_sync_token(&token, &token_length, ptr)))
                 goto set_action;
         }
     }
@@ -1462,18 +1461,18 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
           In this case action->execute has been preset to 1.
         */
         if (!action->execute) {
-            errmsg= "Missing action before EXECUTE";
+            errmsg = "Missing action before EXECUTE";
             goto err;
         }
 
         /* Number must follow. */
-        if (!(ptr= debug_sync_number(&action->execute, ptr))) {
-            errmsg= "Missing valid number after EXECUTE";
+        if (!(ptr = debug_sync_number(&action->execute, ptr))) {
+            errmsg = "Missing valid number after EXECUTE";
             goto err;
         }
 
         /* Get next token. If none follows, set action. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr)))
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr)))
             goto set_action;
     }
 
@@ -1482,19 +1481,19 @@ static bool debug_sync_eval_action(THD *thd, char *action_str)
     */
     if (!my_strcasecmp(system_charset_info, token, "HIT_LIMIT")) {
         /* Number must follow. */
-        if (!(ptr= debug_sync_number(&action->hit_limit, ptr))) {
-            errmsg= "Missing valid number after HIT_LIMIT";
+        if (!(ptr = debug_sync_number(&action->hit_limit, ptr))) {
+            errmsg = "Missing valid number after HIT_LIMIT";
             goto err;
         }
 
         /* Get next token. If none follows, set action. */
-        if (!(ptr= debug_sync_token(&token, &token_length, ptr)))
+        if (!(ptr = debug_sync_token(&token, &token_length, ptr)))
             goto set_action;
     }
 
-    errmsg= "Illegal or out of order stuff: '%.*s'";
-
+    errmsg = "Illegal or out of order stuff: '%.*s'";
 err:
+
     if (errmsg) {
         /*
           NOTE: errmsg must either have %.*s or none % at all.
@@ -1504,13 +1503,13 @@ err:
         set_if_smaller(token_length, 64); /* Limit error message length. */
         my_printf_error(ER_PARSE_ERROR, errmsg, MYF(0), token_length, token);
     }
+
     if (action)
         debug_sync_remove_action(thd->debug_sync_control, action);
-    DBUG_RETURN(TRUE);
 
+    DBUG_RETURN(TRUE);
 set_action:
     DBUG_RETURN(debug_sync_set_action(thd, action));
-
 end:
     DBUG_RETURN(FALSE);
 }
@@ -1539,7 +1538,6 @@ bool debug_sync_update(THD *thd, char *val_str)
 {
     DBUG_ENTER("debug_sync_update");
     DBUG_PRINT("debug_sync", ("set action: '%s'", val_str));
-
     /*
       debug_sync_eval_action() places '\0' in the string, which itself
       must be '\0' terminated.
@@ -1572,33 +1570,35 @@ uchar *debug_sync_value_ptr(THD *thd)
     DBUG_ENTER("debug_sync_value_ptr");
 
     if (opt_debug_sync_timeout) {
-        static char on[]= "ON - current signal: '";
-
+        static char on[] = "ON - current signal: '";
         // Ensure exclusive access to debug_sync_global.ds_signal
         mysql_mutex_lock(&debug_sync_global.ds_mutex);
-
-        size_t lgt= (sizeof(on) /* includes '\0' */ +
-                     debug_sync_global.ds_signal.length() + 1 /* for '\'' */);
+        size_t lgt = (sizeof(on) /* includes '\0' */ +
+                      debug_sync_global.ds_signal.length() + 1 /* for '\'' */);
         char *vend;
         char *vptr;
 
-        if ((value= (char*) alloc_root(thd->mem_root, lgt))) {
-            vend= value + lgt - 1; /* reserve space for '\0'. */
-            vptr= debug_sync_bmove_len(value, vend, STRING_WITH_LEN(on));
-            vptr= debug_sync_bmove_len(vptr, vend, debug_sync_global.ds_signal.ptr(),
-                                       debug_sync_global.ds_signal.length());
+        if ((value = (char *) alloc_root(thd->mem_root, lgt))) {
+            vend = value + lgt - 1; /* reserve space for '\0'. */
+            vptr = debug_sync_bmove_len(value, vend, STRING_WITH_LEN(on));
+            vptr = debug_sync_bmove_len(vptr, vend, debug_sync_global.ds_signal.ptr(),
+                                        debug_sync_global.ds_signal.length());
+
             if (vptr < vend)
-                *(vptr++)= '\'';
-            *vptr= '\0'; /* We have one byte reserved for the worst case. */
+                *(vptr++) = '\'';
+
+            *vptr = '\0'; /* We have one byte reserved for the worst case. */
         }
+
         mysql_mutex_unlock(&debug_sync_global.ds_mutex);
+
     } else {
         /* purecov: begin tested */
-        value= const_cast<char*>("OFF");
+        value = const_cast<char *>("OFF");
         /* purecov: end */
     }
 
-    DBUG_RETURN((uchar*) value);
+    DBUG_RETURN((uchar *) value);
 }
 
 
@@ -1615,9 +1615,9 @@ uchar *debug_sync_value_ptr(THD *thd)
 static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
 {
 #ifndef DBUG_OFF
-    const char *dsp_name= action->sync_point.c_ptr();
-    const char *sig_emit= action->signal.c_ptr();
-    const char *sig_wait= action->wait_for.c_ptr();
+    const char *dsp_name = action->sync_point.c_ptr();
+    const char *sig_emit = action->signal.c_ptr();
+    const char *sig_wait = action->wait_for.c_ptr();
 #endif
     DBUG_ENTER("debug_sync_execute");
     DBUG_ASSERT(thd);
@@ -1627,13 +1627,11 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
                 "execute: %lu  timeout: %lu  signal: '%s'  wait_for: '%s'",
                 dsp_name, action->activation_count, action->hit_limit,
                 action->execute, action->timeout, sig_emit, sig_wait));
-
     DBUG_ASSERT(action->activation_count);
     action->activation_count--;
 
     if (action->execute) {
         const char *UNINIT_VAR(old_proc_info);
-
         action->execute--;
 
         /*
@@ -1642,10 +1640,10 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
           if they awake before we enter_cond() below.
         */
         if (action->wait_for.length()) {
-            st_debug_sync_control *ds_control= thd->debug_sync_control;
-            strxnmov(ds_control->ds_proc_info, sizeof(ds_control->ds_proc_info)-1,
+            st_debug_sync_control *ds_control = thd->debug_sync_control;
+            strxnmov(ds_control->ds_proc_info, sizeof(ds_control->ds_proc_info) - 1,
                      "debug sync point: ", action->sync_point.c_ptr(), NullS);
-            old_proc_info= thd->proc_info;
+            old_proc_info = thd->proc_info;
             thd_proc_info(thd, ds_control->ds_proc_info);
         }
 
@@ -1666,6 +1664,7 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
                 */
                 debug_sync_emergency_disable(); /* purecov: tested */
             }
+
             /* Wake threads waiting in a sync point. */
             mysql_cond_broadcast(&debug_sync_global.ds_cond);
             DBUG_PRINT("debug_sync_exec", ("signal '%s'  at: '%s'",
@@ -1674,8 +1673,8 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
 
         if (action->wait_for.length()) {
             mysql_mutex_t *old_mutex;
-            mysql_cond_t  *old_cond= 0;
-            int             error= 0;
+            mysql_cond_t  *old_cond = 0;
+            int             error = 0;
             struct timespec abstime;
 
             /*
@@ -1688,17 +1687,18 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
               variable has been set to NULL.
             */
             if (thd->mysys_var) {
-                old_mutex= thd->mysys_var->current_mutex;
-                old_cond= thd->mysys_var->current_cond;
-                thd->mysys_var->current_mutex= &debug_sync_global.ds_mutex;
-                thd->mysys_var->current_cond= &debug_sync_global.ds_cond;
+                old_mutex = thd->mysys_var->current_mutex;
+                old_cond = thd->mysys_var->current_cond;
+                thd->mysys_var->current_mutex = &debug_sync_global.ds_mutex;
+                thd->mysys_var->current_cond = &debug_sync_global.ds_cond;
+
             } else
-                old_mutex= NULL;
+                old_mutex = NULL;
 
             set_timespec(abstime, action->timeout);
             DBUG_EXECUTE("debug_sync_exec", {
                 /* Functions as DBUG_PRINT args can change keyword and line nr. */
-                const char *sig_glob= debug_sync_global.ds_signal.c_ptr();
+                const char *sig_glob = debug_sync_global.ds_signal.c_ptr();
                 DBUG_PRINT("debug_sync_exec",
                            ("wait for '%s'  at: '%s'  curr: '%s'",
                             sig_wait, dsp_name, sig_glob));
@@ -1712,29 +1712,33 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
             */
             while (stringcmp(&debug_sync_global.ds_signal, &action->wait_for) &&
                     !thd->killed && opt_debug_sync_timeout) {
-                error= mysql_cond_timedwait(&debug_sync_global.ds_cond,
-                                            &debug_sync_global.ds_mutex,
-                                            &abstime);
+                error = mysql_cond_timedwait(&debug_sync_global.ds_cond,
+                                             &debug_sync_global.ds_mutex,
+                                             &abstime);
                 DBUG_EXECUTE("debug_sync", {
                     /* Functions as DBUG_PRINT args can change keyword and line nr. */
-                    const char *sig_glob= debug_sync_global.ds_signal.c_ptr();
+                    const char *sig_glob = debug_sync_global.ds_signal.c_ptr();
                     DBUG_PRINT("debug_sync",
                                ("awoke from %s  global: %s  error: %d",
                                 sig_wait, sig_glob, error));
                 });
+
                 if (error == ETIMEDOUT || error == ETIME) {
                     // We should not make the statement fail, even if in strict mode.
-                    const bool save_abort_on_warning= thd->abort_on_warning;
-                    thd->abort_on_warning= false;
+                    const bool save_abort_on_warning = thd->abort_on_warning;
+                    thd->abort_on_warning = false;
                     push_warning(thd, Sql_condition::WARN_LEVEL_WARN,
                                  ER_DEBUG_SYNC_TIMEOUT, ER(ER_DEBUG_SYNC_TIMEOUT));
-                    thd->abort_on_warning= save_abort_on_warning;
+                    thd->abort_on_warning = save_abort_on_warning;
                     DBUG_EXECUTE_IF("debug_sync_abort_on_timeout", DBUG_ABORT(););
                     break;
                 }
-                error= 0;
+
+                error = 0;
             }
+
             DBUG_EXECUTE("debug_sync_exec",
+
                          if (thd->killed)
                          DBUG_PRINT("debug_sync_exec",
                                     ("killed %d from '%s'  at: '%s'",
@@ -1753,27 +1757,30 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
               is locked. (See comment in THD::exit_cond().)
             */
             mysql_mutex_unlock(&debug_sync_global.ds_mutex);
+
             if (old_mutex) {
                 mysql_mutex_lock(&thd->mysys_var->mutex);
-                thd->mysys_var->current_mutex= old_mutex;
-                thd->mysys_var->current_cond= old_cond;
+                thd->mysys_var->current_mutex = old_mutex;
+                thd->mysys_var->current_cond = old_cond;
                 thd_proc_info(thd, old_proc_info);
                 mysql_mutex_unlock(&thd->mysys_var->mutex);
+
             } else
                 thd_proc_info(thd, old_proc_info);
+
         } else {
             /* In case we don't wait, we just release the mutex. */
             mysql_mutex_unlock(&debug_sync_global.ds_mutex);
         } /* end if (action->wait_for.length()) */
-
     } /* end if (action->execute) */
 
     /* hit_limit is zero for infinite. Don't decrement unconditionally. */
     if (action->hit_limit) {
         if (!--action->hit_limit) {
-            thd->killed= THD::KILL_QUERY;
+            thd->killed = THD::KILL_QUERY;
             my_error(ER_DEBUG_SYNC_HIT_LIMIT, MYF(0));
         }
+
         DBUG_PRINT("debug_sync_exec", ("hit_limit: %lu  at: '%s'",
                                        action->hit_limit, dsp_name));
     }
@@ -1792,11 +1799,10 @@ static void debug_sync_execute(THD *thd, st_debug_sync_action *action)
 
 void debug_sync(THD *thd, const char *sync_point_name, size_t name_len)
 {
-    if(!thd) {
+    if(!thd)
         return;
-    }
 
-    st_debug_sync_control *ds_control= thd->debug_sync_control;
+    st_debug_sync_control *ds_control = thd->debug_sync_control;
     st_debug_sync_action  *action;
     DBUG_ENTER("debug_sync");
     DBUG_ASSERT(thd);
@@ -1804,17 +1810,15 @@ void debug_sync(THD *thd, const char *sync_point_name, size_t name_len)
     DBUG_ASSERT(name_len);
     DBUG_ASSERT(ds_control);
     DBUG_PRINT("debug_sync_point", ("hit: '%s'", sync_point_name));
-
     /* Statistics. */
     ds_control->dsp_hits++;
 
     if (ds_control->ds_active &&
-            (action= debug_sync_find(ds_control->ds_action, ds_control->ds_active,
-                                     sync_point_name, name_len)) &&
+            (action = debug_sync_find(ds_control->ds_action, ds_control->ds_active,
+                                      sync_point_name, name_len)) &&
             action->activation_count) {
         /* Sync point is active (action exists). */
         debug_sync_execute(thd, action);
-
         /* Statistics. */
         ds_control->dsp_executed++;
 
@@ -1857,9 +1861,8 @@ bool debug_sync_set_action(THD *thd, const char *action_str, size_t len)
     DBUG_ENTER("debug_sync_set_action");
     DBUG_ASSERT(thd);
     DBUG_ASSERT(action_str);
-
-    value= strmake_root(thd->mem_root, action_str, len);
-    rc= debug_sync_eval_action(thd, value);
+    value = strmake_root(thd->mem_root, action_str, len);
+    rc = debug_sync_eval_action(thd, value);
     DBUG_RETURN(rc);
 }
 

@@ -24,7 +24,7 @@ struct TABLE;
 typedef struct st_bitmap MY_BITMAP;
 
 #if !defined(MYSQL_CLIENT)
-size_t pack_row(TABLE* table, MY_BITMAP const* cols,
+size_t pack_row(TABLE *table, MY_BITMAP const *cols,
                 uchar *row_data, const uchar *data);
 #endif
 

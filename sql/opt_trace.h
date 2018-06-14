@@ -472,6 +472,7 @@ protected:
             // Tracing enabled: must fully initialize the structure.
             do_construct(ctx_arg, requires_key_arg, key, feature);
         }
+
         /*
           Otherwise, just leave "started" to false, it marks that the structure is
           dummy.
@@ -479,7 +480,8 @@ protected:
     }
     ~Opt_trace_struct()
     {
-        if (unlikely(started)) do_destruct();
+        if (unlikely(started))
+            do_destruct();
     }
 
 public:
@@ -491,7 +493,8 @@ public:
     */
     void end()
     {
-        if (unlikely(started)) do_destruct();
+        if (unlikely(started))
+            do_destruct();
     }
 
     /**
@@ -526,10 +529,11 @@ public:
        add(const char *key,   double value) instead of
        add(const char *value, size_t val_length).
     */
-    Opt_trace_struct& add_alnum(const char *key, const char *value)
+    Opt_trace_struct &add_alnum(const char *key, const char *value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value, strlen(value), false);
     }
 
@@ -539,10 +543,11 @@ public:
        @param  value  value
        @returns a reference to the structure
     */
-    Opt_trace_struct& add_alnum(const char *value)
+    Opt_trace_struct &add_alnum(const char *value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value, strlen(value), false);
     }
 
@@ -553,35 +558,39 @@ public:
        @param  value       value
        @param  val_length  length of string 'value'
     */
-    Opt_trace_struct& add_utf8(const char *key,
+    Opt_trace_struct &add_utf8(const char *key,
                                const char *value, size_t val_length)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value, val_length, true);
     }
 
     /// Variant of add_utf8() for adding to an array (no key)
-    Opt_trace_struct& add_utf8(const char *value, size_t val_length)
+    Opt_trace_struct &add_utf8(const char *value, size_t val_length)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value, val_length, true);
     }
 
     /// Variant of add_utf8() where 'value' is 0-terminated
-    Opt_trace_struct& add_utf8(const char *key, const char *value)
+    Opt_trace_struct &add_utf8(const char *key, const char *value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value, strlen(value), true);
     }
 
     /// Variant of add_utf8() where 'value' is 0-terminated
-    Opt_trace_struct& add_utf8(const char *value)
+    Opt_trace_struct &add_utf8(const char *value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value, strlen(value), true);
     }
 
@@ -594,138 +603,158 @@ public:
        @param  item   the Item
        @return a reference to the structure
     */
-    Opt_trace_struct& add(const char *key, Item *item)
+    Opt_trace_struct &add(const char *key, Item *item)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, item);
     }
-    Opt_trace_struct& add(Item *item)
+    Opt_trace_struct &add(Item *item)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, item);
     }
 public:
-    Opt_trace_struct& add(const char *key, bool value)
+    Opt_trace_struct &add(const char *key, bool value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value);
     }
-    Opt_trace_struct& add(bool value)
+    Opt_trace_struct &add(bool value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value);
     }
-    Opt_trace_struct& add(const char *key, int value)
+    Opt_trace_struct &add(const char *key, int value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, static_cast<longlong>(value));
     }
-    Opt_trace_struct& add(int value)
+    Opt_trace_struct &add(int value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, static_cast<longlong>(value));
     }
-    Opt_trace_struct& add(const char *key, uint value)
+    Opt_trace_struct &add(const char *key, uint value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, static_cast<ulonglong>(value));
     }
-    Opt_trace_struct& add(uint value)
+    Opt_trace_struct &add(uint value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, static_cast<ulonglong>(value));
     }
-    Opt_trace_struct& add(const char *key, ulong value)
+    Opt_trace_struct &add(const char *key, ulong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, static_cast<ulonglong>(value));
     }
-    Opt_trace_struct& add(ulong value)
+    Opt_trace_struct &add(ulong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, static_cast<ulonglong>(value));
     }
-    Opt_trace_struct& add(const char *key, longlong value)
+    Opt_trace_struct &add(const char *key, longlong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value);
     }
-    Opt_trace_struct& add(longlong value)
+    Opt_trace_struct &add(longlong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value);
     }
-    Opt_trace_struct& add(const char *key, ulonglong value)
+    Opt_trace_struct &add(const char *key, ulonglong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value);
     }
-    Opt_trace_struct& add(ulonglong value)
+    Opt_trace_struct &add(ulonglong value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value);
     }
-    Opt_trace_struct& add(const char *key, double value)
+    Opt_trace_struct &add(const char *key, double value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(key, value);
     }
-    Opt_trace_struct& add(double value)
+    Opt_trace_struct &add(double value)
     {
         if (likely(!started))
             return *this;
+
         return do_add(NULL, value);
     }
     /// Adds a 64-bit integer to trace, in hexadecimal format
-    Opt_trace_struct& add_hex(const char *key, uint64 value)
+    Opt_trace_struct &add_hex(const char *key, uint64 value)
     {
         if (likely(!started))
             return *this;
+
         return do_add_hex(key, value);
     }
-    Opt_trace_struct& add_hex(uint64 value)
+    Opt_trace_struct &add_hex(uint64 value)
     {
         if (likely(!started))
             return *this;
+
         return do_add_hex(NULL, value);
     }
     /// Adds a JSON null object (==Python's "None")
-    Opt_trace_struct& add_null(const char *key)
+    Opt_trace_struct &add_null(const char *key)
     {
         if (likely(!started))
             return *this;
+
         return do_add_null(key);
     }
     /**
        Helper to put the database/table name in an object.
        @param  tab  TABLE* pointer
     */
-    Opt_trace_struct& add_utf8_table(const TABLE *tab)
+    Opt_trace_struct &add_utf8_table(const TABLE *tab)
     {
         if (likely(!started))
             return *this;
+
         return do_add_utf8_table(tab);
     }
     /**
        Helper to put the number of select_lex in an object.
        @param  select_number  number of select_lex
     */
-    Opt_trace_struct& add_select_number(uint select_number)
+    Opt_trace_struct &add_select_number(uint select_number)
     {
         return unlikely(select_number >= INT_MAX) ?
                // Clearer than any huge number.
@@ -742,8 +771,8 @@ public:
     */
     bool set_not_empty()
     {
-        const bool old_empty= empty;
-        empty= false;
+        const bool old_empty = empty;
+        empty = false;
         return old_empty;
     }
     /**
@@ -783,8 +812,8 @@ public:
 
 private:
     /// Not implemented, use add_alnum() instead.
-    Opt_trace_struct& add(const char *key, const char* value);
-    Opt_trace_struct& add(const char *key);
+    Opt_trace_struct &add(const char *key, const char *value);
+    Opt_trace_struct &add(const char *key);
 
     /// Full initialization. @sa Opt_trace_struct::Opt_trace_struct
     void do_construct(Opt_trace_context *ctx,
@@ -798,19 +827,19 @@ private:
        @details If 'escape' is false, 'value' should be ASCII. Otherwise, should
        be UTF8.
     */
-    Opt_trace_struct& do_add(const char *key, const char *value,
+    Opt_trace_struct &do_add(const char *key, const char *value,
                              size_t val_length, bool escape);
-    Opt_trace_struct& do_add(const char *key, Item *item);
-    Opt_trace_struct& do_add(const char *key, bool value);
-    Opt_trace_struct& do_add(const char *key, longlong value);
-    Opt_trace_struct& do_add(const char *key, ulonglong value);
-    Opt_trace_struct& do_add(const char *key, double value);
-    Opt_trace_struct& do_add_hex(const char *key, uint64 value);
-    Opt_trace_struct& do_add_null(const char *key);
-    Opt_trace_struct& do_add_utf8_table(const TABLE *tab);
+    Opt_trace_struct &do_add(const char *key, Item *item);
+    Opt_trace_struct &do_add(const char *key, bool value);
+    Opt_trace_struct &do_add(const char *key, longlong value);
+    Opt_trace_struct &do_add(const char *key, ulonglong value);
+    Opt_trace_struct &do_add(const char *key, double value);
+    Opt_trace_struct &do_add_hex(const char *key, uint64 value);
+    Opt_trace_struct &do_add_null(const char *key);
+    Opt_trace_struct &do_add_utf8_table(const TABLE *tab);
 
-    Opt_trace_struct(const Opt_trace_struct&);            ///< not defined
-    Opt_trace_struct& operator=(const Opt_trace_struct&); ///< not defined
+    Opt_trace_struct(const Opt_trace_struct &);           ///< not defined
+    Opt_trace_struct &operator=(const Opt_trace_struct &); ///< not defined
 
     bool started; ///< Whether the structure does tracing or is dummy
 
@@ -865,7 +894,7 @@ public:
        @param  feature  optimizer feature to which this structure belongs
     */
     Opt_trace_object(Opt_trace_context *ctx, const char *key,
-                     Opt_trace_context::feature_value feature=
+                     Opt_trace_context::feature_value feature =
                          Opt_trace_context::MISC)
         : Opt_trace_struct(ctx, true, key, feature)
     {}
@@ -876,7 +905,7 @@ public:
        @param  feature  optimizer feature to which this structure belongs
     */
     Opt_trace_object(Opt_trace_context *ctx,
-                     Opt_trace_context::feature_value feature=
+                     Opt_trace_context::feature_value feature =
                          Opt_trace_context::MISC)
         : Opt_trace_struct(ctx, true, NULL, feature)
     {}
@@ -899,7 +928,7 @@ public:
        @param  feature  optimizer feature to which this structure belongs
     */
     Opt_trace_array(Opt_trace_context *ctx, const char *key,
-                    Opt_trace_context::feature_value feature=
+                    Opt_trace_context::feature_value feature =
                         Opt_trace_context::MISC)
         : Opt_trace_struct(ctx, false, key, feature)
     {}
@@ -910,7 +939,7 @@ public:
        @param  feature  optimizer feature to which this structure belongs
     */
     Opt_trace_array(Opt_trace_context *ctx,
-                    Opt_trace_context::feature_value feature=
+                    Opt_trace_context::feature_value feature =
                         Opt_trace_context::MISC)
         : Opt_trace_struct(ctx, false, NULL, feature)
     {}
@@ -961,10 +990,11 @@ public:
     Opt_trace_disable_I_S(Opt_trace_context *ctx_arg, bool disable_arg)
     {
         if (disable_arg) {
-            ctx= ctx_arg;
+            ctx = ctx_arg;
             ctx->disable_I_S_for_this_and_children();
+
         } else
-            ctx= NULL;
+            ctx = NULL;
     }
 
     /// Destructor. Restores trace's "enabled" property to its previous value.
@@ -977,8 +1007,8 @@ public:
 private:
     /** Context. Non-NULL if and only if this instance really does disabling */
     Opt_trace_context *ctx;
-    Opt_trace_disable_I_S(const Opt_trace_disable_I_S&); // not defined
-    Opt_trace_disable_I_S& operator=(const Opt_trace_disable_I_S&);//not defined
+    Opt_trace_disable_I_S(const Opt_trace_disable_I_S &); // not defined
+    Opt_trace_disable_I_S &operator=(const Opt_trace_disable_I_S &); //not defined
 };
 
 
@@ -1022,7 +1052,7 @@ public:
                     const CHARSET_INFO *query_charset);
     ~Opt_trace_start();
 private:
-    Opt_trace_context * const ctx;
+    Opt_trace_context *const ctx;
     bool error; ///< whether trace start() had an error
 };
 
@@ -1131,67 +1161,67 @@ class Opt_trace_object
 {
 public:
     Opt_trace_object(Opt_trace_context *ctx, const char *key,
-                     Opt_trace_context::feature_value feature=
+                     Opt_trace_context::feature_value feature =
                          Opt_trace_context::MISC)
     {}
     Opt_trace_object(Opt_trace_context *ctx,
-                     Opt_trace_context::feature_value feature=
+                     Opt_trace_context::feature_value feature =
                          Opt_trace_context::MISC)
     {}
-    Opt_trace_object& add_alnum(const char *key, const char *value)
+    Opt_trace_object &add_alnum(const char *key, const char *value)
     {
         return *this;
     }
-    Opt_trace_object& add_utf8(const char *key,
+    Opt_trace_object &add_utf8(const char *key,
                                const char *value, size_t val_length)
     {
         return *this;
     }
-    Opt_trace_object& add_utf8(const char *key, const char *value)
+    Opt_trace_object &add_utf8(const char *key, const char *value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, Item *item)
+    Opt_trace_object &add(const char *key, Item *item)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, bool value)
+    Opt_trace_object &add(const char *key, bool value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, int value)
+    Opt_trace_object &add(const char *key, int value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, uint value)
+    Opt_trace_object &add(const char *key, uint value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, ulong value)
+    Opt_trace_object &add(const char *key, ulong value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, longlong value)
+    Opt_trace_object &add(const char *key, longlong value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, ulonglong value)
+    Opt_trace_object &add(const char *key, ulonglong value)
     {
         return *this;
     }
-    Opt_trace_object& add(const char *key, double value)
+    Opt_trace_object &add(const char *key, double value)
     {
         return *this;
     }
-    Opt_trace_object& add_hex(const char *key, uint64 value)
+    Opt_trace_object &add_hex(const char *key, uint64 value)
     {
         return *this;
     }
-    Opt_trace_object& add_utf8_table(const TABLE *tab)
+    Opt_trace_object &add_utf8_table(const TABLE *tab)
     {
         return *this;
     }
-    Opt_trace_object& add_select_number(uint select_number)
+    Opt_trace_object &add_select_number(uint select_number)
     {
         return *this;
     }
@@ -1203,62 +1233,62 @@ class Opt_trace_array
 {
 public:
     Opt_trace_array(Opt_trace_context *ctx, const char *key,
-                    Opt_trace_context::feature_value feature=
+                    Opt_trace_context::feature_value feature =
                         Opt_trace_context::MISC)
     {}
     Opt_trace_array(Opt_trace_context *ctx,
-                    Opt_trace_context::feature_value feature=
+                    Opt_trace_context::feature_value feature =
                         Opt_trace_context::MISC)
     {}
-    Opt_trace_array& add_alnum(const char *value)
+    Opt_trace_array &add_alnum(const char *value)
     {
         return *this;
     }
-    Opt_trace_array& add_utf8(const char *value, size_t val_length)
+    Opt_trace_array &add_utf8(const char *value, size_t val_length)
     {
         return *this;
     }
-    Opt_trace_array& add_utf8(const char *value)
+    Opt_trace_array &add_utf8(const char *value)
     {
         return *this;
     }
-    Opt_trace_array& add(Item *item)
+    Opt_trace_array &add(Item *item)
     {
         return *this;
     }
-    Opt_trace_array& add(bool value)
+    Opt_trace_array &add(bool value)
     {
         return *this;
     }
-    Opt_trace_array& add(int value)
+    Opt_trace_array &add(int value)
     {
         return *this;
     }
-    Opt_trace_array& add(uint value)
+    Opt_trace_array &add(uint value)
     {
         return *this;
     }
-    Opt_trace_array& add(longlong value)
+    Opt_trace_array &add(longlong value)
     {
         return *this;
     }
-    Opt_trace_array& add(ulonglong value)
+    Opt_trace_array &add(ulonglong value)
     {
         return *this;
     }
-    Opt_trace_array& add(double value)
+    Opt_trace_array &add(double value)
     {
         return *this;
     }
-    Opt_trace_array& add_hex(uint64 value)
+    Opt_trace_array &add_hex(uint64 value)
     {
         return *this;
     }
-    Opt_trace_array& add_utf8_table(TABLE *tab)
+    Opt_trace_array &add_utf8_table(TABLE *tab)
     {
         return *this;
     }
-    Opt_trace_array& add_select_number(uint select_number)
+    Opt_trace_array &add_select_number(uint select_number)
     {
         return *this;
     }
@@ -1284,9 +1314,9 @@ public:
 };
 
 #define opt_trace_print_expanded_query(thd, select_lex, trace_object) \
-  do {} while (0)
+    do {} while (0)
 #define opt_trace_disable_if_no_view_access(thd, view, underlying_tables) \
-  do {} while (0)
+    do {} while (0)
 #define opt_trace_disable_if_no_stored_proc_func_access(thd, sp) do{} while(0)
 #define opt_trace_disable_if_no_security_context_access(thd) do {} while (0)
 
@@ -1312,10 +1342,10 @@ public:
 */
 #define OPT_TRACE_TRANSFORM(trace,object_level0,object_level1,          \
                             select_number,from,to)                      \
-  Opt_trace_object object_level0(trace);                                \
-  Opt_trace_object object_level1(trace, "transformation");              \
-  object_level1.add_select_number(select_number);                       \
-  object_level1.add_alnum("from", from).add_alnum("to", to);
+Opt_trace_object object_level0(trace);                                \
+Opt_trace_object object_level1(trace, "transformation");              \
+object_level1.add_select_number(select_number);                       \
+object_level1.add_alnum("from", from).add_alnum("to", to);
 
 /*
   A debug binary without optimizer trace compiled in, will miss some

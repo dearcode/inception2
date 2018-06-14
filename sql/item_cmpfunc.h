@@ -23,7 +23,7 @@
 #include "item_func.h"             /* Item_int_func, Item_bool_func */
 #include "my_regex.h"
 
-extern Item_result item_cmp_type(Item_result a,Item_result b);
+extern Item_result item_cmp_type(Item_result a, Item_result b);
 class Item_bool_func2;
 class Arg_comparator;
 
@@ -33,7 +33,7 @@ typedef int (*Item_field_cmpfunc)(Item_field *f1, Item_field *f2, void *arg);
 
 class Arg_comparator: public Sql_alloc
 {
-    Item **a, **b;
+    Item **a, * *b;
     arg_cmp_func func;
     Item_result_field *owner;
     Arg_comparator *comparators;   // used only for compare_row()
@@ -76,7 +76,7 @@ public:
     inline int set_cmp_func(Item_result_field *owner_arg,
                             Item **a1, Item **a2, bool set_null_arg)
     {
-        set_null= set_null_arg;
+        set_null = set_null_arg;
         return set_cmp_func(owner_arg, a1, a2,
                             item_cmp_type((*a1)->result_type(),
                                           (*a2)->result_type()));
@@ -110,19 +110,19 @@ public:
 
     static bool can_compare_as_dates(Item *a, Item *b, ulonglong *const_val_arg);
 
-    Item** cache_converted_constant(THD *thd, Item **value, Item **cache,
+    Item **cache_converted_constant(THD *thd, Item **value, Item **cache,
                                     Item_result type);
     void set_datetime_cmp_func(Item_result_field *owner_arg, Item **a1, Item **b1);
     static arg_cmp_func comparator_matrix [5][2];
     inline bool is_owner_equal_func()
     {
         return (owner->type() == Item::FUNC_ITEM &&
-                ((Item_func*)owner)->functype() == Item_func::EQUAL_FUNC);
+                ((Item_func *)owner)->functype() == Item_func::EQUAL_FUNC);
     }
     void cleanup()
     {
         delete [] comparators;
-        comparators= 0;
+        comparators = 0;
     }
     /*
       Set correct cmp_context if items would be compared as INTs.
@@ -130,21 +130,23 @@ public:
     inline void set_cmp_context_for_datetime()
     {
         DBUG_ASSERT(func == &Arg_comparator::compare_datetime);
+
         if ((*a)->is_temporal())
-            (*a)->cmp_context= INT_RESULT;
+            (*a)->cmp_context = INT_RESULT;
+
         if ((*b)->is_temporal())
-            (*b)->cmp_context= INT_RESULT;
+            (*b)->cmp_context = INT_RESULT;
     }
     friend class Item_func;
 };
 
-class Item_bool_func :public Item_int_func
+class Item_bool_func : public Item_int_func
 {
 public:
     Item_bool_func() : Item_int_func(), m_created_by_in2exists(false) {}
     Item_bool_func(Item *a) : Item_int_func(a),
         m_created_by_in2exists(false)  {}
-    Item_bool_func(Item *a,Item *b) : Item_int_func(a,b),
+    Item_bool_func(Item *a, Item *b) : Item_int_func(a, b),
         m_created_by_in2exists(false)  {}
     Item_bool_func(THD *thd, Item_bool_func *item) : Item_int_func(thd, item),
         m_created_by_in2exists(item->m_created_by_in2exists) {}
@@ -154,8 +156,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        decimals=0;
-        max_length=1;
+        decimals = 0;
+        max_length = 1;
     }
     uint decimal_precision() const
     {
@@ -167,7 +169,7 @@ public:
     }
     void set_created_by_in2exists()
     {
-        m_created_by_in2exists= true;
+        m_created_by_in2exists = true;
     }
 private:
     /**
@@ -220,7 +222,7 @@ class Item_func_istrue : public Item_func_truth
 public:
     Item_func_istrue(Item *a) : Item_func_truth(a, true, true) {}
     ~Item_func_istrue() {}
-    virtual const char* func_name() const
+    virtual const char *func_name() const
     {
         return "istrue";
     }
@@ -236,7 +238,7 @@ class Item_func_isnottrue : public Item_func_truth
 public:
     Item_func_isnottrue(Item *a) : Item_func_truth(a, true, false) {}
     ~Item_func_isnottrue() {}
-    virtual const char* func_name() const
+    virtual const char *func_name() const
     {
         return "isnottrue";
     }
@@ -252,7 +254,7 @@ class Item_func_isfalse : public Item_func_truth
 public:
     Item_func_isfalse(Item *a) : Item_func_truth(a, false, true) {}
     ~Item_func_isfalse() {}
-    virtual const char* func_name() const
+    virtual const char *func_name() const
     {
         return "isfalse";
     }
@@ -268,7 +270,7 @@ class Item_func_isnotfalse : public Item_func_truth
 public:
     Item_func_isnotfalse(Item *a) : Item_func_truth(a, false, false) {}
     ~Item_func_isnotfalse() {}
-    virtual const char* func_name() const
+    virtual const char *func_name() const
     {
         return "isnotfalse";
     }
@@ -316,7 +318,7 @@ public:
         Item_bool_func(a, reinterpret_cast<Item *>(b)), cache(0),
         save_cache(0), result_for_null_param(UNKNOWN)
     {
-        with_subselect= TRUE;
+        with_subselect = TRUE;
     }
     bool fix_fields(THD *, Item **);
     bool fix_left(THD *thd, Item **ref);
@@ -342,21 +344,21 @@ class Comp_creator
 public:
     Comp_creator() {}                           /* Remove gcc warning */
     virtual ~Comp_creator() {}                  /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const = 0;
-    virtual const char* symbol(bool invert) const = 0;
+    virtual Item_bool_func2 *create(Item *a, Item *b) const = 0;
+    virtual const char *symbol(bool invert) const = 0;
     virtual bool eqne_op() const = 0;
     virtual bool l_op() const = 0;
 };
 
-class Eq_creator :public Comp_creator
+class Eq_creator : public Comp_creator
 {
 public:
     Eq_creator() {}                             /* Remove gcc warning */
     virtual ~Eq_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? "<>" : "=";
+        return invert ? "<>" : "=";
     }
     virtual bool eqne_op() const
     {
@@ -368,15 +370,15 @@ public:
     }
 };
 
-class Ne_creator :public Comp_creator
+class Ne_creator : public Comp_creator
 {
 public:
     Ne_creator() {}                             /* Remove gcc warning */
     virtual ~Ne_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? "=" : "<>";
+        return invert ? "=" : "<>";
     }
     virtual bool eqne_op() const
     {
@@ -388,15 +390,15 @@ public:
     }
 };
 
-class Gt_creator :public Comp_creator
+class Gt_creator : public Comp_creator
 {
 public:
     Gt_creator() {}                             /* Remove gcc warning */
     virtual ~Gt_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? "<=" : ">";
+        return invert ? "<=" : ">";
     }
     virtual bool eqne_op() const
     {
@@ -408,15 +410,15 @@ public:
     }
 };
 
-class Lt_creator :public Comp_creator
+class Lt_creator : public Comp_creator
 {
 public:
     Lt_creator() {}                             /* Remove gcc warning */
     virtual ~Lt_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? ">=" : "<";
+        return invert ? ">=" : "<";
     }
     virtual bool eqne_op() const
     {
@@ -428,15 +430,15 @@ public:
     }
 };
 
-class Ge_creator :public Comp_creator
+class Ge_creator : public Comp_creator
 {
 public:
     Ge_creator() {}                             /* Remove gcc warning */
     virtual ~Ge_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? "<" : ">=";
+        return invert ? "<" : ">=";
     }
     virtual bool eqne_op() const
     {
@@ -448,15 +450,15 @@ public:
     }
 };
 
-class Le_creator :public Comp_creator
+class Le_creator : public Comp_creator
 {
 public:
     Le_creator() {}                             /* Remove gcc warning */
     virtual ~Le_creator() {}                    /* Remove gcc warning */
-    virtual Item_bool_func2* create(Item *a, Item *b) const;
-    virtual const char* symbol(bool invert) const
+    virtual Item_bool_func2 *create(Item *a, Item *b) const;
+    virtual const char *symbol(bool invert) const
     {
-        return invert? ">" : "<=";
+        return invert ? ">" : "<=";
     }
     virtual bool eqne_op() const
     {
@@ -468,7 +470,7 @@ public:
     }
 };
 
-class Item_bool_func2 :public Item_bool_func
+class Item_bool_func2 : public Item_bool_func
 {
     /* Bool with 2 string args */
 private:
@@ -478,12 +480,12 @@ protected:
     bool abort_on_null;
 
 public:
-    Item_bool_func2(Item *a,Item *b)
-        :Item_bool_func(a,b), cmp(tmp_arg, tmp_arg+1), abort_on_null(FALSE) {}
+    Item_bool_func2(Item *a, Item *b)
+        : Item_bool_func(a, b), cmp(tmp_arg, tmp_arg + 1), abort_on_null(FALSE) {}
     void fix_length_and_dec();
     int set_cmp_func()
     {
-        return cmp.set_cmp_func(this, tmp_arg, tmp_arg+1, TRUE);
+        return cmp.set_cmp_func(this, tmp_arg, tmp_arg + 1, TRUE);
     }
     optimize_type select_optimize() const
     {
@@ -513,7 +515,7 @@ public:
     }
     void top_level_item()
     {
-        abort_on_null= TRUE;
+        abort_on_null = TRUE;
     }
     void cleanup()
     {
@@ -524,12 +526,12 @@ public:
     friend class  Arg_comparator;
 };
 
-class Item_bool_rowready_func2 :public Item_bool_func2
+class Item_bool_rowready_func2 : public Item_bool_func2
 {
 public:
-    Item_bool_rowready_func2(Item *a, Item *b) :Item_bool_func2(a, b)
+    Item_bool_rowready_func2(Item *a, Item *b) : Item_bool_func2(a, b)
     {
-        allowed_arg_cols= 0;  // Fetch this value from first argument
+        allowed_arg_cols = 0; // Fetch this value from first argument
     }
     Item *neg_transformer(THD *thd);
     virtual Item *negated_item();
@@ -544,10 +546,10 @@ public:
   Later, when XOR is optimized, it needs to inherit from
   Item_cond instead. See WL#5800.
 */
-class Item_func_xor :public Item_bool_func2
+class Item_func_xor : public Item_bool_func2
 {
 public:
-    Item_func_xor(Item *i1, Item *i2) :Item_bool_func2(i1, i2) {}
+    Item_func_xor(Item *i1, Item *i2) : Item_bool_func2(i1, i2) {}
     enum Functype functype() const
     {
         return XOR_FUNC;
@@ -561,10 +563,10 @@ public:
     Item *neg_transformer(THD *thd);
 };
 
-class Item_func_not :public Item_bool_func
+class Item_func_not : public Item_bool_func
 {
 public:
-    Item_func_not(Item *a) :Item_bool_func(a) {}
+    Item_func_not(Item *a) : Item_bool_func(a) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -682,7 +684,7 @@ public:
 };
 
 
-class Item_func_not_all :public Item_func_not
+class Item_func_not_all : public Item_func_not
 {
     /* allow to check presence of values in max/min optimization */
     Item_sum_hybrid *test_sum_item;
@@ -694,12 +696,12 @@ public:
     bool show;
 
     Item_func_not_all(Item *a)
-        :Item_func_not(a), test_sum_item(0), test_sub_item(0), subselect(0),
-         abort_on_null(0), show(0)
+        : Item_func_not(a), test_sum_item(0), test_sub_item(0), subselect(0),
+          abort_on_null(0), show(0)
     {}
     virtual void top_level_item()
     {
-        abort_on_null= 1;
+        abort_on_null = 1;
     }
     bool top_level()
     {
@@ -717,15 +719,15 @@ public:
     virtual void print(String *str, enum_query_type query_type);
     void set_sum_test(Item_sum_hybrid *item)
     {
-        test_sum_item= item;
+        test_sum_item = item;
     };
     void set_sub_test(Item_maxmin_subselect *item)
     {
-        test_sub_item= item;
+        test_sub_item = item;
     };
     void set_subselect(Item_subselect *item)
     {
-        subselect= item;
+        subselect = item;
     }
     table_map not_null_tables() const
     {
@@ -756,11 +758,11 @@ public:
 };
 
 
-class Item_func_nop_all :public Item_func_not_all
+class Item_func_nop_all : public Item_func_not_all
 {
 public:
 
-    Item_func_nop_all(Item *a) :Item_func_not_all(a) {}
+    Item_func_nop_all(Item *a) : Item_func_not_all(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -774,11 +776,11 @@ public:
 };
 
 
-class Item_func_eq :public Item_bool_rowready_func2
+class Item_func_eq : public Item_bool_rowready_func2
 {
 public:
-    Item_func_eq(Item *a,Item *b) :
-        Item_bool_rowready_func2(a,b)
+    Item_func_eq(Item *a, Item *b) :
+        Item_bool_rowready_func2(a, b)
     {}
     longlong val_int();
     enum Functype functype() const
@@ -802,13 +804,13 @@ public:
     {
         return true;
     }
-    virtual Item* equality_substitution_transformer(uchar *arg);
+    virtual Item *equality_substitution_transformer(uchar *arg);
 };
 
-class Item_func_equal :public Item_bool_rowready_func2
+class Item_func_equal : public Item_bool_rowready_func2
 {
 public:
-    Item_func_equal(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {};
+    Item_func_equal(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {};
     longlong val_int();
     void fix_length_and_dec();
     table_map not_null_tables() const
@@ -838,10 +840,10 @@ public:
 };
 
 
-class Item_func_ge :public Item_bool_rowready_func2
+class Item_func_ge : public Item_bool_rowready_func2
 {
 public:
-    Item_func_ge(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {};
+    Item_func_ge(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {};
     longlong val_int();
     enum Functype functype() const
     {
@@ -863,10 +865,10 @@ public:
 };
 
 
-class Item_func_gt :public Item_bool_rowready_func2
+class Item_func_gt : public Item_bool_rowready_func2
 {
 public:
-    Item_func_gt(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {};
+    Item_func_gt(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {};
     longlong val_int();
     enum Functype functype() const
     {
@@ -888,10 +890,10 @@ public:
 };
 
 
-class Item_func_le :public Item_bool_rowready_func2
+class Item_func_le : public Item_bool_rowready_func2
 {
 public:
-    Item_func_le(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {};
+    Item_func_le(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {};
     longlong val_int();
     enum Functype functype() const
     {
@@ -913,10 +915,10 @@ public:
 };
 
 
-class Item_func_lt :public Item_bool_rowready_func2
+class Item_func_lt : public Item_bool_rowready_func2
 {
 public:
-    Item_func_lt(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {}
+    Item_func_lt(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -938,10 +940,10 @@ public:
 };
 
 
-class Item_func_ne :public Item_bool_rowready_func2
+class Item_func_ne : public Item_bool_rowready_func2
 {
 public:
-    Item_func_ne(Item *a,Item *b) :Item_bool_rowready_func2(a,b) {}
+    Item_func_ne(Item *a, Item *b) : Item_bool_rowready_func2(a, b) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -972,28 +974,28 @@ public:
 
 */
 
-class Item_func_opt_neg :public Item_int_func
+class Item_func_opt_neg : public Item_int_func
 {
 public:
     bool negated;     /* <=> the item represents NOT <func> */
     bool pred_level;  /* <=> [NOT] <func> is used on a predicate level */
 public:
     Item_func_opt_neg(Item *a, Item *b, Item *c)
-        :Item_int_func(a, b, c), negated(0), pred_level(0) {}
+        : Item_int_func(a, b, c), negated(0), pred_level(0) {}
     Item_func_opt_neg(List<Item> &list)
-        :Item_int_func(list), negated(0), pred_level(0) {}
+        : Item_int_func(list), negated(0), pred_level(0) {}
 public:
     inline void negate()
     {
-        negated= !negated;
+        negated = !negated;
     }
     inline void top_level_item()
     {
-        pred_level= 1;
+        pred_level = 1;
     }
     Item *neg_transformer(THD *thd)
     {
-        negated= !negated;
+        negated = !negated;
         return this;
     }
     bool eq(const Item *item, bool binary_cmp) const;
@@ -1004,12 +1006,12 @@ public:
 };
 
 
-class Item_func_between :public Item_func_opt_neg
+class Item_func_between : public Item_func_opt_neg
 {
     DTCollation cmp_collation;
 public:
     Item_result cmp_type;
-    String value0,value1,value2;
+    String value0, value1, value2;
     /* TRUE <=> arguments will be compared as dates. */
     bool compare_as_dates_with_strings;
     bool compare_as_temporal_dates;
@@ -1018,9 +1020,9 @@ public:
     /* Comparators used for DATE/DATETIME comparison. */
     Arg_comparator ge_cmp, le_cmp;
     Item_func_between(Item *a, Item *b, Item *c)
-        :Item_func_opt_neg(a, b, c), compare_as_dates_with_strings(FALSE),
-         compare_as_temporal_dates(FALSE),
-         compare_as_temporal_times(FALSE) {}
+        : Item_func_opt_neg(a, b, c), compare_as_dates_with_strings(FALSE),
+          compare_as_temporal_dates(FALSE),
+          compare_as_temporal_times(FALSE) {}
     longlong val_int();
     optimize_type select_optimize() const
     {
@@ -1052,10 +1054,10 @@ public:
 };
 
 
-class Item_func_strcmp :public Item_bool_func2
+class Item_func_strcmp : public Item_bool_func2
 {
 public:
-    Item_func_strcmp(Item *a,Item *b) :Item_bool_func2(a,b) {}
+    Item_func_strcmp(Item *a, Item *b) : Item_bool_func2(a, b) {}
     longlong val_int();
     optimize_type select_optimize() const
     {
@@ -1085,16 +1087,16 @@ struct interval_range
     my_decimal dec;
 };
 
-class Item_func_interval :public Item_int_func
+class Item_func_interval : public Item_int_func
 {
     Item_row *row;
     my_bool use_decimal_comparison;
     interval_range *intervals;
 public:
     Item_func_interval(Item_row *a)
-        :Item_int_func(a),row(a),intervals(0)
+        : Item_int_func(a), row(a), intervals(0)
     {
-        allowed_arg_cols= 0;    // Fetch this value from first argument
+        allowed_arg_cols = 0;   // Fetch this value from first argument
     }
     longlong val_int();
     void fix_length_and_dec();
@@ -1109,13 +1111,13 @@ public:
 };
 
 
-class Item_func_coalesce :public Item_func_numhybrid
+class Item_func_coalesce : public Item_func_numhybrid
 {
 protected:
     enum_field_types cached_field_type;
-    Item_func_coalesce(Item *a, Item *b) :Item_func_numhybrid(a, b) {}
+    Item_func_coalesce(Item *a, Item *b) : Item_func_numhybrid(a, b) {}
 public:
-    Item_func_coalesce(List<Item> &list) :Item_func_numhybrid(list) {}
+    Item_func_coalesce(List<Item> &list) : Item_func_numhybrid(list) {}
     double real_op();
     longlong int_op();
     String *str_op(String *);
@@ -1143,12 +1145,12 @@ public:
 };
 
 
-class Item_func_ifnull :public Item_func_coalesce
+class Item_func_ifnull : public Item_func_coalesce
 {
 protected:
     bool field_type_defined;
 public:
-    Item_func_ifnull(Item *a, Item *b) :Item_func_coalesce(a,b) {}
+    Item_func_ifnull(Item *a, Item *b) : Item_func_coalesce(a, b) {}
     double real_op();
     longlong int_op();
     String *str_op(String *str);
@@ -1165,13 +1167,13 @@ public:
 };
 
 
-class Item_func_if :public Item_func
+class Item_func_if : public Item_func
 {
     enum Item_result cached_result_type;
     enum_field_types cached_field_type;
 public:
-    Item_func_if(Item *a,Item *b,Item *c)
-        :Item_func(a,b,c), cached_result_type(INT_RESULT)
+    Item_func_if(Item *a, Item *b, Item *c)
+        : Item_func(a, b, c), cached_result_type(INT_RESULT)
     {}
     double val_real();
     longlong val_int();
@@ -1199,12 +1201,12 @@ private:
 };
 
 
-class Item_func_nullif :public Item_bool_func2
+class Item_func_nullif : public Item_bool_func2
 {
     enum Item_result cached_result_type;
 public:
-    Item_func_nullif(Item *a,Item *b)
-        :Item_bool_func2(a,b), cached_result_type(INT_RESULT)
+    Item_func_nullif(Item *a, Item *b)
+        : Item_bool_func2(a, b), cached_result_type(INT_RESULT)
     {}
     double val_real();
     longlong val_int();
@@ -1242,7 +1244,7 @@ public:
 
 /* A vector of values of some type  */
 
-class in_vector :public Sql_alloc
+class in_vector : public Sql_alloc
 {
 public:
     char *base;
@@ -1252,17 +1254,17 @@ public:
     uint count;
     uint used_count;
     in_vector() {}
-    in_vector(uint elements,uint element_length,qsort2_cmp cmp_func,
+    in_vector(uint elements, uint element_length, qsort2_cmp cmp_func,
               const CHARSET_INFO *cmp_coll)
-        :base((char*) sql_calloc(elements*element_length)),
-         size(element_length), compare(cmp_func), collation(cmp_coll),
-         count(elements), used_count(elements) {}
+        : base((char *) sql_calloc(elements * element_length)),
+          size(element_length), compare(cmp_func), collation(cmp_coll),
+          count(elements), used_count(elements) {}
     virtual ~in_vector() {}
-    virtual void set(uint pos,Item *item)=0;
-    virtual uchar *get_value(Item *item)=0;
+    virtual void set(uint pos, Item *item) = 0;
+    virtual uchar *get_value(Item *item) = 0;
     void sort()
     {
-        my_qsort2(base,used_count,size,compare,collation);
+        my_qsort2(base, used_count, size, compare, collation);
     }
     int find(Item *item);
 
@@ -1274,7 +1276,7 @@ public:
       vector in form of Item_xxx constants without creating Item_xxx object
       for every array element you get (i.e. this implements "FlyWeight" pattern)
     */
-    virtual Item* create_item()
+    virtual Item *create_item()
     {
         return NULL;
     }
@@ -1292,29 +1294,29 @@ public:
     /* Compare values number pos1 and pos2 for equality */
     bool compare_elems(uint pos1, uint pos2)
     {
-        return test(compare(collation, base + pos1*size, base + pos2*size));
+        return test(compare(collation, base + pos1 * size, base + pos2 * size));
     }
-    virtual Item_result result_type()= 0;
+    virtual Item_result result_type() = 0;
 };
 
-class in_string :public in_vector
+class in_string : public in_vector
 {
     char buff[STRING_BUFFER_USUAL_SIZE];
     String tmp;
 public:
-    in_string(uint elements,qsort2_cmp cmp_func, const CHARSET_INFO *cs);
+    in_string(uint elements, qsort2_cmp cmp_func, const CHARSET_INFO *cs);
     ~in_string();
-    void set(uint pos,Item *item);
+    void set(uint pos, Item *item);
     uchar *get_value(Item *item);
-    Item* create_item()
+    Item *create_item()
     {
         return new Item_string(collation);
     }
     void value_to_item(uint pos, Item *item)
     {
-        String *str=((String*) base)+pos;
-        Item_string *to= (Item_string*)item;
-        to->str_value= *str;
+        String *str = ((String *) base) + pos;
+        Item_string *to = (Item_string *)item;
+        to->str_value = *str;
     }
     Item_result result_type()
     {
@@ -1322,7 +1324,7 @@ public:
     }
 };
 
-class in_longlong :public in_vector
+class in_longlong : public in_vector
 {
 protected:
     /*
@@ -1337,10 +1339,10 @@ protected:
     } tmp;
 public:
     in_longlong(uint elements);
-    void set(uint pos,Item *item);
+    void set(uint pos, Item *item);
     uchar *get_value(Item *item);
 
-    Item* create_item()
+    Item *create_item()
     {
         /*
           We're created a signed INT, this may not be correct in
@@ -1350,24 +1352,24 @@ public:
     }
     void value_to_item(uint pos, Item *item)
     {
-        ((Item_int*) item)->value= ((packed_longlong*) base)[pos].val;
-        ((Item_int*) item)->unsigned_flag= (my_bool)
-                                           ((packed_longlong*) base)[pos].unsigned_flag;
+        ((Item_int *) item)->value = ((packed_longlong *) base)[pos].val;
+        ((Item_int *) item)->unsigned_flag = (my_bool)
+                                             ((packed_longlong *) base)[pos].unsigned_flag;
     }
     Item_result result_type()
     {
         return INT_RESULT;
     }
 
-    friend int cmp_longlong(void *cmp_arg, packed_longlong *a,packed_longlong *b);
+    friend int cmp_longlong(void *cmp_arg, packed_longlong *a, packed_longlong *b);
 };
 
 
-class in_datetime_as_longlong :public in_longlong
+class in_datetime_as_longlong : public in_longlong
 {
 public:
     in_datetime_as_longlong(uint elements)
-        :in_longlong(elements) {};
+        : in_longlong(elements) {};
     Item *create_item()
     {
         return new Item_temporal(MYSQL_TYPE_DATETIME, 0LL);
@@ -1377,11 +1379,11 @@ public:
 };
 
 
-class in_time_as_longlong :public in_longlong
+class in_time_as_longlong : public in_longlong
 {
 public:
     in_time_as_longlong(uint elements)
-        :in_longlong(elements) {};
+        : in_longlong(elements) {};
     Item *create_item()
     {
         return new Item_temporal(MYSQL_TYPE_TIME, 0LL);
@@ -1397,7 +1399,7 @@ public:
   If the left item is a constant one then its value is cached in the
   lval_cache variable.
 */
-class in_datetime :public in_longlong
+class in_datetime : public in_longlong
 {
 public:
     THD *thd;
@@ -1407,24 +1409,24 @@ public:
     Item *lval_cache;
 
     in_datetime(Item *warn_item_arg, uint elements)
-        :in_longlong(elements), thd(current_thd), warn_item(warn_item_arg),
-         lval_cache(0) {};
-    void set(uint pos,Item *item);
+        : in_longlong(elements), thd(current_thd), warn_item(warn_item_arg),
+          lval_cache(0) {};
+    void set(uint pos, Item *item);
     uchar *get_value(Item *item);
-    friend int cmp_longlong(void *cmp_arg, packed_longlong *a,packed_longlong *b);
-    Item* create_item()
+    friend int cmp_longlong(void *cmp_arg, packed_longlong *a, packed_longlong *b);
+    Item *create_item()
     {
         return new Item_temporal(MYSQL_TYPE_DATETIME, (longlong) 0);
     }
 };
 
 
-class in_double :public in_vector
+class in_double : public in_vector
 {
     double tmp;
 public:
     in_double(uint elements);
-    void set(uint pos,Item *item);
+    void set(uint pos, Item *item);
     uchar *get_value(Item *item);
     Item *create_item()
     {
@@ -1432,7 +1434,7 @@ public:
     }
     void value_to_item(uint pos, Item *item)
     {
-        ((Item_float*)item)->value= ((double*) base)[pos];
+        ((Item_float *)item)->value = ((double *) base)[pos];
     }
     Item_result result_type()
     {
@@ -1441,7 +1443,7 @@ public:
 };
 
 
-class in_decimal :public in_vector
+class in_decimal : public in_vector
 {
     my_decimal val;
 public:
@@ -1454,8 +1456,8 @@ public:
     }
     void value_to_item(uint pos, Item *item)
     {
-        my_decimal *dec= ((my_decimal *)base) + pos;
-        Item_decimal *item_dec= (Item_decimal*)item;
+        my_decimal *dec = ((my_decimal *)base) + pos;
+        Item_decimal *item_dec = (Item_decimal *)item;
         item_dec->set_decimal_value(dec);
     }
     Item_result result_type()
@@ -1470,28 +1472,28 @@ public:
 ** Classes for easy comparing of non const items
 */
 
-class cmp_item :public Sql_alloc
+class cmp_item : public Sql_alloc
 {
 public:
     const CHARSET_INFO *cmp_charset;
     cmp_item()
     {
-        cmp_charset= &my_charset_bin;
+        cmp_charset = &my_charset_bin;
     }
     virtual ~cmp_item() {}
-    virtual void store_value(Item *item)= 0;
-    virtual int cmp(Item *item)= 0;
+    virtual void store_value(Item *item) = 0;
+    virtual int cmp(Item *item) = 0;
     // for optimized IN with row
-    virtual int compare(cmp_item *item)= 0;
-    static cmp_item* get_comparator(Item_result type, const CHARSET_INFO *cs);
-    virtual cmp_item *make_same()= 0;
+    virtual int compare(cmp_item *item) = 0;
+    static cmp_item *get_comparator(Item_result type, const CHARSET_INFO *cs);
+    virtual cmp_item *make_same() = 0;
     virtual void store_value_by_template(cmp_item *tmpl, Item *item)
     {
         store_value(item);
     }
 };
 
-class cmp_item_string :public cmp_item
+class cmp_item_string : public cmp_item
 {
 protected:
     String *value_res;
@@ -1499,17 +1501,17 @@ public:
     cmp_item_string () {}
     cmp_item_string (const CHARSET_INFO *cs)
     {
-        cmp_charset= cs;
+        cmp_charset = cs;
     }
     void set_charset(const CHARSET_INFO *cs)
     {
-        cmp_charset= cs;
+        cmp_charset = cs;
     }
     friend class cmp_item_sort_string;
     friend class cmp_item_sort_string_in_static;
 };
 
-class cmp_item_sort_string :public cmp_item_string
+class cmp_item_sort_string : public cmp_item_string
 {
 protected:
     char value_buff[STRING_BUFFER_USUAL_SIZE];
@@ -1522,42 +1524,44 @@ public:
         value(value_buff, sizeof(value_buff), cs) {}
     void store_value(Item *item)
     {
-        String *res= item->val_str(&value);
+        String *res = item->val_str(&value);
+
         if(res && (res != &value)) {
             // 'res' may point in item's temporary internal data, so make a copy
             value.copy(*res);
         }
-        value_res= &value;
+
+        value_res = &value;
     }
     int cmp(Item *arg)
     {
         char buff[STRING_BUFFER_USUAL_SIZE];
         String tmp(buff, sizeof(buff), cmp_charset), *res;
-        res= arg->val_str(&tmp);
+        res = arg->val_str(&tmp);
         return (value_res ? (res ? sortcmp(value_res, res, cmp_charset) : 1) :
                 (res ? -1 : 0));
     }
     int compare(cmp_item *ci)
     {
-        cmp_item_string *l_cmp= (cmp_item_string *) ci;
+        cmp_item_string *l_cmp = (cmp_item_string *) ci;
         return sortcmp(value_res, l_cmp->value_res, cmp_charset);
     }
     cmp_item *make_same();
     void set_charset(const CHARSET_INFO *cs)
     {
-        cmp_charset= cs;
+        cmp_charset = cs;
         value.set_quick(value_buff, sizeof(value_buff), cs);
     }
 };
 
-class cmp_item_int :public cmp_item
+class cmp_item_int : public cmp_item
 {
     longlong value;
 public:
     cmp_item_int() {}                           /* Remove gcc warning */
     void store_value(Item *item)
     {
-        value= item->val_int();
+        value = item->val_int();
     }
     int cmp(Item *arg)
     {
@@ -1565,7 +1569,7 @@ public:
     }
     int compare(cmp_item *ci)
     {
-        cmp_item_int *l_cmp= (cmp_item_int *)ci;
+        cmp_item_int *l_cmp = (cmp_item_int *)ci;
         return (value < l_cmp->value) ? -1 : ((value == l_cmp->value) ? 0 : 1);
     }
     cmp_item *make_same();
@@ -1577,7 +1581,7 @@ public:
   If the left item is a constant one then its value is cached in the
   lval_cache variable.
 */
-class cmp_item_datetime :public cmp_item
+class cmp_item_datetime : public cmp_item
 {
     longlong value;
 public:
@@ -1588,21 +1592,21 @@ public:
     Item *lval_cache;
 
     cmp_item_datetime(Item *warn_item_arg)
-        :thd(current_thd), warn_item(warn_item_arg), lval_cache(0) {}
+        : thd(current_thd), warn_item(warn_item_arg), lval_cache(0) {}
     void store_value(Item *item);
     int cmp(Item *arg);
     int compare(cmp_item *ci);
     cmp_item *make_same();
 };
 
-class cmp_item_real :public cmp_item
+class cmp_item_real : public cmp_item
 {
     double value;
 public:
     cmp_item_real() {}                          /* Remove gcc warning */
     void store_value(Item *item)
     {
-        value= item->val_real();
+        value = item->val_real();
     }
     int cmp(Item *arg)
     {
@@ -1610,14 +1614,14 @@ public:
     }
     int compare(cmp_item *ci)
     {
-        cmp_item_real *l_cmp= (cmp_item_real *) ci;
-        return (value < l_cmp->value)? -1 : ((value == l_cmp->value) ? 0 : 1);
+        cmp_item_real *l_cmp = (cmp_item_real *) ci;
+        return (value < l_cmp->value) ? -1 : ((value == l_cmp->value) ? 0 : 1);
     }
     cmp_item *make_same();
 };
 
 
-class cmp_item_decimal :public cmp_item
+class cmp_item_decimal : public cmp_item
 {
     my_decimal value;
 public:
@@ -1634,7 +1638,7 @@ public:
    be changed)
 */
 
-class cmp_item_sort_string_in_static :public cmp_item_string
+class cmp_item_sort_string_in_static : public cmp_item_string
 {
 protected:
     String value;
@@ -1643,7 +1647,7 @@ public:
         cmp_item_string(cs) {}
     void store_value(Item *item)
     {
-        value_res= item->val_str(&value);
+        value_res = item->val_str(&value);
     }
     int cmp(Item *item)
     {
@@ -1653,7 +1657,7 @@ public:
     }
     int compare(cmp_item *ci)
     {
-        cmp_item_string *l_cmp= (cmp_item_string *) ci;
+        cmp_item_string *l_cmp = (cmp_item_string *) ci;
         return sortcmp(value_res, l_cmp->value_res, cmp_charset);
     }
     cmp_item *make_same()
@@ -1681,7 +1685,7 @@ public:
   function and only comparators for there result types are used.
 */
 
-class Item_func_case :public Item_func
+class Item_func_case : public Item_func
 {
     int first_expr_num, else_expr_num;
     enum Item_result cached_result_type, left_result_type;
@@ -1694,18 +1698,21 @@ class Item_func_case :public Item_func
     cmp_item *case_item;
 public:
     Item_func_case(List<Item> &list, Item *first_expr_arg, Item *else_expr_arg)
-        :Item_func(), first_expr_num(-1), else_expr_num(-1),
-         cached_result_type(INT_RESULT), left_result_type(INT_RESULT), case_item(0)
+        : Item_func(), first_expr_num(-1), else_expr_num(-1),
+          cached_result_type(INT_RESULT), left_result_type(INT_RESULT), case_item(0)
     {
-        ncases= list.elements;
+        ncases = list.elements;
+
         if (first_expr_arg) {
-            first_expr_num= list.elements;
+            first_expr_num = list.elements;
             list.push_back(first_expr_arg);
         }
+
         if (else_expr_arg) {
-            else_expr_num= list.elements;
+            else_expr_num = list.elements;
             list.push_back(else_expr_arg);
         }
+
         set_arguments(list);
         memset(&cmp_items, 0, sizeof(cmp_items));
     }
@@ -1758,7 +1765,7 @@ public:
     fix_length_and_dec() member function by means of collect_cmp_types()
     function.
 */
-class Item_func_in :public Item_func_opt_neg
+class Item_func_in : public Item_func_opt_neg
 {
 public:
     /*
@@ -1777,11 +1784,11 @@ public:
     DTCollation cmp_collation;
 
     Item_func_in(List<Item> &list)
-        :Item_func_opt_neg(list), array(0), have_null(0),
-         arg_types_compatible(FALSE)
+        : Item_func_opt_neg(list), array(0), have_null(0),
+          arg_types_compatible(FALSE)
     {
         memset(&cmp_items, 0, sizeof(cmp_items));
-        allowed_arg_cols= 0;  // Fetch this value from first argument
+        allowed_arg_cols = 0; // Fetch this value from first argument
     }
     longlong val_int();
     bool fix_fields(THD *, Item **);
@@ -1796,11 +1803,13 @@ public:
         DBUG_ENTER("Item_func_in::cleanup");
         Item_int_func::cleanup();
         delete array;
-        array= 0;
-        for (i= 0; i <= (uint)DECIMAL_RESULT + 1; i++) {
+        array = 0;
+
+        for (i = 0; i <= (uint)DECIMAL_RESULT + 1; i++) {
             delete cmp_items[i];
-            cmp_items[i]= 0;
+            cmp_items[i] = 0;
         }
+
         DBUG_VOID_RETURN;
     }
     optimize_type select_optimize() const
@@ -1827,7 +1836,7 @@ public:
     }
 };
 
-class cmp_item_row :public cmp_item
+class cmp_item_row : public cmp_item
 {
     cmp_item **comparators;
     uint n;
@@ -1844,13 +1853,13 @@ public:
 };
 
 
-class in_row :public in_vector
+class in_row : public in_vector
 {
     cmp_item_row tmp;
 public:
     in_row(uint elements, Item *);
     ~in_row();
-    void set(uint pos,Item *item);
+    void set(uint pos, Item *item);
     uchar *get_value(Item *item);
     friend void Item_func_in::fix_length_and_dec();
     Item_result result_type()
@@ -1861,12 +1870,12 @@ public:
 
 /* Functions used by where clause */
 
-class Item_func_isnull :public Item_bool_func
+class Item_func_isnull : public Item_bool_func
 {
 protected:
     longlong cached_value;
 public:
-    Item_func_isnull(Item *a) :Item_bool_func(a) {}
+    Item_func_isnull(Item *a) : Item_bool_func(a) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -1874,9 +1883,9 @@ public:
     }
     void fix_length_and_dec()
     {
-        decimals=0;
-        max_length=1;
-        maybe_null=0;
+        decimals = 0;
+        max_length = 1;
+        maybe_null = 0;
         update_used_tables();
     }
     const char *func_name() const
@@ -1887,18 +1896,19 @@ public:
     virtual void update_used_tables()
     {
         if (!args[0]->maybe_null) {
-            used_tables_cache= 0;			/* is always false */
-            const_item_cache= 1;
-            cached_value= (longlong) 0;
+            used_tables_cache = 0;			/* is always false */
+            const_item_cache = 1;
+            cached_value = (longlong) 0;
+
         } else {
             args[0]->update_used_tables();
-            with_subselect= args[0]->has_subquery();
-            with_stored_program= args[0]->has_stored_program();
+            with_subselect = args[0]->has_subquery();
+            with_stored_program = args[0]->has_stored_program();
 
-            if ((const_item_cache= !(used_tables_cache= args[0]->used_tables()) &&
-                                   !with_subselect && !with_stored_program)) {
+            if ((const_item_cache = !(used_tables_cache = args[0]->used_tables()) &&
+                                    !with_subselect && !with_stored_program)) {
                 /* Remember if the value is always NULL or never NULL */
-                cached_value= (longlong) args[0]->is_null();
+                cached_value = (longlong) args[0]->is_null();
             }
         }
     }
@@ -1926,12 +1936,12 @@ class Item_in_subselect;
   encountered a NULL; it remembers this in the "was_null" property of the
   "owner" item.
 */
-class Item_is_not_null_test :public Item_func_isnull
+class Item_is_not_null_test : public Item_func_isnull
 {
-    Item_in_subselect* owner;
+    Item_in_subselect *owner;
 public:
-    Item_is_not_null_test(Item_in_subselect* ow, Item *a)
-        :Item_func_isnull(a), owner(ow)
+    Item_is_not_null_test(Item_in_subselect *ow, Item *a)
+        : Item_func_isnull(a), owner(ow)
     {}
     enum Functype functype() const
     {
@@ -1955,11 +1965,11 @@ public:
 };
 
 
-class Item_func_isnotnull :public Item_bool_func
+class Item_func_isnotnull : public Item_bool_func
 {
     bool abort_on_null;
 public:
-    Item_func_isnotnull(Item *a) :Item_bool_func(a), abort_on_null(0) {}
+    Item_func_isnotnull(Item *a) : Item_bool_func(a), abort_on_null(0) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -1967,9 +1977,9 @@ public:
     }
     void fix_length_and_dec()
     {
-        decimals=0;
-        max_length=1;
-        maybe_null=0;
+        decimals = 0;
+        max_length = 1;
+        maybe_null = 0;
     }
     const char *func_name() const
     {
@@ -1991,26 +2001,26 @@ public:
     }
     void top_level_item()
     {
-        abort_on_null=1;
+        abort_on_null = 1;
     }
 };
 
 
-class Item_func_like :public Item_bool_func2
+class Item_func_like : public Item_bool_func2
 {
     // Turbo Boyer-Moore data
     bool        canDoTurboBM;	// pattern is '%abcd%' case
-    const char* pattern;
+    const char *pattern;
     int         pattern_len;
 
     // TurboBM buffers, *this is owner
-    int* bmGs; //   good suffix shift table, size is pattern_len + 1
-    int* bmBc; // bad character shift table, size is alphabet_size
+    int *bmGs; //   good suffix shift table, size is pattern_len + 1
+    int *bmBc; // bad character shift table, size is alphabet_size
 
-    void turboBM_compute_suffixes(int* suff);
-    void turboBM_compute_good_suffix_shifts(int* suff);
+    void turboBM_compute_suffixes(int *suff);
+    void turboBM_compute_good_suffix_shifts(int *suff);
     void turboBM_compute_bad_character_shifts();
-    bool turboBM_matches(const char* text, int text_len) const;
+    bool turboBM_matches(const char *text, int text_len) const;
     enum
     { alphabet_size = 256 };
 
@@ -2021,10 +2031,10 @@ class Item_func_like :public Item_bool_func2
 public:
     int escape;
 
-    Item_func_like(Item *a,Item *b, Item *escape_arg, bool escape_used)
-        :Item_bool_func2(a,b), canDoTurboBM(FALSE), pattern(0), pattern_len(0),
-         bmGs(0), bmBc(0), escape_item(escape_arg),
-         escape_used_in_parsing(escape_used) {}
+    Item_func_like(Item *a, Item *b, Item *escape_arg, bool escape_used)
+        : Item_bool_func2(a, b), canDoTurboBM(FALSE), pattern(0), pattern_len(0),
+          bmGs(0), bmBc(0), escape_item(escape_arg),
+          escape_used_in_parsing(escape_used) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -2052,7 +2062,7 @@ public:
 };
 
 
-class Item_func_regex :public Item_bool_func
+class Item_func_regex : public Item_bool_func
 {
     my_regex_t preg;
     bool regex_compiled;
@@ -2064,8 +2074,8 @@ class Item_func_regex :public Item_bool_func
     String conv;
     int regcomp(bool send_error);
 public:
-    Item_func_regex(Item *a,Item *b) :Item_bool_func(a,b),
-        regex_compiled(0),regex_is_const(0) {}
+    Item_func_regex(Item *a, Item *b) : Item_bool_func(a, b),
+        regex_compiled(0), regex_is_const(0) {}
     void cleanup();
     longlong val_int();
     bool fix_fields(THD *thd, Item **ref);
@@ -2086,7 +2096,7 @@ public:
 };
 
 
-class Item_cond :public Item_bool_func
+class Item_cond : public Item_bool_func
 {
 protected:
     List<Item> list;
@@ -2096,17 +2106,17 @@ public:
     /* Item_cond() is only used to create top level items */
     Item_cond(): Item_bool_func(), abort_on_null(1)
     {
-        const_item_cache=0;
+        const_item_cache = 0;
     }
-    Item_cond(Item *i1,Item *i2)
-        :Item_bool_func(), abort_on_null(0)
+    Item_cond(Item *i1, Item *i2)
+        : Item_bool_func(), abort_on_null(0)
     {
         list.push_back(i1);
         list.push_back(i2);
     }
     Item_cond(THD *thd, Item_cond *item);
     Item_cond(List<Item> &nlist)
-        :Item_bool_func(), list(nlist), abort_on_null(0) {}
+        : Item_bool_func(), list(nlist), abort_on_null(0) {}
     bool add(Item *item)
     {
         DBUG_ASSERT(item);
@@ -2130,7 +2140,7 @@ public:
     {
         return COND_ITEM;
     }
-    List<Item>* argument_list()
+    List<Item> *argument_list()
     {
         return &list;
     }
@@ -2146,7 +2156,7 @@ public:
                            Item **conds);
     void top_level_item()
     {
-        abort_on_null=1;
+        abort_on_null = 1;
     }
     void copy_andor_arguments(THD *thd, Item_cond *item);
     bool walk(Item_processor processor, bool walk_subquery, uchar *arg);
@@ -2259,7 +2269,7 @@ public:
     inline Item_equal()
         : Item_bool_func(), const_item(0), eval_item(0), cond_false(0)
     {
-        const_item_cache=0 ;
+        const_item_cache = 0 ;
     }
     Item_equal(Item_field *f1, Item_field *f2);
     Item_equal(Item *c, Item_field *f);
@@ -2269,7 +2279,7 @@ public:
         delete eval_item;
     }
 
-    inline Item* get_const()
+    inline Item *get_const()
     {
         return const_item;
     }
@@ -2284,11 +2294,11 @@ public:
 
       @retval First field in the multiple equality.
     */
-    Item_field* get_first()
+    Item_field *get_first()
     {
         return fields.head();
     }
-    Item_field* get_subst_item(const Item_field *field);
+    Item_field *get_subst_item(const Item_field *field);
     void merge(Item_equal *item);
     void update_const();
     enum Functype functype() const
@@ -2322,7 +2332,7 @@ public:
         return true;
     }
 
-    virtual Item* equality_substitution_transformer(uchar *arg);
+    virtual Item *equality_substitution_transformer(uchar *arg);
 };
 
 class COND_EQUAL: public Sql_alloc
@@ -2335,7 +2345,7 @@ public:
                                      the current and level           */
     COND_EQUAL()
     {
-        upper_levels= 0;
+        upper_levels = 0;
     }
 };
 
@@ -2344,11 +2354,11 @@ class Item_equal_iterator : public List_iterator_fast<Item_field>
 {
 public:
     inline Item_equal_iterator(Item_equal &item_equal)
-        :List_iterator_fast<Item_field> (item_equal.fields)
+        : List_iterator_fast<Item_field> (item_equal.fields)
     {}
-    inline Item_field* operator++(int)
+    inline Item_field *operator++(int)
     {
-        Item_field *item= (*(List_iterator_fast<Item_field> *) this)++;
+        Item_field *item = (*(List_iterator_fast<Item_field> *) this)++;
         return  item;
     }
     inline void rewind(void)
@@ -2357,15 +2367,15 @@ public:
     }
 };
 
-class Item_cond_and :public Item_cond
+class Item_cond_and : public Item_cond
 {
 public:
     COND_EQUAL cond_equal;  /* contains list of Item_equal objects for
                              the current and level and reference
                              to multiple equalities of upper and levels */
-    Item_cond_and() :Item_cond() {}
-    Item_cond_and(Item *i1,Item *i2) :Item_cond(i1,i2) {}
-    Item_cond_and(THD *thd, Item_cond_and *item) :Item_cond(thd, item) {}
+    Item_cond_and() : Item_cond() {}
+    Item_cond_and(Item *i1, Item *i2) : Item_cond(i1, i2) {}
+    Item_cond_and(THD *thd, Item_cond_and *item) : Item_cond(thd, item) {}
     Item_cond_and(List<Item> &list_arg): Item_cond(list_arg) {}
     enum Functype functype() const
     {
@@ -2376,11 +2386,13 @@ public:
     {
         return "and";
     }
-    Item* copy_andor_structure(THD *thd)
+    Item *copy_andor_structure(THD *thd)
     {
         Item_cond_and *item;
-        if ((item= new Item_cond_and(thd, this)))
+
+        if ((item = new Item_cond_and(thd, this)))
             item->copy_andor_arguments(thd, this);
+
         return item;
     }
     Item *neg_transformer(THD *thd);
@@ -2391,16 +2403,16 @@ inline bool is_cond_and(Item *item)
     if (item->type() != Item::COND_ITEM)
         return FALSE;
 
-    Item_cond *cond_item= (Item_cond*) item;
+    Item_cond *cond_item = (Item_cond *) item;
     return (cond_item->functype() == Item_func::COND_AND_FUNC);
 }
 
-class Item_cond_or :public Item_cond
+class Item_cond_or : public Item_cond
 {
 public:
-    Item_cond_or() :Item_cond() {}
-    Item_cond_or(Item *i1,Item *i2) :Item_cond(i1,i2) {}
-    Item_cond_or(THD *thd, Item_cond_or *item) :Item_cond(thd, item) {}
+    Item_cond_or() : Item_cond() {}
+    Item_cond_or(Item *i1, Item *i2) : Item_cond(i1, i2) {}
+    Item_cond_or(THD *thd, Item_cond_or *item) : Item_cond(thd, item) {}
     Item_cond_or(List<Item> &list_arg): Item_cond(list_arg) {}
     enum Functype functype() const
     {
@@ -2411,11 +2423,13 @@ public:
     {
         return "or";
     }
-    Item* copy_andor_structure(THD *thd)
+    Item *copy_andor_structure(THD *thd)
     {
         Item_cond_or *item;
-        if ((item= new Item_cond_or(thd, this)))
+
+        if ((item = new Item_cond_or(thd, this)))
             item->copy_andor_arguments(thd, this);
+
         return item;
     }
     Item *neg_transformer(THD *thd);
@@ -2426,7 +2440,7 @@ inline bool is_cond_or(Item *item)
     if (item->type() != Item::COND_ITEM)
         return FALSE;
 
-    Item_cond *cond_item= (Item_cond*) item;
+    Item_cond *cond_item = (Item_cond *) item;
     return (cond_item->functype() == Item_func::COND_OR_FUNC);
 }
 
@@ -2434,8 +2448,12 @@ inline bool is_cond_or(Item *item)
 
 inline Item *and_conds(Item *a, Item *b)
 {
-    if (!b) return a;
-    if (!a) return b;
+    if (!b)
+        return a;
+
+    if (!a)
+        return b;
+
     return new Item_cond_and(a, b);
 }
 

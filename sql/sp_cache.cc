@@ -19,7 +19,7 @@
 #include "sp_head.h"
 
 static mysql_mutex_t Cversion_lock;
-static ulong volatile Cversion= 0;
+static ulong volatile Cversion = 0;
 
 
 /*
@@ -79,16 +79,15 @@ private:
 #ifdef HAVE_PSI_INTERFACE
 static PSI_mutex_key key_Cversion_lock;
 
-static PSI_mutex_info all_sp_cache_mutexes[]= {
+static PSI_mutex_info all_sp_cache_mutexes[] = {
     { &key_Cversion_lock, "Cversion_lock", PSI_FLAG_GLOBAL}
 };
 
 static void init_sp_cache_psi_keys(void)
 {
-    const char* category= "sql";
+    const char *category = "sql";
     int count;
-
-    count= array_elements(all_sp_cache_mutexes);
+    count = array_elements(all_sp_cache_mutexes);
     mysql_mutex_register(category, all_sp_cache_mutexes, count);
 }
 #endif
@@ -100,7 +99,6 @@ void sp_cache_init()
 #ifdef HAVE_PSI_INTERFACE
     init_sp_cache_psi_keys();
 #endif
-
     mysql_mutex_init(key_Cversion_lock, &Cversion_lock, MY_MUTEX_INIT_FAST);
 }
 
@@ -118,11 +116,11 @@ void sp_cache_init()
 
 void sp_cache_clear(sp_cache **cp)
 {
-    sp_cache *c= *cp;
+    sp_cache *c = *cp;
 
     if (c) {
         delete c;
-        *cp= NULL;
+        *cp = NULL;
     }
 }
 
@@ -145,16 +143,17 @@ void sp_cache_insert(sp_cache **cp, sp_head *sp)
 {
     sp_cache *c;
 
-    if (!(c= *cp)) {
-        if (!(c= new sp_cache()))
+    if (!(c = *cp)) {
+        if (!(c = new sp_cache()))
             return;                                   // End of memory error
     }
+
     /* Reading a ulong variable with no lock. */
     sp->set_sp_cache_version(Cversion);
-    DBUG_PRINT("info",("sp_cache: inserting: %.*s", (int) sp->m_qname.length,
-                       sp->m_qname.str));
+    DBUG_PRINT("info", ("sp_cache: inserting: %.*s", (int) sp->m_qname.length,
+                        sp->m_qname.str));
     c->insert(sp);
-    *cp= c;                                       // Update *cp if it was NULL
+    *cp = c;                                      // Update *cp if it was NULL
 }
 
 
@@ -176,9 +175,11 @@ void sp_cache_insert(sp_cache **cp, sp_head *sp)
 
 sp_head *sp_cache_lookup(sp_cache **cp, sp_name *name)
 {
-    sp_cache *c= *cp;
+    sp_cache *c = *cp;
+
     if (! c)
         return NULL;
+
     return c->lookup(name->m_qname.str, name->m_qname.length);
 }
 
@@ -197,7 +198,7 @@ sp_head *sp_cache_lookup(sp_cache **cp, sp_name *name)
 
 void sp_cache_invalidate()
 {
-    DBUG_PRINT("info",("sp_cache: invalidating"));
+    DBUG_PRINT("info", ("sp_cache: invalidating"));
     thread_safe_increment(Cversion, &Cversion_lock);
 }
 
@@ -217,7 +218,7 @@ void sp_cache_flush_obsolete(sp_cache **cp, sp_head **sp)
 {
     if ((*sp)->sp_cache_version() < Cversion && !(*sp)->is_invoked()) {
         (*cp)->remove(*sp);
-        *sp= NULL;
+        *sp = NULL;
     }
 }
 
@@ -240,8 +241,7 @@ ulong sp_cache_version()
   @param[in] upper_limit_for_elements  Soft upper limit for number of sp_head
                                        objects that can be stored in the cache.
 */
-void
-sp_cache_enforce_limit(sp_cache *c, ulong upper_limit_for_elements)
+void sp_cache_enforce_limit(sp_cache *c, ulong upper_limit_for_elements)
 {
     if (c)
         c->enforce_limit(upper_limit_for_elements);
@@ -258,15 +258,15 @@ extern "C" void hash_free_sp_head(void *p);
 uchar *hash_get_key_for_sp_head(const uchar *ptr, size_t *plen,
                                 my_bool first)
 {
-    sp_head *sp= (sp_head *)ptr;
-    *plen= sp->m_qname.length;
-    return (uchar*) sp->m_qname.str;
+    sp_head *sp = (sp_head *)ptr;
+    *plen = sp->m_qname.length;
+    return (uchar *) sp->m_qname.str;
 }
 
 
 void hash_free_sp_head(void *p)
 {
-    sp_head *sp= (sp_head *)p;
+    sp_head *sp = (sp_head *)p;
     delete sp;
 }
 
@@ -283,16 +283,14 @@ sp_cache::~sp_cache()
 }
 
 
-void
-sp_cache::init()
+void sp_cache::init()
 {
     my_hash_init(&m_hashtable, system_charset_info, 0, 0, 0,
                  hash_get_key_for_sp_head, hash_free_sp_head, 0);
 }
 
 
-void
-sp_cache::cleanup()
+void sp_cache::cleanup()
 {
     my_hash_free(&m_hashtable);
 }

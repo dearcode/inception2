@@ -20,20 +20,18 @@
 
 #include <mysql/plugin.h>
 
-extern handlerton* ndbcluster_hton;
+extern handlerton *ndbcluster_hton;
 
 /* Get Thd_ndb pointer from THD */
 static inline
-class Thd_ndb*
-    thd_get_thd_ndb(THD* thd)
+class Thd_ndb *thd_get_thd_ndb(THD *thd)
 {
     return (class Thd_ndb *) thd_get_ha_data(thd, ndbcluster_hton);
 }
 
 /* Backward compatibility alias for 'thd_get_thd_ndb'  */
 static inline
-class Thd_ndb*
-    get_thd_ndb(THD* thd)
+class Thd_ndb *get_thd_ndb(THD *thd)
 {
     return thd_get_thd_ndb(thd);
 }
@@ -41,14 +39,13 @@ class Thd_ndb*
 
 /* Set Thd_ndb pointer for THD */
 static inline
-void
-thd_set_thd_ndb(THD *thd, class Thd_ndb *thd_ndb)
+void thd_set_thd_ndb(THD *thd, class Thd_ndb *thd_ndb)
 {
     thd_set_ha_data(thd, ndbcluster_hton, thd_ndb);
 }
 
 
 /* Make sure THD has a Thd_ndb struct assigned */
-class Ndb* check_ndb_in_thd(THD* thd, bool validate_ndb= false);
+class Ndb *check_ndb_in_thd(THD *thd, bool validate_ndb = false);
 
 #endif

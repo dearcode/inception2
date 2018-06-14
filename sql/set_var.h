@@ -57,18 +57,18 @@ public:
     sys_var *next;
     LEX_CSTRING name;
     enum flag_enum
-    { GLOBAL, SESSION, ONLY_SESSION, SCOPE_MASK=1023,
-      READONLY=1024, ALLOCATED=2048, INVISIBLE=4096
+    {   GLOBAL, SESSION, ONLY_SESSION, SCOPE_MASK = 1023,
+        READONLY = 1024, ALLOCATED = 2048, INVISIBLE = 4096
     };
-    static const int PARSE_EARLY= 1;
-    static const int PARSE_NORMAL= 2;
+    static const int PARSE_EARLY = 1;
+    static const int PARSE_NORMAL = 2;
     /**
       Enumeration type to indicate for a system variable whether
       it will be written to the binlog or not.
     */
     enum binlog_status_enum
-    { VARIABLE_NOT_IN_BINLOG,
-      SESSION_VARIABLE_IN_BINLOG
+    {   VARIABLE_NOT_IN_BINLOG,
+        SESSION_VARIABLE_IN_BINLOG
     } binlog_status;
 
 protected:
@@ -114,7 +114,7 @@ public:
     bool set_default(THD *thd, enum_var_type type);
     virtual void update_default(longlong new_def_value)
     {
-        option.def_value= new_def_value;
+        option.def_value = new_def_value;
     }
     bool update(THD *thd, set_var *var);
 
@@ -153,11 +153,14 @@ public:
         switch (scope()) {
         case GLOBAL:
             return type != OPT_GLOBAL;
+
         case SESSION:
             return false; // always ok
+
         case ONLY_SESSION:
             return type == OPT_GLOBAL;
         }
+
         return true; // keep gcc happy
     }
     bool register_option(std::vector<my_option> *array, int parse_flags)
@@ -195,12 +198,12 @@ protected:
     */
     uchar *session_var_ptr(THD *thd)
     {
-        return ((uchar*)&(thd->variables)) + offset;
+        return ((uchar *) & (thd->variables)) + offset;
     }
 
     uchar *global_var_ptr()
     {
-        return ((uchar*)&global_system_variables) + offset;
+        return ((uchar *)&global_system_variables) + offset;
     }
 };
 
@@ -215,18 +218,18 @@ protected:
   It's similar to Items, an instance of this is created by the parser
   for every assigmnent in SET (or elsewhere, e.g. in SELECT).
 */
-class set_var_base :public Sql_alloc
+class set_var_base : public Sql_alloc
 {
 public:
     set_var_base() {}
     virtual ~set_var_base() {}
-    virtual int check(THD *thd)=0;           /* To check privileges etc. */
-    virtual int update(THD *thd)=0;                  /* To set the value */
+    virtual int check(THD *thd) = 0;         /* To check privileges etc. */
+    virtual int update(THD *thd) = 0;                /* To set the value */
     virtual int light_check(THD *thd)
     {
         return check(thd);    /* for PS */
     }
-    virtual void print(THD *thd, String *str)=0;	/* To self-print */
+    virtual void print(THD *thd, String *str) = 0;	/* To self-print */
     /// @returns whether this variable is @@@@optimizer_trace.
     virtual bool is_var_optimizer_trace() const
     {
@@ -238,7 +241,7 @@ public:
 /**
   set_var_base descendant for assignments to the system variables.
 */
-class set_var :public set_var_base
+class set_var : public set_var_base
 {
 public:
     sys_var *var; ///< system variable to be updated
@@ -256,20 +259,22 @@ public:
 
     set_var(enum_var_type type_arg, sys_var *var_arg,
             const LEX_STRING *base_name_arg, Item *value_arg)
-        :var(var_arg), type(type_arg), base(*base_name_arg)
+        : var(var_arg), type(type_arg), base(*base_name_arg)
     {
         /*
           If the set value is a field, change it to a string to allow things like
           SET table_type=MYISAM;
         */
         if (value_arg && value_arg->type() == Item::FIELD_ITEM) {
-            Item_field *item= (Item_field*) value_arg;
-            if (!(value=new Item_string(item->field_name,
-                                        (uint) strlen(item->field_name),
-                                        system_charset_info))) // names are utf8
-                value=value_arg;                        /* Give error message later */
+            Item_field *item = (Item_field *) value_arg;
+
+            if (!(value = new Item_string(item->field_name,
+                                          (uint) strlen(item->field_name),
+                                          system_charset_info))) // names are utf8
+                value = value_arg;                      /* Give error message later */
+
         } else
-            value=value_arg;
+            value = value_arg;
     }
     int check(THD *thd);
     int update(THD *thd);
@@ -291,7 +296,7 @@ class set_var_user: public set_var_base
     Item_func_set_user_var *user_var_item;
 public:
     set_var_user(Item_func_set_user_var *item)
-        :user_var_item(item)
+        : user_var_item(item)
     {}
     int check(THD *thd);
     int update(THD *thd);
@@ -306,8 +311,8 @@ class set_var_password: public set_var_base
     LEX_USER *user;
     char *password;
 public:
-    set_var_password(LEX_USER *user_arg,char *password_arg)
-        :user(user_arg), password(password_arg)
+    set_var_password(LEX_USER *user_arg, char *password_arg)
+        : user(user_arg), password(password_arg)
     {}
     int check(THD *thd);
     int update(THD *thd);
@@ -325,15 +330,15 @@ class set_var_collation_client: public set_var_base
     const CHARSET_INFO *collation_connection;
 public:
     enum  set_cs_flags_enum
-    { SET_CS_NAMES=1, SET_CS_DEFAULT=2, SET_CS_COLLATE=4 };
+    { SET_CS_NAMES = 1, SET_CS_DEFAULT = 2, SET_CS_COLLATE = 4 };
     set_var_collation_client(int set_cs_flags_arg,
                              const CHARSET_INFO *client_coll_arg,
                              const CHARSET_INFO *connection_coll_arg,
                              const CHARSET_INFO *result_coll_arg)
-        :set_cs_flags(set_cs_flags_arg),
-         character_set_client(client_coll_arg),
-         character_set_results(result_coll_arg),
-         collation_connection(connection_coll_arg)
+        : set_cs_flags(set_cs_flags_arg),
+          character_set_client(client_coll_arg),
+          character_set_results(result_coll_arg),
+          collation_connection(connection_coll_arg)
     {}
     int check(THD *thd);
     int update(THD *thd);
@@ -356,9 +361,9 @@ extern SHOW_COMP_OPTION have_compress;
   Prototypes for helper functions
 */
 
-SHOW_VAR* enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type);
+SHOW_VAR *enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type);
 
-sys_var *find_sys_var(THD *thd, const char *str, uint length=0);
+sys_var *find_sys_var(THD *thd, const char *str, uint length = 0);
 int sql_set_variables(THD *thd, List<set_var_base> *var_list);
 
 bool fix_delay_key_write(sys_var *self, THD *thd, enum_var_type type);

@@ -37,7 +37,7 @@
 #define READ_BOOTSTRAP_QUERY_SIZE  3
 
 typedef void *fgets_input_t;
-typedef char * (*fgets_fn_t)(char *, size_t, fgets_input_t, int *error);
+typedef char *(*fgets_fn_t)(char *, size_t, fgets_input_t, int *error);
 
 int read_bootstrap_query(char *query, int *query_length,
                          fgets_input_t input, fgets_fn_t fgets_fn, int *error);

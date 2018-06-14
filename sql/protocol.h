@@ -66,10 +66,10 @@ public:
         init(thd_arg);
     }
     virtual ~Protocol() {}
-    void init(THD* thd_arg);
+    void init(THD *thd_arg);
 
     enum
-    { SEND_NUM_ROWS= 1, SEND_DEFAULTS= 2, SEND_EOF= 4 };
+    { SEND_NUM_ROWS = 1, SEND_DEFAULTS = 2, SEND_EOF = 4 };
     virtual bool send_result_set_metadata(List<Item> *list, uint flags);
     bool send_result_set_row(List<Item> *row_items);
 
@@ -102,37 +102,37 @@ public:
     }
     inline bool store(String *str)
     {
-        return store((char*) str->ptr(), str->length(), str->charset());
+        return store((char *) str->ptr(), str->length(), str->charset());
     }
 
     virtual bool prepare_for_send(uint num_columns)
     {
-        field_count= num_columns;
+        field_count = num_columns;
         return 0;
     }
     virtual bool flush();
     virtual void end_partial_result_set(THD *thd);
-    virtual void prepare_for_resend()=0;
+    virtual void prepare_for_resend() = 0;
 
-    virtual bool store_null()=0;
-    virtual bool store_tiny(longlong from)=0;
-    virtual bool store_short(longlong from)=0;
-    virtual bool store_long(longlong from)=0;
-    virtual bool store_longlong(longlong from, bool unsigned_flag)=0;
-    virtual bool store_decimal(const my_decimal *)=0;
+    virtual bool store_null() = 0;
+    virtual bool store_tiny(longlong from) = 0;
+    virtual bool store_short(longlong from) = 0;
+    virtual bool store_long(longlong from) = 0;
+    virtual bool store_longlong(longlong from, bool unsigned_flag) = 0;
+    virtual bool store_decimal(const my_decimal *) = 0;
     virtual bool store(const char *from, size_t length,
-                       const CHARSET_INFO *cs)=0;
+                       const CHARSET_INFO *cs) = 0;
     virtual bool store(const char *from, size_t length,
                        const CHARSET_INFO *fromcs,
-                       const CHARSET_INFO *tocs)=0;
-    virtual bool store(float from, uint32 decimals, String *buffer)=0;
-    virtual bool store(double from, uint32 decimals, String *buffer)=0;
-    virtual bool store(MYSQL_TIME *time, uint precision)=0;
-    virtual bool store_date(MYSQL_TIME *time)=0;
-    virtual bool store_time(MYSQL_TIME *time, uint precision)=0;
-    virtual bool store(Field *field)=0;
+                       const CHARSET_INFO *tocs) = 0;
+    virtual bool store(float from, uint32 decimals, String *buffer) = 0;
+    virtual bool store(double from, uint32 decimals, String *buffer) = 0;
+    virtual bool store(MYSQL_TIME *time, uint precision) = 0;
+    virtual bool store_date(MYSQL_TIME *time) = 0;
+    virtual bool store_time(MYSQL_TIME *time, uint precision) = 0;
+    virtual bool store(Field *field) = 0;
 
-    virtual bool send_out_parameters(List<Item_param> *sp_params)=0;
+    virtual bool send_out_parameters(List<Item_param> *sp_params) = 0;
 #ifdef EMBEDDED_LIBRARY
     int begin_dataset();
     virtual void remove_last_row() {}
@@ -145,9 +145,9 @@ public:
           Before adding a new type, please make sure
           there is enough storage for it in Query_cache_query_flags.
         */
-        PROTOCOL_TEXT= 0, PROTOCOL_BINARY= 1, PROTOCOL_LOCAL= 2
+        PROTOCOL_TEXT = 0, PROTOCOL_BINARY = 1, PROTOCOL_LOCAL = 2
     };
-    virtual enum enum_protocol_type type()= 0;
+    virtual enum enum_protocol_type type() = 0;
 
     void end_statement();
 };
@@ -155,11 +155,11 @@ public:
 
 /** Class used for the old (MySQL 4.0 protocol). */
 
-class Protocol_text :public Protocol
+class Protocol_text : public Protocol
 {
 public:
     Protocol_text() {}
-    Protocol_text(THD *thd_arg) :Protocol(thd_arg) {}
+    Protocol_text(THD *thd_arg) : Protocol(thd_arg) {}
     virtual void prepare_for_resend();
     virtual bool store_null();
     virtual bool store_tiny(longlong from);
@@ -189,13 +189,13 @@ public:
 };
 
 
-class Protocol_binary :public Protocol
+class Protocol_binary : public Protocol
 {
 private:
     uint bit_fields;
 public:
     Protocol_binary() {}
-    Protocol_binary(THD *thd_arg) :Protocol(thd_arg) {}
+    Protocol_binary(THD *thd_arg) : Protocol(thd_arg) {}
     virtual bool prepare_for_send(uint num_columns);
     virtual void prepare_for_resend();
 #ifdef EMBEDDED_LIBRARY
@@ -226,11 +226,11 @@ public:
     };
 };
 
-void send_warning(THD *thd, uint sql_errno, const char *err=0);
+void send_warning(THD *thd, uint sql_errno, const char *err = 0);
 bool net_send_error(THD *thd, uint sql_errno, const char *err,
-                    const char* sqlstate);
-uchar *net_store_data(uchar *to,const uchar *from, size_t length);
-uchar *net_store_data(uchar *to,int32 from);
-uchar *net_store_data(uchar *to,longlong from);
+                    const char *sqlstate);
+uchar *net_store_data(uchar *to, const uchar *from, size_t length);
+uchar *net_store_data(uchar *to, int32 from);
+uchar *net_store_data(uchar *to, longlong from);
 
 #endif /* PROTOCOL_INCLUDED */

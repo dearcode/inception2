@@ -93,7 +93,7 @@ private:
         /// @param _handler   sp_handler object.
         /// @param _first_ip  first instruction pointer.
         sp_handler_entry(const sp_handler *_handler, uint _first_ip)
-            :handler(_handler), first_ip(_first_ip)
+            : handler(_handler), first_ip(_first_ip)
         { }
     };
 
@@ -133,12 +133,11 @@ public:
         /// @param _sql_condition  The SQL condition.
         /// @param arena           Query arena for SP
         Sql_condition_info(const Sql_condition *_sql_condition)
-            :sql_errno(_sql_condition->get_sql_errno()),
-             level(_sql_condition->get_level())
+            : sql_errno(_sql_condition->get_sql_errno()),
+              level(_sql_condition->get_level())
         {
             memcpy(sql_state, _sql_condition->get_sqlstate(), SQLSTATE_LENGTH);
-            sql_state[SQLSTATE_LENGTH]= '\0';
-
+            sql_state[SQLSTATE_LENGTH] = '\0';
             strncpy(message, _sql_condition->get_message_text(), MYSQL_ERRMSG_SIZE);
         }
     };
@@ -167,9 +166,9 @@ private:
         Handler_call_frame(const sp_handler *_handler,
                            const Sql_condition *_sql_condition,
                            uint _continue_ip)
-            :handler(_handler),
-             sql_condition(_sql_condition),
-             continue_ip(_continue_ip)
+            : handler(_handler),
+              sql_condition(_sql_condition),
+              continue_ip(_continue_ip)
         { }
     };
 
@@ -274,9 +273,8 @@ public:
     /// handler. This function must not be called for the EXIT handlers.
     uint get_last_handler_continue_ip() const
     {
-        uint ip= (*m_activated_handlers.back())->continue_ip;
+        uint ip = (*m_activated_handlers.back())->continue_ip;
         DBUG_ASSERT(ip != 0);
-
         return ip;
     }
 
@@ -344,9 +342,9 @@ public:
         return m_case_expr_holders[case_expr_id];
     }
 
-    Item ** get_case_expr_addr(int case_expr_id) const
+    Item **get_case_expr_addr(int case_expr_id) const
     {
-        return (Item**) m_case_expr_holders.array() + case_expr_id;
+        return (Item **) m_case_expr_holders.array() + case_expr_id;
     }
 
 private:
@@ -453,7 +451,7 @@ private:
         }
         void set_spvar_list(List<sp_variable> *vars)
         {
-            spvar_list= vars;
+            spvar_list = vars;
         }
 
         virtual bool send_eof()
@@ -466,8 +464,8 @@ private:
 
 public:
     sp_cursor(sp_instr_cpush *i)
-        :m_server_side_cursor(NULL),
-         m_push_instr(i)
+        : m_server_side_cursor(NULL),
+          m_push_instr(i)
     { }
 
     virtual ~sp_cursor()

@@ -88,7 +88,7 @@ int get_parts_for_update(const uchar *old_data, uchar *new_data,
 int get_part_for_delete(const uchar *buf, const uchar *rec0,
                         partition_info *part_info, uint32 *part_id);
 void prune_partition_set(const TABLE *table, part_id_range *part_spec);
-bool check_partition_info(partition_info *part_info,handlerton **eng_type,
+bool check_partition_info(partition_info *part_info, handlerton **eng_type,
                           TABLE *table, handler *file, HA_CREATE_INFO *info);
 void set_linear_hash_mask(partition_info *part_info, uint num_parts);
 bool fix_partition_func(THD *thd, TABLE *table, bool create_table_ind);
@@ -122,7 +122,7 @@ uint32 get_partition_id_range_for_endpoint(partition_info *part_info,
         bool include_endpoint);
 bool check_part_func_fields(Field **ptr, bool ok_with_charsets);
 bool field_is_partition_charset(Field *field);
-Item* convert_charset_partition_constant(Item *item, const CHARSET_INFO *cs);
+Item *convert_charset_partition_constant(Item *item, const CHARSET_INFO *cs);
 void mem_alloc_error(size_t size);
 void truncate_partition_filename(char *path);
 
@@ -147,7 +147,7 @@ void truncate_partition_filename(char *path);
     [sub]partition_id  of the next partition
 */
 
-typedef uint32 (*partition_iter_func)(st_partition_iter* part_iter);
+typedef uint32 (*partition_iter_func)(st_partition_iter *part_iter);
 
 
 /*

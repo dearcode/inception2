@@ -166,7 +166,7 @@ void sp_update_stmt_used_routines(THD *thd, Query_tables_list *prelocking_ctx,
                                   SQL_I_List<Sroutine_hash_entry> *src,
                                   TABLE_LIST *belong_to_view);
 
-extern "C" uchar* sp_sroutine_key(const uchar *ptr, size_t *plen,
+extern "C" uchar *sp_sroutine_key(const uchar *ptr, size_t *plen,
                                   my_bool first);
 
 /*
@@ -214,7 +214,7 @@ TABLE_LIST *sp_add_to_query_tables(THD *thd, LEX *lex,
 
 bool sp_check_show_access(THD *thd, sp_head *sp, bool *full_access);
 
-Item *sp_prepare_func_item(THD* thd, Item **it_addr);
+Item *sp_prepare_func_item(THD *thd, Item **it_addr);
 
 bool sp_eval_expr(THD *thd, Field *result_field, Item **expr_item_ptr);
 

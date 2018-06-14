@@ -55,7 +55,7 @@ typedef struct st_keyfile_info  	/* used with ha_info() */
     ulonglong max_index_file_length;
     ulonglong delete_length;		/* Free bytes */
     ulonglong auto_increment_value;
-    int errkey,sortkey;			/* Last errorkey and sorted by */
+    int errkey, sortkey;			/* Last errorkey and sorted by */
     time_t create_time;			/* When table was created */
     time_t check_time;
     time_t update_time;
@@ -162,8 +162,8 @@ typedef enum enum_mysql_timestamp_type timestamp_type;
 
 typedef struct
 {
-    ulong year,month,day,hour;
-    ulonglong minute,second,second_part;
+    ulong year, month, day, hour;
+    ulonglong minute, second, second_part;
     bool neg;
 } INTERVAL;
 
@@ -212,8 +212,8 @@ typedef struct user_resources
        parser to store which user limits were specified in GRANT statement.
     */
     enum
-    {QUERIES_PER_HOUR= 1, UPDATES_PER_HOUR= 2, CONNECTIONS_PER_HOUR= 4,
-     USER_CONNECTIONS= 8
+    {   QUERIES_PER_HOUR = 1, UPDATES_PER_HOUR = 2, CONNECTIONS_PER_HOUR = 4,
+        USER_CONNECTIONS = 8
     };
     uint specified_limits;
 } USER_RESOURCES;
@@ -306,9 +306,9 @@ public:
     Discrete_interval *next;    // used when linked into Discrete_intervals_list
     void replace(ulonglong start, ulonglong val, ulonglong incr)
     {
-        interval_min=    start;
-        interval_values= val;
-        interval_max=    (val == ULONGLONG_MAX) ? val : start + val * incr;
+        interval_min =    start;
+        interval_values = val;
+        interval_max =    (val == ULONGLONG_MAX) ? val : start + val * incr;
     }
     Discrete_interval(ulonglong start, ulonglong val, ulonglong incr) :
         next(NULL)
@@ -339,14 +339,17 @@ public:
     bool merge_if_contiguous(ulonglong start, ulonglong val, ulonglong incr)
     {
         if (interval_max == start) {
-            if (val == ULONGLONG_MAX) {
-                interval_values=   interval_max= val;
-            } else {
-                interval_values+=  val;
-                interval_max=      start + val * incr;
+            if (val == ULONGLONG_MAX)
+                interval_values =   interval_max = val;
+
+            else {
+                interval_values +=  val;
+                interval_max =      start + val * incr;
             }
+
             return 0;
         }
+
         return 1;
     };
 };
@@ -388,24 +391,27 @@ private:
     {
         if (unlikely(new_interval == NULL))
             return true;
-        DBUG_PRINT("info",("adding new auto_increment interval"));
+
+        DBUG_PRINT("info", ("adding new auto_increment interval"));
+
         if (head == NULL)
-            head= current= new_interval;
+            head = current = new_interval;
         else
-            tail->next= new_interval;
-        tail= new_interval;
+            tail->next = new_interval;
+
+        tail = new_interval;
         elements++;
         return false;
     }
     void copy_shallow(const Discrete_intervals_list *other)
     {
-        const Discrete_interval *o_first_interval= &other->first_interval;
-        first_interval= other->first_interval;
-        head= other->head == o_first_interval ? &first_interval : other->head;
-        tail= other->tail == o_first_interval ? &first_interval : other->tail;
-        current=
+        const Discrete_interval *o_first_interval = &other->first_interval;
+        first_interval = other->first_interval;
+        head = other->head == o_first_interval ? &first_interval : other->head;
+        tail = other->tail == o_first_interval ? &first_interval : other->tail;
+        current =
             other->current == o_first_interval ? &first_interval : other->current;
-        elements= other->elements;
+        elements = other->elements;
     }
     Discrete_intervals_list(const Discrete_intervals_list &other)
     {
@@ -419,17 +425,18 @@ public:
     {
         if (head) {
             // first element, not on heap, should not be delete-d; start with next:
-            for (Discrete_interval *i= head->next; i;) {
+            for (Discrete_interval *i = head->next; i;) {
 #ifdef DISCRETE_INTERVAL_LIST_HAS_MAX_ONE_ELEMENT
                 DBUG_ASSERT(0);
 #endif
-                Discrete_interval *next= i->next;
+                Discrete_interval *next = i->next;
                 delete i;
-                i= next;
+                i = next;
             }
         }
-        head= tail= current= NULL;
-        elements= 0;
+
+        head = tail = current = NULL;
+        elements = 0;
     }
     void swap(Discrete_intervals_list *other)
     {
@@ -439,9 +446,11 @@ public:
     }
     const Discrete_interval *get_next()
     {
-        const Discrete_interval *tmp= current;
+        const Discrete_interval *tmp = current;
+
         if (current != NULL)
-            current= current->next;
+            current = current->next;
+
         return tmp;
     }
     ~Discrete_intervals_list()
@@ -464,9 +473,11 @@ public:
             first_interval.replace(start, val, incr);
             return append(&first_interval);
         }
+
         // If this interval can be merged with previous, do that.
         if (tail->merge_if_contiguous(start, val, incr) == 0)
             return false;
+
         // If this interval cannot be merged, append it.
 #ifdef DISCRETE_INTERVAL_LIST_HAS_MAX_ONE_ELEMENT
         /*

@@ -58,8 +58,8 @@ private:
     typedef struct
     {
         uint n_fields;
-        const char* schema;
-        const char* name;
+        const char *schema;
+        const char *name;
     } struct_table_data;
 
     static struct_table_data rli_table_data;
@@ -96,8 +96,8 @@ private:
                                   Rpl_info_handler **handler_src,
                                   Rpl_info_handler **handler_dst,
                                   const char **msg);
-    static bool scan_repositories(uint* found_instances,
-                                  uint* found_rep_option,
+    static bool scan_repositories(uint *found_instances,
+                                  uint *found_rep_option,
                                   const struct_table_data table_data,
                                   const struct_file_data file_data, const char **msg);
 };

@@ -28,7 +28,7 @@ static struct my_snprintf_service_st my_snprintf_handler = {
     my_vsnprintf
 };
 
-static struct thd_alloc_service_st thd_alloc_handler= {
+static struct thd_alloc_service_st thd_alloc_handler = {
     thd_alloc,
     thd_calloc,
     thd_strdup,
@@ -37,21 +37,21 @@ static struct thd_alloc_service_st thd_alloc_handler= {
     thd_make_lex_string
 };
 
-static struct thd_wait_service_st thd_wait_handler= {
+static struct thd_wait_service_st thd_wait_handler = {
     thd_wait_begin,
     thd_wait_end
 };
 
-static struct my_thread_scheduler_service my_thread_scheduler_handler= {
+static struct my_thread_scheduler_service my_thread_scheduler_handler = {
     my_thread_scheduler_set,
     my_thread_scheduler_reset,
 };
 
-static struct my_plugin_log_service my_plugin_log_handler= {
+static struct my_plugin_log_service my_plugin_log_handler = {
     my_plugin_log_message
 };
 
-static struct mysql_string_service_st mysql_string_handler= {
+static struct mysql_string_service_st mysql_string_handler = {
     mysql_string_convert_to_char_ptr,
     mysql_string_get_iterator,
     mysql_string_iterator_next,
@@ -63,7 +63,7 @@ static struct mysql_string_service_st mysql_string_handler= {
     mysql_string_iterator_free,
 };
 
-static struct st_service_ref list_of_services[]= {
+static struct st_service_ref list_of_services[] = {
     { "my_snprintf_service", VERSION_my_snprintf, &my_snprintf_handler },
     { "thd_alloc_service",   VERSION_thd_alloc,   &thd_alloc_handler },
     { "thd_wait_service",    VERSION_thd_wait,    &thd_wait_handler },

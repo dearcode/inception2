@@ -93,7 +93,7 @@ public:
       @param item_list The list of arguments to the function, can be NULL
       @return An item representing the parsed function call
     */
-    virtual Item* create(THD *thd, LEX_STRING db, LEX_STRING name,
+    virtual Item *create(THD *thd, LEX_STRING db, LEX_STRING name,
                          bool use_explicit_name, List<Item> *item_list) = 0;
 
 protected:
@@ -110,7 +110,7 @@ protected:
   @param name The native function name
   @return The native function builder associated with the name, or NULL
 */
-extern Create_func * find_native_function_builder(THD *thd, LEX_STRING name);
+extern Create_func *find_native_function_builder(THD *thd, LEX_STRING name);
 
 
 /**
@@ -118,7 +118,7 @@ extern Create_func * find_native_function_builder(THD *thd, LEX_STRING name);
   @param thd The current thread
   @return A function builder for qualified functions
 */
-extern Create_qfunc * find_qualified_function_builder(THD *thd);
+extern Create_qfunc *find_qualified_function_builder(THD *thd);
 
 
 #ifdef HAVE_DLOPEN

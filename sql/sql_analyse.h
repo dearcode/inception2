@@ -53,19 +53,19 @@ uint check_ulonglong(const char *str, uint length);
 bool get_ev_num_info(EV_NUM_INFO *ev_info, NUM_INFO *info, const char *num);
 bool test_if_number(NUM_INFO *info, const char *str, uint str_len);
 int compare_double(const double *s, const double *t);
-int compare_double2(void* cmp_arg __attribute__((unused)),
+int compare_double2(void *cmp_arg __attribute__((unused)),
                     const double *s, const double *t);
 int compare_longlong(const longlong *s, const longlong *t);
-int compare_longlong2(void* cmp_arg __attribute__((unused)),
+int compare_longlong2(void *cmp_arg __attribute__((unused)),
                       const longlong *s, const longlong *t);
 int compare_ulonglong(const ulonglong *s, const ulonglong *t);
-int compare_ulonglong2(void* cmp_arg __attribute__((unused)),
+int compare_ulonglong2(void *cmp_arg __attribute__((unused)),
                        const ulonglong *s, const ulonglong *t);
-int compare_decimal2(int* len, const char *s, const char *t);
-void free_string(String*);
+int compare_decimal2(int *len, const char *s, const char *t);
+void free_string(String *);
 class select_analyse;
 
-class field_info :public Sql_alloc
+class field_info : public Sql_alloc
 {
 protected:
     ulong   treemem, tree_elements, empty, nulls, min_length, max_length;
@@ -76,21 +76,21 @@ protected:
     select_analyse *pc;
 
 public:
-    field_info(Item* a, select_analyse* b)
+    field_info(Item *a, select_analyse *b)
         : treemem(0), tree_elements(0), empty(0),
           nulls(0), min_length(0), max_length(0), room_in_tree(1),
-          found(0),item(a), pc(b) {};
+          found(0), item(a), pc(b) {};
 
     virtual ~field_info()
     {
         delete_tree(&tree);
     }
     virtual void	 add() = 0;
-    virtual void	 get_opt_type(String*, ha_rows) = 0;
+    virtual void	 get_opt_type(String *, ha_rows) = 0;
     virtual String *get_min_arg(String *) = 0;
     virtual String *get_max_arg(String *) = 0;
-    virtual String *avg(String*, ha_rows) = 0;
-    virtual String *std(String*, ha_rows) = 0;
+    virtual String *avg(String *, ha_rows) = 0;
+    virtual String *std(String *, ha_rows) = 0;
     virtual tree_walk_action collect_enum() = 0;
     virtual uint decimals()
     {
@@ -103,10 +103,10 @@ public:
 int collect_string(String *element, element_count count,
                    TREE_INFO *info);
 
-int sortcmp2(void* cmp_arg __attribute__((unused)),
-             const String *a,const String *b);
+int sortcmp2(void *cmp_arg __attribute__((unused)),
+             const String *a, const String *b);
 
-class field_str :public field_info
+class field_str : public field_info
 {
     String      min_arg, max_arg;
     ulonglong   sum;
@@ -116,9 +116,9 @@ class field_str :public field_info
     EV_NUM_INFO ev_num_info;
 
 public:
-    field_str(Item* a, select_analyse* b) :field_info(a,b),
-        min_arg("",default_charset_info),
-        max_arg("",default_charset_info), sum(0),
+    field_str(Item *a, select_analyse *b) : field_info(a, b),
+        min_arg("", default_charset_info),
+        max_arg("", default_charset_info), sum(0),
         must_be_blob(0), was_zero_fill(0),
         was_maybe_zerofill(0), can_be_still_num(1)
     {
@@ -127,7 +127,7 @@ public:
     };
 
     void	 add();
-    void	 get_opt_type(String*, ha_rows);
+    void	 get_opt_type(String *, ha_rows);
     String *get_min_arg(String *not_used __attribute__((unused)))
     {
         return &min_arg;
@@ -139,10 +139,11 @@ public:
     String *avg(String *s, ha_rows rows)
     {
         if (!(rows - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else
             s->set_real((ulonglong2double(sum) / ulonglong2double(rows - nulls)),
-                        DEC_IN_AVG,my_thd_charset);
+                        DEC_IN_AVG, my_thd_charset);
+
         return s;
     }
     friend int collect_string(String *element, element_count count,
@@ -154,7 +155,7 @@ public:
     String *std(String *s __attribute__((unused)),
                 ha_rows rows __attribute__((unused)))
     {
-        return (String*) 0;
+        return (String *) 0;
     }
 };
 
@@ -162,22 +163,22 @@ public:
 int collect_decimal(uchar *element, element_count count,
                     TREE_INFO *info);
 
-class field_decimal :public field_info
+class field_decimal : public field_info
 {
     my_decimal min_arg, max_arg;
     my_decimal sum[2], sum_sqr[2];
     int cur_sum;
     int bin_size;
 public:
-    field_decimal(Item* a, select_analyse* b) :field_info(a,b)
+    field_decimal(Item *a, select_analyse *b) : field_info(a, b)
     {
-        bin_size= my_decimal_get_binary_size(a->max_length, a->decimals);
+        bin_size = my_decimal_get_binary_size(a->max_length, a->decimals);
         init_tree(&tree, 0, 0, bin_size, (qsort_cmp2)compare_decimal2,
                   0, 0, (void *)&bin_size);
     };
 
     void	 add();
-    void	 get_opt_type(String*, ha_rows);
+    void	 get_opt_type(String *, ha_rows);
     String *get_min_arg(String *);
     String *get_max_arg(String *);
     String *avg(String *s, ha_rows rows);
@@ -200,7 +201,7 @@ class field_real: public field_info
     uint	 max_notzero_dec_len;
 
 public:
-    field_real(Item* a, select_analyse* b) :field_info(a,b),
+    field_real(Item *a, select_analyse *b) : field_info(a, b),
         min_arg(0), max_arg(0),  sum(0), sum_sqr(0), max_notzero_dec_len(0)
     {
         init_tree(&tree, 0, 0, sizeof(double),
@@ -208,7 +209,7 @@ public:
     }
 
     void	 add();
-    void	 get_opt_type(String*, ha_rows);
+    void	 get_opt_type(String *, ha_rows);
     String *get_min_arg(String *s)
     {
         s->set_real(min_arg, item->decimals, my_thd_charset);
@@ -222,21 +223,24 @@ public:
     String *avg(String *s, ha_rows rows)
     {
         if (!(rows - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else
-            s->set_real(((double)sum / (double) (rows - nulls)), item->decimals,my_thd_charset);
+            s->set_real(((double)sum / (double) (rows - nulls)), item->decimals, my_thd_charset);
+
         return s;
     }
     String *std(String *s, ha_rows rows)
     {
         double tmp = ulonglong2double(rows);
+
         if (!(tmp - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else {
             double tmp2 = ((sum_sqr - sum * sum / (tmp - nulls)) /
                            (tmp - nulls));
-            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), item->decimals,my_thd_charset);
+            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), item->decimals, my_thd_charset);
         }
+
         return s;
     }
     uint	 decimals()
@@ -260,7 +264,7 @@ class field_longlong: public field_info
     longlong sum, sum_sqr;
 
 public:
-    field_longlong(Item* a, select_analyse* b) :field_info(a,b),
+    field_longlong(Item *a, select_analyse *b) : field_info(a, b),
         min_arg(0), max_arg(0), sum(0), sum_sqr(0)
     {
         init_tree(&tree, 0, 0, sizeof(longlong),
@@ -268,35 +272,38 @@ public:
     }
 
     void	 add();
-    void	 get_opt_type(String*, ha_rows);
+    void	 get_opt_type(String *, ha_rows);
     String *get_min_arg(String *s)
     {
-        s->set(min_arg,my_thd_charset);
+        s->set(min_arg, my_thd_charset);
         return s;
     }
     String *get_max_arg(String *s)
     {
-        s->set(max_arg,my_thd_charset);
+        s->set(max_arg, my_thd_charset);
         return s;
     }
     String *avg(String *s, ha_rows rows)
     {
         if (!(rows - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else
-            s->set_real(((double) sum / (double) (rows - nulls)), DEC_IN_AVG,my_thd_charset);
+            s->set_real(((double) sum / (double) (rows - nulls)), DEC_IN_AVG, my_thd_charset);
+
         return s;
     }
     String *std(String *s, ha_rows rows)
     {
         double tmp = ulonglong2double(rows);
+
         if (!(tmp - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else {
             double tmp2 = ((sum_sqr - sum * sum / (tmp - nulls)) /
                            (tmp - nulls));
-            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), DEC_IN_AVG,my_thd_charset);
+            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), DEC_IN_AVG, my_thd_charset);
         }
+
         return s;
     }
     friend int collect_longlong(longlong *element, element_count count,
@@ -316,44 +323,47 @@ class field_ulonglong: public field_info
     ulonglong sum, sum_sqr;
 
 public:
-    field_ulonglong(Item* a, select_analyse * b) :field_info(a,b),
-        min_arg(0), max_arg(0), sum(0),sum_sqr(0)
+    field_ulonglong(Item *a, select_analyse *b) : field_info(a, b),
+        min_arg(0), max_arg(0), sum(0), sum_sqr(0)
     {
         init_tree(&tree, 0, 0, sizeof(ulonglong),
                   (qsort_cmp2) compare_ulonglong2, 0, NULL, NULL);
     }
     void	 add();
-    void	 get_opt_type(String*, ha_rows);
+    void	 get_opt_type(String *, ha_rows);
     String *get_min_arg(String *s)
     {
-        s->set(min_arg,my_thd_charset);
+        s->set(min_arg, my_thd_charset);
         return s;
     }
     String *get_max_arg(String *s)
     {
-        s->set(max_arg,my_thd_charset);
+        s->set(max_arg, my_thd_charset);
         return s;
     }
     String *avg(String *s, ha_rows rows)
     {
         if (!(rows - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else
             s->set_real((ulonglong2double(sum) / ulonglong2double(rows - nulls)),
-                        DEC_IN_AVG,my_thd_charset);
+                        DEC_IN_AVG, my_thd_charset);
+
         return s;
     }
     String *std(String *s, ha_rows rows)
     {
         double tmp = ulonglong2double(rows);
+
         if (!(tmp - nulls))
-            s->set_real((double) 0.0, 1,my_thd_charset);
+            s->set_real((double) 0.0, 1, my_thd_charset);
         else {
             double tmp2 = ((ulonglong2double(sum_sqr) -
                             ulonglong2double(sum * sum) / (tmp - nulls)) /
                            (tmp - nulls));
-            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), DEC_IN_AVG,my_thd_charset);
+            s->set_real(((double) tmp2 <= 0.0 ? 0.0 : sqrt(tmp2)), DEC_IN_AVG, my_thd_charset);
         }
+
         return s;
     }
     friend int collect_ulonglong(ulonglong *element, element_count count,
@@ -375,7 +385,7 @@ class select_analyse : public select_send
 
     Item_proc    *func_items[10]; //< items for output metadata and column data
     List<Item>   result_fields; //< same as func_items but capable for send_data()
-    field_info   **f_info, **f_end; //< bounds for column data accumulator array
+    field_info   **f_info, * *f_end; //< bounds for column data accumulator array
 
     ha_rows      rows; //< counter of original SELECT query output rows
     uint	       output_str_length; //< max.width for the Optimal_fieldtype column

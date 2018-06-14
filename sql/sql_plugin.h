@@ -24,10 +24,10 @@
   that is defined in plugin.h.
 */
 #define SHOW_always_last SHOW_KEY_CACHE_LONG, \
-            SHOW_KEY_CACHE_LONGLONG, SHOW_LONG_STATUS, SHOW_DOUBLE_STATUS, \
-            SHOW_HAVE, SHOW_MY_BOOL, SHOW_HA_ROWS, SHOW_SYS, \
-            SHOW_LONG_NOFLUSH, SHOW_LONGLONG_STATUS, SHOW_LEX_STRING, \
-            SHOW_SIGNED_LONG
+    SHOW_KEY_CACHE_LONGLONG, SHOW_LONG_STATUS, SHOW_DOUBLE_STATUS, \
+    SHOW_HAVE, SHOW_MY_BOOL, SHOW_HA_ROWS, SHOW_SYS, \
+    SHOW_LONG_NOFLUSH, SHOW_LONGLONG_STATUS, SHOW_LEX_STRING, \
+    SHOW_SIGNED_LONG
 #include <mysql/plugin.h>
 #undef SHOW_always_last
 
@@ -39,8 +39,8 @@ class sys_var;
 enum SHOW_COMP_OPTION
 { SHOW_OPTION_YES, SHOW_OPTION_NO, SHOW_OPTION_DISABLED};
 enum enum_plugin_load_option
-{ PLUGIN_OFF, PLUGIN_ON, PLUGIN_FORCE,
-  PLUGIN_FORCE_PLUS_PERMANENT
+{   PLUGIN_OFF, PLUGIN_ON, PLUGIN_FORCE,
+    PLUGIN_FORCE_PLUS_PERMANENT
 };
 extern const char *global_plugin_typelib_names[];
 
@@ -48,11 +48,11 @@ extern const char *global_plugin_typelib_names[];
 #include "sql_list.h"
 
 #ifdef DBUG_OFF
-#define plugin_ref_to_int(A) A
-#define plugin_int_to_ref(A) A
+    #define plugin_ref_to_int(A) A
+    #define plugin_int_to_ref(A) A
 #else
-#define plugin_ref_to_int(A) (A ? A[0] : NULL)
-#define plugin_int_to_ref(A) &(A)
+    #define plugin_ref_to_int(A) (A ? A[0] : NULL)
+    #define plugin_int_to_ref(A) &(A)
 #endif
 
 /*
@@ -116,23 +116,23 @@ struct st_plugin_int
   conditionally defined plugin_ref type
 */
 #ifdef DBUG_OFF
-typedef struct st_plugin_int *plugin_ref;
-#define plugin_decl(pi) ((pi)->plugin)
-#define plugin_dlib(pi) ((pi)->plugin_dl)
-#define plugin_data(pi,cast) ((cast)((pi)->data))
-#define plugin_name(pi) (&((pi)->name))
-#define plugin_state(pi) ((pi)->state)
-#define plugin_load_option(pi) ((pi)->load_option)
-#define plugin_equals(p1,p2) ((p1) == (p2))
+    typedef struct st_plugin_int *plugin_ref;
+    #define plugin_decl(pi) ((pi)->plugin)
+    #define plugin_dlib(pi) ((pi)->plugin_dl)
+    #define plugin_data(pi,cast) ((cast)((pi)->data))
+    #define plugin_name(pi) (&((pi)->name))
+    #define plugin_state(pi) ((pi)->state)
+    #define plugin_load_option(pi) ((pi)->load_option)
+    #define plugin_equals(p1,p2) ((p1) == (p2))
 #else
-typedef struct st_plugin_int **plugin_ref;
-#define plugin_decl(pi) ((pi)[0]->plugin)
-#define plugin_dlib(pi) ((pi)[0]->plugin_dl)
-#define plugin_data(pi,cast) ((cast)((pi)[0]->data))
-#define plugin_name(pi) (&((pi)[0]->name))
-#define plugin_state(pi) ((pi)[0]->state)
-#define plugin_load_option(pi) ((pi)[0]->load_option)
-#define plugin_equals(p1,p2) ((p1) && (p2) && (p1)[0] == (p2)[0])
+    typedef struct st_plugin_int **plugin_ref;
+    #define plugin_decl(pi) ((pi)[0]->plugin)
+    #define plugin_dlib(pi) ((pi)[0]->plugin_dl)
+    #define plugin_data(pi,cast) ((cast)((pi)[0]->data))
+    #define plugin_name(pi) (&((pi)[0]->name))
+    #define plugin_state(pi) ((pi)[0]->state)
+    #define plugin_load_option(pi) ((pi)[0]->load_option)
+    #define plugin_equals(p1,p2) ((p1) && (p2) && (p1)[0] == (p2)[0])
 #endif
 
 typedef int (*plugin_type_init)(struct st_plugin_int *);

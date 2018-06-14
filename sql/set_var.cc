@@ -50,8 +50,8 @@ static PolyLock_mutex PLock_global_system_variables(&LOCK_global_system_variable
 static uchar *get_sys_var_length(const sys_var *var, size_t *length,
                                  my_bool first)
 {
-    *length= var->name.length;
-    return (uchar*) var->name.str;
+    *length = var->name.length;
+    return (uchar *) var->name.str;
 }
 
 sys_var_chain all_sys_vars = { NULL, NULL };
@@ -59,7 +59,6 @@ sys_var_chain all_sys_vars = { NULL, NULL };
 int sys_var_init()
 {
     DBUG_ENTER("sys_var_init");
-
     /* Must be already initialized. */
     DBUG_ASSERT(system_charset_info != NULL);
 
@@ -71,7 +70,6 @@ int sys_var_init()
         goto error;
 
     DBUG_RETURN(0);
-
 error:
     fprintf(stderr, "failed to initialize System variables");
     DBUG_RETURN(1);
@@ -81,13 +79,12 @@ int sys_var_add_options(std::vector<my_option> *long_options, int parse_flags)
 {
     DBUG_ENTER("sys_var_add_options");
 
-    for (sys_var *var=all_sys_vars.first; var; var= var->next) {
+    for (sys_var *var = all_sys_vars.first; var; var = var->next) {
         if (var->register_option(long_options, parse_flags))
             goto error;
     }
 
     DBUG_RETURN(0);
-
 error:
     fprintf(stderr, "failed to initialize System variables");
     DBUG_RETURN(1);
@@ -96,10 +93,9 @@ error:
 void sys_var_end()
 {
     DBUG_ENTER("sys_var_end");
-
     my_hash_free(&system_variable_hash);
 
-    for (sys_var *var=all_sys_vars.first; var; var= var->next)
+    for (sys_var *var = all_sys_vars.first; var; var = var->next)
         var->cleanup();
 
     DBUG_VOID_RETURN;
@@ -156,29 +152,29 @@ sys_var::sys_var(sys_var_chain *chain, const char *name_arg,
       See handle_options() for details.
     */
     DBUG_ASSERT(parse_flag == PARSE_NORMAL || getopt_id <= 0 || getopt_id >= 255);
-
-    name.str= name_arg;     // ER_NO_DEFAULT relies on 0-termination of name_arg
-    name.length= strlen(name_arg);                // and so does this.
+    name.str = name_arg;    // ER_NO_DEFAULT relies on 0-termination of name_arg
+    name.length = strlen(name_arg);               // and so does this.
     DBUG_ASSERT(name.length <= NAME_CHAR_LEN);
-
     memset(&option, 0, sizeof(option));
-    option.name= name_arg;
-    option.id= getopt_id;
-    option.comment= comment;
-    option.arg_type= getopt_arg_type;
-    option.value= (uchar **)global_var_ptr();
-    option.def_value= def_val;
+    option.name = name_arg;
+    option.id = getopt_id;
+    option.comment = comment;
+    option.arg_type = getopt_arg_type;
+    option.value = (uchar **)global_var_ptr();
+    option.def_value = def_val;
 
     if (chain->last)
-        chain->last->next= this;
+        chain->last->next = this;
     else
-        chain->first= this;
-    chain->last= this;
+        chain->first = this;
+
+    chain->last = this;
 }
 
 bool sys_var::update(THD *thd, set_var *var)
 {
-    enum_var_type type= var->type;
+    enum_var_type type = var->type;
+
     if (type == OPT_GLOBAL || scope() == GLOBAL) {
         /*
           Yes, both locks need to be taken before an update, just as
@@ -190,6 +186,7 @@ bool sys_var::update(THD *thd, set_var *var)
         AutoWLock lock2(guard);
         return global_update(thd, var) ||
                (on_update && on_update(this, thd, OPT_GLOBAL));
+
     } else
         return session_update(thd, var) ||
                (on_update && on_update(this, thd, OPT_SESSION));
@@ -215,16 +212,20 @@ bool sys_var::check(THD *thd, set_var *var)
 
             if (!var->value) {
                 str.set(STRING_WITH_LEN("DEFAULT"), &my_charset_latin1);
-                res= &str;
-            } else if (!(res=var->value->val_str(&str))) {
+                res = &str;
+
+            } else if (!(res = var->value->val_str(&str))) {
                 str.set(STRING_WITH_LEN("NULL"), &my_charset_latin1);
-                res= &str;
+                res = &str;
             }
+
             ErrConvString err(res);
             my_error(ER_WRONG_VALUE_FOR_VAR, MYF(0), name.str, err.ptr());
         }
+
         return true;
     }
+
     return false;
 }
 
@@ -234,13 +235,14 @@ uchar *sys_var::value_ptr(THD *thd, enum_var_type type, LEX_STRING *base)
         mysql_mutex_assert_owner(&LOCK_global_system_variables);
         AutoRLock lock(guard);
         return global_value_ptr(thd, base);
+
     } else
         return session_value_ptr(thd, base);
 }
 
 bool sys_var::set_default(THD *thd, enum_var_type type)
 {
-    LEX_STRING empty= {0,0};
+    LEX_STRING empty = {0, 0};
     set_var var(type, 0, &empty, 0);
 
     if (type == OPT_GLOBAL || scope() == GLOBAL)
@@ -255,15 +257,15 @@ void sys_var::do_deprecated_warning(THD *thd)
 {
     if (deprecation_substitute != NULL) {
         char buf1[NAME_CHAR_LEN + 3];
-        strxnmov(buf1, sizeof(buf1)-1, "@@", name.str, 0);
-
+        strxnmov(buf1, sizeof(buf1) - 1, "@@", name.str, 0);
         /*
            if deprecation_substitute is an empty string,
            there is no replacement for the syntax
         */
-        uint errmsg= deprecation_substitute[0] == '\0'
-                     ? ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT
-                     : ER_WARN_DEPRECATED_SYNTAX;
+        uint errmsg = deprecation_substitute[0] == '\0'
+                      ? ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT
+                      : ER_WARN_DEPRECATED_SYNTAX;
+
         if (thd)
             push_warning_printf(thd, Sql_condition::WARN_LEVEL_WARN,
                                 ER_WARN_DEPRECATED_SYNTAX, ER(errmsg),
@@ -300,10 +302,12 @@ bool throw_bounds_warning(THD *thd, const char *name,
             my_error(ER_WRONG_VALUE_FOR_VAR, MYF(0), name, buf);
             return true;
         }
+
         push_warning_printf(thd, Sql_condition::WARN_LEVEL_WARN,
                             ER_TRUNCATED_WRONG_VALUE,
                             ER(ER_TRUNCATED_WRONG_VALUE), name, buf);
     }
+
     return false;
 }
 
@@ -311,17 +315,18 @@ bool throw_bounds_warning(THD *thd, const char *name, bool fixed, double v)
 {
     if (fixed) {
         char buf[64];
-
         my_gcvt(v, MY_GCVT_ARG_DOUBLE, sizeof(buf) - 1, buf, NULL);
 
         if (thd->variables.sql_mode & MODE_STRICT_ALL_TABLES) {
             my_error(ER_WRONG_VALUE_FOR_VAR, MYF(0), name, buf);
             return true;
         }
+
         push_warning_printf(thd, Sql_condition::WARN_LEVEL_WARN,
                             ER_TRUNCATED_WRONG_VALUE,
                             ER(ER_TRUNCATED_WRONG_VALUE), name, buf);
     }
+
     return false;
 }
 
@@ -337,7 +342,7 @@ typedef struct old_names_map_st
     const char *new_name;
 } my_old_conv;
 
-static my_old_conv old_conv[]= {
+static my_old_conv old_conv[] = {
     {     "cp1251_koi8",       "cp1251"        },
     {     "cp1250_latin2",       "cp1250"        },
     {     "kam_latin2",       "keybcs2"       },
@@ -355,10 +360,11 @@ const CHARSET_INFO *get_old_charset_by_name(const char *name)
 {
     my_old_conv *conv;
 
-    for (conv= old_conv; conv->old_name; conv++) {
+    for (conv = old_conv; conv->old_name; conv++) {
         if (!my_strcasecmp(&my_charset_latin1, name, conv->old_name))
             return get_charset_by_csname(conv->new_name, MY_CS_PRIMARY, MYF(0));
     }
+
     return NULL;
 }
 
@@ -387,18 +393,20 @@ int mysql_add_sys_var_chain(sys_var *first)
 
     /* A write lock should be held on LOCK_system_variables_hash */
 
-    for (var= first; var; var= var->next) {
+    for (var = first; var; var = var->next) {
         /* this fails if there is a conflicting variable name. see HASH_UNIQUE */
-        if (my_hash_insert(&system_variable_hash, (uchar*) var)) {
+        if (my_hash_insert(&system_variable_hash, (uchar *) var)) {
             fprintf(stderr, "*** duplicate variable name '%s' ?\n", var->name.str);
             goto error;
         }
     }
-    return 0;
 
+    return 0;
 error:
-    for (; first != var; first= first->next)
-        my_hash_delete(&system_variable_hash, (uchar*) first);
+
+    for (; first != var; first = first->next)
+        my_hash_delete(&system_variable_hash, (uchar *) first);
+
     return 1;
 }
 
@@ -417,12 +425,12 @@ error:
 
 int mysql_del_sys_var_chain(sys_var *first)
 {
-    int result= 0;
+    int result = 0;
 
     /* A write lock should be held on LOCK_system_variables_hash */
 
-    for (sys_var *var= first; var; var= var->next)
-        result|= my_hash_delete(&system_variable_hash, (uchar*) var);
+    for (sys_var *var = first; var; var = var->next)
+        result |= my_hash_delete(&system_variable_hash, (uchar *) var);
 
     return result;
 }
@@ -447,17 +455,17 @@ static int show_cmp(SHOW_VAR *a, SHOW_VAR *b)
     NULL        FAILURE
 */
 
-SHOW_VAR* enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type)
+SHOW_VAR *enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type)
 {
-    int count= system_variable_hash.records, i;
-    int size= sizeof(SHOW_VAR) * (count + 1);
-    SHOW_VAR *result= (SHOW_VAR*) thd->alloc(size);
+    int count = system_variable_hash.records, i;
+    int size = sizeof(SHOW_VAR) * (count + 1);
+    SHOW_VAR *result = (SHOW_VAR *) thd->alloc(size);
 
     if (result) {
-        SHOW_VAR *show= result;
+        SHOW_VAR *show = result;
 
-        for (i= 0; i < count; i++) {
-            sys_var *var= (sys_var*) my_hash_element(&system_variable_hash, i);
+        for (i = 0; i < count; i++) {
+            sys_var *var = (sys_var *) my_hash_element(&system_variable_hash, i);
 
             // don't show session-only variables in SHOW GLOBAL VARIABLES
             if (type == OPT_GLOBAL && var->check_type(type))
@@ -467,20 +475,21 @@ SHOW_VAR* enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type)
             if (var->not_visible())
                 continue;
 
-            show->name= var->name.str;
-            show->value= (char*) var;
-            show->type= SHOW_SYS;
+            show->name = var->name.str;
+            show->value = (char *) var;
+            show->type = SHOW_SYS;
             show++;
         }
 
         /* sort into order */
         if (sorted)
-            my_qsort(result, show-result, sizeof(SHOW_VAR),
+            my_qsort(result, show - result, sizeof(SHOW_VAR),
                      (qsort_cmp) show_cmp);
 
         /* make last element empty */
         memset(show, 0, sizeof(SHOW_VAR));
     }
+
     return result;
 }
 
@@ -500,13 +509,12 @@ SHOW_VAR* enumerate_sys_vars(THD *thd, bool sorted, enum enum_var_type type)
 sys_var *intern_find_sys_var(const char *str, uint length)
 {
     sys_var *var;
-
     /*
       This function is only called from the sql_plugin.cc.
       A lock on LOCK_system_variable_hash should be held
     */
-    var= (sys_var*) my_hash_search(&system_variable_hash,
-                                   (uchar*) str, length ? length : strlen(str));
+    var = (sys_var *) my_hash_search(&system_variable_hash,
+                                     (uchar *) str, length ? length : strlen(str));
 
     /* Don't show non-visible variables. */
     if (var && var->not_visible())
@@ -541,16 +549,18 @@ int sql_set_variables(THD *thd, List<set_var_base> *var_list)
     int error;
     List_iterator_fast<set_var_base> it(*var_list);
     DBUG_ENTER("sql_set_variables");
-
     set_var_base *var;
-    while ((var=it++)) {
-        if ((error= var->check(thd)))
+
+    while ((var = it++)) {
+        if ((error = var->check(thd)))
             goto err;
     }
-    if (!(error= test(thd->is_error()))) {
+
+    if (!(error = test(thd->is_error()))) {
         it.rewind();
-        while ((var= it++))
-            error|= var->update(thd);         // Returns 0, -1 or 1
+
+        while ((var = it++))
+            error |= var->update(thd);        // Returns 0, -1 or 1
     }
 
 err:
@@ -575,15 +585,18 @@ err:
 int set_var::check(THD *thd)
 {
     var->do_deprecated_warning(thd);
+
     if (var->is_readonly()) {
         my_error(ER_INCORRECT_GLOBAL_LOCAL_VAR, MYF(0), var->name.str, "read only");
         return -1;
     }
+
     if (var->check_type(type)) {
-        int err= type == OPT_GLOBAL ? ER_LOCAL_VARIABLE : ER_GLOBAL_VARIABLE;
+        int err = type == OPT_GLOBAL ? ER_LOCAL_VARIABLE : ER_GLOBAL_VARIABLE;
         my_error(err, MYF(0), var->name.str);
         return -1;
     }
+
     /* value is a NULL pointer if we are using SET ... = DEFAULT */
     if (!value)
         return 0;
@@ -591,10 +604,12 @@ int set_var::check(THD *thd)
     if ((!value->fixed &&
             value->fix_fields(thd, &value)) || value->check_cols(1))
         return -1;
+
     if (var->check_update_type(value->result_type())) {
         my_error(ER_WRONG_TYPE_FOR_VAR, MYF(0), var->name.str);
         return -1;
     }
+
     return var->check(thd, this) ? -1 : 0;
 }
 
@@ -614,13 +629,15 @@ int set_var::check(THD *thd)
 int set_var::light_check(THD *thd)
 {
     if (var->check_type(type)) {
-        int err= type == OPT_GLOBAL ? ER_LOCAL_VARIABLE : ER_GLOBAL_VARIABLE;
+        int err = type == OPT_GLOBAL ? ER_LOCAL_VARIABLE : ER_GLOBAL_VARIABLE;
         my_error(err, MYF(0), var->name);
         return -1;
     }
+
     if (value && ((!value->fixed && value->fix_fields(thd, &value)) ||
                   value->check_cols(1)))
         return -1;
+
     return 0;
 }
 
@@ -649,12 +666,15 @@ int set_var::update(THD *thd)
 void set_var::print(THD *thd, String *str)
 {
     str->append(type == OPT_GLOBAL ? "GLOBAL " : "SESSION ");
+
     if (base.length) {
         str->append(base.str, base.length);
         str->append(STRING_WITH_LEN("."));
     }
-    str->append(var->name.str,var->name.length);
+
+    str->append(var->name.str, var->name.length);
     str->append(STRING_WITH_LEN("="));
+
     if (value)
         value->print(str, QT_ORDINARY);
     else
@@ -672,7 +692,7 @@ int set_var_user::check(THD *thd)
       Item_func_set_user_var can't substitute something else on its place =>
       0 can be passed as last argument (reference on item)
     */
-    return (user_var_item->fix_fields(thd, (Item**) 0) ||
+    return (user_var_item->fix_fields(thd, (Item **) 0) ||
             user_var_item->check(0)) ? -1 : 0;
 }
 
@@ -695,7 +715,7 @@ int set_var_user::light_check(THD *thd)
       Item_func_set_user_var can't substitute something else on its place =>
       0 can be passed as last argument (reference on item)
     */
-    return (user_var_item->fix_fields(thd, (Item**) 0));
+    return (user_var_item->fix_fields(thd, (Item **) 0));
 }
 
 
@@ -706,6 +726,7 @@ int set_var_user::update(THD *thd)
         my_message(ER_SET_CONSTANTS_ONLY, ER(ER_SET_CONSTANTS_ONLY), MYF(0));
         return -1;
     }
+
     return 0;
 }
 
@@ -723,21 +744,26 @@ void set_var_user::print(THD *thd, String *str)
 int set_var_password::check(THD *thd)
 {
 #ifndef NO_EMBEDDED_ACCESS_CHECKS
+
     if (!user->host.str) {
         DBUG_ASSERT(thd->security_ctx->priv_host);
+
         if (*thd->security_ctx->priv_host != 0) {
-            user->host.str= (char *) thd->security_ctx->priv_host;
-            user->host.length= strlen(thd->security_ctx->priv_host);
+            user->host.str = (char *) thd->security_ctx->priv_host;
+            user->host.length = strlen(thd->security_ctx->priv_host);
+
         } else {
-            user->host.str= (char *)"%";
-            user->host.length= 1;
+            user->host.str = (char *)"%";
+            user->host.length = 1;
         }
     }
+
     if (user->user.length == 0) {
         DBUG_ASSERT(thd->security_ctx->user);
-        user->user.str= (char *) thd->security_ctx->user;
-        user->user.length= strlen(thd->security_ctx->user);
+        user->user.str = (char *) thd->security_ctx->user;
+        user->user.length = strlen(thd->security_ctx->user);
     }
+
     /* Returns 1 as the function sends error to client */
     return 0;/*check_change_password(thd, user->host.str, user->user.str,
                                password, strlen(password)) ? 1 : 0*/;
@@ -762,13 +788,17 @@ void set_var_password::print(THD *thd, String *str)
     if (user->user.str != NULL && user->user.length > 0) {
         str->append(STRING_WITH_LEN("PASSWORD FOR "));
         append_identifier(thd, str, user->user.str, user->user.length);
+
         if (user->host.str != NULL && user->host.length > 0) {
             str->append(STRING_WITH_LEN("@"));
             append_identifier(thd, str, user->host.str, user->host.length);
         }
+
         str->append(STRING_WITH_LEN("="));
+
     } else
         str->append(STRING_WITH_LEN("PASSWORD FOR CURRENT_USER()="));
+
     str->append(STRING_WITH_LEN("<secret>"));
 }
 
@@ -789,14 +819,15 @@ int set_var_collation_client::check(THD *thd)
         my_error(ER_NAMES_MUST_UTF8, MYF(0), inception_support_charset);
         mysql_errmsg_append(thd);
     }
+
     return 0;
 }
 
 int set_var_collation_client::update(THD *thd)
 {
-    thd->variables.character_set_client= character_set_client;
-    thd->variables.character_set_results= character_set_results;
-    thd->variables.collation_connection= collation_connection;
+    thd->variables.character_set_client = character_set_client;
+    thd->variables.character_set_results = character_set_results;
+    thd->variables.collation_connection = collation_connection;
     thd->update_charset();
     thd->protocol_text.init(thd);
     thd->protocol_binary.init(thd);
@@ -806,12 +837,14 @@ int set_var_collation_client::update(THD *thd)
 void set_var_collation_client::print(THD *thd, String *str)
 {
     str->append((set_cs_flags & SET_CS_NAMES) ? "NAMES " : "CHARACTER SET ");
+
     if (set_cs_flags & SET_CS_DEFAULT)
         str->append("DEFAULT");
     else {
         str->append("'");
         str->append(character_set_client->csname);
         str->append("'");
+
         if (set_cs_flags & SET_CS_COLLATE) {
             str->append(" COLLATE '");
             str->append(collation_connection->name);

@@ -59,33 +59,36 @@
     TRUE   Error
 */
 
-bool
-mysql_handle_derived(LEX *lex, bool (*processor)(THD*, LEX*, TABLE_LIST*))
+bool mysql_handle_derived(LEX *lex, bool (*processor)(THD *, LEX *, TABLE_LIST *))
 {
-    bool res= FALSE;
+    bool res = FALSE;
+
     if (lex->derived_tables) {
-        lex->thd->derived_tables_processing= TRUE;
-        for (SELECT_LEX *sl= lex->all_selects_list;
+        lex->thd->derived_tables_processing = TRUE;
+
+        for (SELECT_LEX *sl = lex->all_selects_list;
                 sl;
-                sl= sl->next_select_in_list()) {
-            for (TABLE_LIST *table_ref= sl->get_table_list();
+                sl = sl->next_select_in_list()) {
+            for (TABLE_LIST *table_ref = sl->get_table_list();
                     table_ref;
-                    table_ref= table_ref->next_local) {
-                if ((res= mysql_handle_single_derived(lex, table_ref, processor)))
+                    table_ref = table_ref->next_local) {
+                if ((res = mysql_handle_single_derived(lex, table_ref, processor)))
                     goto out;
             }
+
             if (lex->describe) {
                 /*
                   Force join->join_tmp creation, because we will use this JOIN
                   twice for EXPLAIN and we have to have unchanged join for EXPLAINing
                 */
-                sl->uncacheable|= UNCACHEABLE_EXPLAIN;
-                sl->master_unit()->uncacheable|= UNCACHEABLE_EXPLAIN;
+                sl->uncacheable |= UNCACHEABLE_EXPLAIN;
+                sl->master_unit()->uncacheable |= UNCACHEABLE_EXPLAIN;
             }
         }
     }
+
 out:
-    lex->thd->derived_tables_processing= FALSE;
+    lex->thd->derived_tables_processing = FALSE;
     return res;
 }
 
@@ -103,9 +106,8 @@ out:
     true   Error
 */
 
-bool
-mysql_handle_single_derived(LEX *lex, TABLE_LIST *derived,
-                            bool (*processor)(THD*, LEX*, TABLE_LIST*))
+bool mysql_handle_single_derived(LEX *lex, TABLE_LIST *derived,
+                                 bool (*processor)(THD *, LEX *, TABLE_LIST *))
 {
     return (derived->is_view_or_derived() &&
             (*processor)(lex->thd, lex, derived));
@@ -168,33 +170,34 @@ mysql_handle_single_derived(LEX *lex, TABLE_LIST *derived,
 
 bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *derived)
 {
-    SELECT_LEX_UNIT *unit= derived->get_unit();
+    SELECT_LEX_UNIT *unit = derived->get_unit();
     ulonglong create_options;
     DBUG_ENTER("mysql_derived_prepare");
-    bool res= FALSE;
+    bool res = FALSE;
     DBUG_ASSERT(unit);
+
     if (derived->uses_materialization()) {
-        SELECT_LEX *first_select= unit->first_select();
-        TABLE *table= 0;
+        SELECT_LEX *first_select = unit->first_select();
+        TABLE *table = 0;
 //     select_union *derived_result;
 
         /* prevent name resolving out of derived table */
-        for (SELECT_LEX *sl= first_select; sl; sl= sl->next_select())
-            sl->context.outer_context= 0;
+        for (SELECT_LEX *sl = first_select; sl; sl = sl->next_select())
+            sl->context.outer_context = 0;
 
 //     if (!(derived_result= new select_union))
 //       DBUG_RETURN(TRUE); // out of memory
-
-        lex->context_analysis_only|= CONTEXT_ANALYSIS_ONLY_DERIVED;
+        lex->context_analysis_only |= CONTEXT_ANALYSIS_ONLY_DERIVED;
         // st_select_lex_unit::prepare correctly work for single select
 //     if ((res= unit->prepare(thd, derived_result, 0)))
 //       goto exit;
-        lex->context_analysis_only&= ~CONTEXT_ANALYSIS_ONLY_DERIVED;
-        if ((res= check_duplicate_names(unit->types, 0)))
+        lex->context_analysis_only &= ~CONTEXT_ANALYSIS_ONLY_DERIVED;
+
+        if ((res = check_duplicate_names(unit->types, 0)))
             goto exit;
 
-        create_options= (first_select->options | thd->variables.option_bits |
-                         TMP_TABLE_ALL_COLUMNS);
+        create_options = (first_select->options | thd->variables.option_bits |
+                          TMP_TABLE_ALL_COLUMNS);
         /*
           Temp table is created so that it honors if UNION without ALL is to be
           processed
@@ -209,10 +212,9 @@ bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *derived)
 //                                                  create_options,
 //                                                  derived->alias, FALSE, FALSE)))
 //       goto exit;
-
 //     table= derived_result->table;
+    exit:
 
-exit:
         /* Hide "Unknown column" or "Unknown function" error */
         if (derived->view) {
             if (thd->is_error() &&
@@ -233,27 +235,33 @@ exit:
         if (res) {
             if (table)
                 free_tmp_table(thd, table);
+
 //       delete derived_result;
+
         } else {
 //       derived->derived_result= derived_result;
-            derived->table= table;
-            derived->table_name=        table->s->table_name.str;
-            derived->table_name_length= table->s->table_name.length;
-            table->s->tmp_table= NON_TRANSACTIONAL_TMP_TABLE;
+            derived->table = table;
+            derived->table_name =        table->s->table_name.str;
+            derived->table_name_length = table->s->table_name.length;
+            table->s->tmp_table = NON_TRANSACTIONAL_TMP_TABLE;
 #ifndef NO_EMBEDDED_ACCESS_CHECKS
+
             if (derived->referencing_view)
-                table->grant= derived->grant;
+                table->grant = derived->grant;
             else
-                table->grant.privilege= SELECT_ACL;
+                table->grant.privilege = SELECT_ACL;
+
 #endif
-            derived->db= (char *)"";
-            derived->db_length= 0;
+            derived->db = (char *)"";
+            derived->db_length = 0;
             /* Add new temporary table to list of open derived tables */
-            table->next= thd->derived_tables;
-            thd->derived_tables= table;
+            table->next = thd->derived_tables;
+            thd->derived_tables = table;
         }
+
     } else
         derived->set_underlying_merge();
+
     DBUG_RETURN(res);
 }
 
@@ -277,9 +285,8 @@ exit:
 
 bool mysql_derived_optimize(THD *thd, LEX *lex, TABLE_LIST *derived)
 {
-    SELECT_LEX_UNIT *unit= derived->get_unit();
+    SELECT_LEX_UNIT *unit = derived->get_unit();
     DBUG_ENTER("mysql_derived_optimize");
-
     DBUG_ASSERT(unit);
 
     // optimize union without execution
@@ -314,10 +321,9 @@ bool mysql_derived_optimize(THD *thd, LEX *lex, TABLE_LIST *derived)
 
 bool mysql_derived_create(THD *thd, LEX *lex, TABLE_LIST *derived)
 {
-    TABLE *table= derived->table;
-    SELECT_LEX_UNIT *unit= derived->get_unit();
+    TABLE *table = derived->table;
+    SELECT_LEX_UNIT *unit = derived->get_unit();
     DBUG_ENTER("mysql_derived_create");
-
     DBUG_ASSERT(unit);
 
     /*
@@ -340,6 +346,7 @@ bool mysql_derived_create(THD *thd, LEX *lex, TABLE_LIST *derived)
                     table->null_row == 1);
         DBUG_RETURN(FALSE);
     }
+
     /* create tmp table */
 //   select_union *result= (select_union*)unit->get_result();
 //
@@ -352,12 +359,9 @@ bool mysql_derived_create(THD *thd, LEX *lex, TABLE_LIST *derived)
 //                              TMP_TABLE_ALL_COLUMNS),
 //                             thd->variables.big_tables, &thd->opt_trace))
 //     DBUG_RETURN(TRUE);
-
     table->file->extra(HA_EXTRA_WRITE_CACHE);
     table->file->extra(HA_EXTRA_IGNORE_DUP_KEY);
-
     table->set_created();
-
     DBUG_RETURN(FALSE);
 }
 
@@ -384,14 +388,11 @@ bool mysql_derived_create(THD *thd, LEX *lex, TABLE_LIST *derived)
 
 bool mysql_derived_materialize(THD *thd, LEX *lex, TABLE_LIST *derived)
 {
-    SELECT_LEX_UNIT *unit= derived->get_unit();
-    bool res= FALSE;
+    SELECT_LEX_UNIT *unit = derived->get_unit();
+    bool res = FALSE;
     DBUG_ENTER("mysql_derived_materialize");
-
     DBUG_ASSERT(unit && derived->table && derived->table->is_created());
-
 //   select_union *derived_result= derived->derived_result;
-
 //   if (unit->is_union())
 //   {
 //     // execute union without clean up
@@ -399,20 +400,19 @@ bool mysql_derived_materialize(THD *thd, LEX *lex, TABLE_LIST *derived)
 //   }
 //   else
     {
-        SELECT_LEX *first_select= unit->first_select();
-        JOIN *join= first_select->join;
-        SELECT_LEX *save_current_select= lex->current_select;
-        lex->current_select= first_select;
-
+        SELECT_LEX *first_select = unit->first_select();
+        JOIN *join = first_select->join;
+        SELECT_LEX *save_current_select = lex->current_select;
+        lex->current_select = first_select;
         DBUG_ASSERT(join && join->optimized);
-
         unit->set_limit(first_select);
+
         if (unit->select_limit_cnt == HA_POS_ERROR)
-            first_select->options&= ~OPTION_FOUND_ROWS;
+            first_select->options &= ~OPTION_FOUND_ROWS;
 
         join->exec();
-        res= join->error;
-        lex->current_select= save_current_select;
+        res = join->error;
+        lex->current_select = save_current_select;
     }
 
     if (!res) {
@@ -435,7 +435,7 @@ bool mysql_derived_materialize(THD *thd, LEX *lex, TABLE_LIST *derived)
 bool mysql_derived_cleanup(THD *thd, LEX *lex, TABLE_LIST *derived)
 {
     DBUG_ENTER("mysql_derived_cleanup");
-    SELECT_LEX_UNIT *unit= derived->derived;
+    SELECT_LEX_UNIT *unit = derived->derived;
 //   if (unit)
 //     unit->cleanup();
     DBUG_RETURN(false);

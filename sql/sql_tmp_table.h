@@ -38,7 +38,7 @@ typedef struct st_order ORDER;
 typedef struct st_columndef MI_COLUMNDEF;
 
 TABLE *
-create_tmp_table(THD *thd,TMP_TABLE_PARAM *param,List<Item> &fields,
+create_tmp_table(THD *thd, TMP_TABLE_PARAM *param, List<Item> &fields,
                  ORDER *group, bool distinct, bool save_sum_fields,
                  ulonglong select_options, ha_rows rows_limit,
                  const char *table_alias);
@@ -65,13 +65,13 @@ bool instantiate_tmp_table(TABLE *table, KEY *keyinfo,
                            MI_COLUMNDEF **recinfo,
                            ulonglong options, my_bool big_tables,
                            Opt_trace_context *trace);
-Field *create_tmp_field(THD *thd, TABLE *table,Item *item, Item::Type type,
+Field *create_tmp_field(THD *thd, TABLE *table, Item *item, Item::Type type,
                         Item ***copy_func, Field **from_field,
                         Field **default_field,
                         bool group, bool modify_item,
                         bool table_cant_handle_bit_fields,
                         bool make_copy_field);
-Field* create_tmp_field_from_field(THD *thd, Field* org_field,
+Field *create_tmp_field_from_field(THD *thd, Field *org_field,
                                    const char *name, TABLE *table,
                                    Item_field *item);
 

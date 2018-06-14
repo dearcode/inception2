@@ -23,7 +23,7 @@ struct LEX;
 bool mysql_handle_derived(LEX *lex, bool (*processor)(THD *thd, LEX *lex,
                           TABLE_LIST *table));
 bool mysql_handle_single_derived(LEX *lex, TABLE_LIST *derived,
-                                 bool (*processor)(THD*, LEX*, TABLE_LIST*));
+                                 bool (*processor)(THD *, LEX *, TABLE_LIST *));
 bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *t);
 bool mysql_derived_optimize(THD *thd, LEX *lex, TABLE_LIST *t);
 bool mysql_derived_create(THD *thd, LEX *lex, TABLE_LIST *t);

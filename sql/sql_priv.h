@@ -43,17 +43,17 @@
    Note that in macro arguments BAD is not quoted, while 'GOOD' is.
 */
 #define WARN_DEPRECATED(Thd,Old,New)                            \
-  do {                                                                      \
-    if (((THD *) Thd) != NULL)                                              \
-      push_warning_printf(((THD *) Thd), Sql_condition::WARN_LEVEL_WARN,    \
-                        ER_WARN_DEPRECATED_SYNTAX,                          \
-                        ER(ER_WARN_DEPRECATED_SYNTAX),                      \
-                        (Old), (New));                                      \
-    else                                                                    \
-      sql_print_warning("The syntax '%s' is deprecated and will be removed " \
-                        "in a future release. Please use %s instead.",      \
-                        (Old), (New));                                      \
-  } while(0)
+    do {                                                                      \
+        if (((THD *) Thd) != NULL)                                              \
+            push_warning_printf(((THD *) Thd), Sql_condition::WARN_LEVEL_WARN,    \
+                                ER_WARN_DEPRECATED_SYNTAX,                          \
+                                ER(ER_WARN_DEPRECATED_SYNTAX),                      \
+                                (Old), (New));                                      \
+        else                                                                    \
+            sql_print_warning("The syntax '%s' is deprecated and will be removed " \
+                              "in a future release. Please use %s instead.",      \
+                              (Old), (New));                                      \
+    } while(0)
 
 /*************************************************************************/
 
@@ -156,8 +156,8 @@
 
   @return             Number of bytes available on event buffer.
 */
-template <class T> T available_buffer(const char* buf_start,
-                                      const char* buf_current,
+template <class T> T available_buffer(const char *buf_start,
+                                      const char *buf_current,
                                       T buf_len)
 {
     return buf_len - (buf_current - buf_start);
@@ -175,8 +175,8 @@ template <class T> T available_buffer(const char* buf_start,
                False  Otherwise.
 */
 template <class T> bool valid_buffer_range(T jump,
-        const char* buf_start,
-        const char* buf_current,
+        const char *buf_start,
+        const char *buf_current,
         T buf_len)
 {
     return (jump <= available_buffer(buf_start, buf_current, buf_len));
@@ -317,7 +317,7 @@ enum enum_parsing_place
 
 enum enum_var_type
 {
-    OPT_DEFAULT= 0, OPT_SESSION, OPT_GLOBAL
+    OPT_DEFAULT = 0, OPT_SESSION, OPT_GLOBAL
 };
 
 class sys_var;
@@ -338,7 +338,7 @@ enum enum_yes_no_unknown
 
 /* sql_yacc.cc */
 #ifndef DBUG_OFF
-extern void turn_parser_debug_on();
+    extern void turn_parser_debug_on();
 
 #endif
 
@@ -349,10 +349,13 @@ extern void turn_parser_debug_on();
 inline int hexchar_to_int(char c)
 {
     if (c <= '9' && c >= '0')
-        return c-'0';
-    c|=32;
+        return c - '0';
+
+    c |= 32;
+
     if (c <= 'f' && c >= 'a')
-        return c-'a'+10;
+        return c - 'a' + 10;
+
     return -1;
 }
 

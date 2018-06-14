@@ -19,7 +19,8 @@
 
 extern "C" void sql_alloc_error_handler(void)
 {
-    THD *thd= current_thd;
+    THD *thd = current_thd;
+
     if (thd && !thd->is_error()) {
         /*
           This thread is Out Of Memory.
@@ -46,6 +47,5 @@ extern "C" void sql_alloc_error_handler(void)
 
     /* Skip writing to the error log to avoid mtr complaints */
     DBUG_EXECUTE_IF("simulate_out_of_memory", return;);
-
     sql_print_error("%s", ER(ER_OUT_OF_RESOURCES));
 }

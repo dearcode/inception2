@@ -41,21 +41,21 @@ using std::min;
 using std::max;
 
 #if defined(HAVE_OPENSSL) && !defined(EMBEDDED_LIBRARY)
-/*
-Without SSL the handshake consists of one packet. This packet
-has both client capabilites and scrambled password.
-With SSL the handshake might consist of two packets. If the first
-packet (client capabilities) has CLIENT_SSL flag set, we have to
-switch to SSL and read the second packet. The scrambled password
-is in the second packet and client_capabilites field will be ignored.
-Maybe it is better to accept flags other than CLIENT_SSL from the
-second packet?
-*/
-#define SSL_HANDSHAKE_SIZE      2
-#define NORMAL_HANDSHAKE_SIZE   6
-#define MIN_HANDSHAKE_SIZE      2
+    /*
+    Without SSL the handshake consists of one packet. This packet
+    has both client capabilites and scrambled password.
+    With SSL the handshake might consist of two packets. If the first
+    packet (client capabilities) has CLIENT_SSL flag set, we have to
+    switch to SSL and read the second packet. The scrambled password
+    is in the second packet and client_capabilites field will be ignored.
+    Maybe it is better to accept flags other than CLIENT_SSL from the
+    second packet?
+    */
+    #define SSL_HANDSHAKE_SIZE      2
+    #define NORMAL_HANDSHAKE_SIZE   6
+    #define MIN_HANDSHAKE_SIZE      2
 #else
-#define MIN_HANDSHAKE_SIZE      6
+    #define MIN_HANDSHAKE_SIZE      6
 #endif /* HAVE_OPENSSL && !EMBEDDED_LIBRARY */
 
 /*
@@ -69,47 +69,48 @@ int get_or_create_user_conn(THD *thd, const char *user,
                             const char *host,
                             const USER_RESOURCES *mqh)
 {
-    int return_val= 0;
+    int return_val = 0;
     size_t temp_len, user_len;
     char temp_user[USER_HOST_BUFF_SIZE];
     struct  user_conn *uc;
-
     DBUG_ASSERT(user != 0);
     DBUG_ASSERT(host != 0);
-
-    user_len= strlen(user);
-    temp_len= (strmov(strmov(temp_user, user)+1, host) - temp_user)+1;
+    user_len = strlen(user);
+    temp_len = (strmov(strmov(temp_user, user) + 1, host) - temp_user) + 1;
     mysql_mutex_lock(&LOCK_user_conn);
+
     if (!(uc = (struct  user_conn *) my_hash_search(&hash_user_connections,
-               (uchar*) temp_user, temp_len))) {
+               (uchar *) temp_user, temp_len))) {
         /* First connection for user; Create a user connection object */
-        if (!(uc= ((struct user_conn*)
-                   my_malloc(sizeof(struct user_conn) + temp_len+1,
-                             MYF(MY_WME))))) {
+        if (!(uc = ((struct user_conn *)
+                    my_malloc(sizeof(struct user_conn) + temp_len + 1,
+                              MYF(MY_WME))))) {
             /* MY_WME ensures an error is set in THD. */
-            return_val= 1;
+            return_val = 1;
             goto end;
         }
-        uc->user=(char*) (uc+1);
-        memcpy(uc->user,temp_user,temp_len+1);
-        uc->host= uc->user + user_len +  1;
-        uc->len= temp_len;
-        uc->connections= uc->questions= uc->updates= uc->conn_per_hour= 0;
-        uc->user_resources= *mqh;
-        uc->reset_utime= thd->thr_create_utime;
-        if (my_hash_insert(&hash_user_connections, (uchar*) uc)) {
+
+        uc->user = (char *) (uc + 1);
+        memcpy(uc->user, temp_user, temp_len + 1);
+        uc->host = uc->user + user_len +  1;
+        uc->len = temp_len;
+        uc->connections = uc->questions = uc->updates = uc->conn_per_hour = 0;
+        uc->user_resources = *mqh;
+        uc->reset_utime = thd->thr_create_utime;
+
+        if (my_hash_insert(&hash_user_connections, (uchar *) uc)) {
             /* The only possible error is out of memory, MY_WME sets an error. */
             my_free(uc);
-            return_val= 1;
+            return_val = 1;
             goto end;
         }
     }
+
     thd->set_user_connect(uc);
     thd->increment_user_connections_counter();
 end:
     mysql_mutex_unlock(&LOCK_user_conn);
     return return_val;
-
 }
 
 
@@ -132,41 +133,45 @@ RETURN
 
 int check_for_max_user_connections(THD *thd, const USER_CONN *uc)
 {
-    int error=0;
+    int error = 0;
     Host_errors errors;
     DBUG_ENTER("check_for_max_user_connections");
-
     mysql_mutex_lock(&LOCK_user_conn);
+
     if (global_system_variables.max_user_connections &&
             !uc->user_resources.user_conn &&
             global_system_variables.max_user_connections < (uint) uc->connections) {
         my_error(ER_TOO_MANY_USER_CONNECTIONS, MYF(0), uc->user);
-        error=1;
-        errors.m_max_user_connection= 1;
+        error = 1;
+        errors.m_max_user_connection = 1;
         goto end;
     }
+
     thd->time_out_user_resource_limits();
+
     if (uc->user_resources.user_conn &&
             uc->user_resources.user_conn < uc->connections) {
         my_error(ER_USER_LIMIT_REACHED, MYF(0), uc->user,
                  "max_user_connections",
                  (long) uc->user_resources.user_conn);
-        error= 1;
-        errors.m_max_user_connection= 1;
+        error = 1;
+        errors.m_max_user_connection = 1;
         goto end;
     }
+
     if (uc->user_resources.conn_per_hour &&
             uc->user_resources.conn_per_hour <= uc->conn_per_hour) {
         my_error(ER_USER_LIMIT_REACHED, MYF(0), uc->user,
                  "max_connections_per_hour",
                  (long) uc->user_resources.conn_per_hour);
-        error=1;
-        errors.m_max_user_connection_per_hour= 1;
+        error = 1;
+        errors.m_max_user_connection_per_hour = 1;
         goto end;
     }
-    thd->increment_con_per_hour_counter();
 
+    thd->increment_con_per_hour_counter();
 end:
+
     if (error) {
         thd->decrement_user_connections_counter();
         /*
@@ -176,10 +181,12 @@ end:
         */
         thd->set_user_connect(NULL);
     }
+
     mysql_mutex_unlock(&LOCK_user_conn);
-    if (error) {
+
+    if (error)
         inc_host_errors(thd->main_security_ctx.ip, &errors);
-    }
+
     DBUG_RETURN(error);
 }
 
@@ -207,10 +214,12 @@ void decrease_user_connections(USER_CONN *uc)
     DBUG_ENTER("decrease_user_connections");
     mysql_mutex_lock(&LOCK_user_conn);
     DBUG_ASSERT(uc->connections);
+
     if (!--uc->connections && !mqh_used) {
         /* Last connection for user; Delete it */
-        (void) my_hash_delete(&hash_user_connections,(uchar*) uc);
+        (void) my_hash_delete(&hash_user_connections, (uchar *) uc);
     }
+
     mysql_mutex_unlock(&LOCK_user_conn);
     DBUG_VOID_RETURN;
 }
@@ -225,17 +234,19 @@ THD  Thread context object.
 */
 void release_user_connection(THD *thd)
 {
-    const USER_CONN *uc= thd->get_user_connect();
+    const USER_CONN *uc = thd->get_user_connect();
     DBUG_ENTER("release_user_connection");
 
     if (uc) {
         mysql_mutex_lock(&LOCK_user_conn);
         DBUG_ASSERT(uc->connections > 0);
         thd->decrement_user_connections_counter();
+
         if (!uc->connections && !mqh_used) {
             /* Last connection for user; Delete it */
-            (void) my_hash_delete(&hash_user_connections,(uchar*) uc);
+            (void) my_hash_delete(&hash_user_connections, (uchar *) uc);
         }
+
         mysql_mutex_unlock(&LOCK_user_conn);
         thd->set_user_connect(NULL);
     }
@@ -307,12 +318,11 @@ void decrease_user_connections(USER_CONN *uc)
 
 void release_user_connection(THD *thd)
 {
-    const USER_CONN *uc= thd->get_user_connect();
+    const USER_CONN *uc = thd->get_user_connect();
     DBUG_ENTER("release_user_connection");
 
-    if (uc) {
+    if (uc)
         thd->set_user_connect(NULL);
-    }
 
     DBUG_VOID_RETURN;
 }
@@ -327,8 +337,8 @@ started with corresponding variable that is greater then 0.
 extern "C" uchar *get_key_conn(user_conn *buff, size_t *length,
                                my_bool not_used __attribute__((unused)))
 {
-    *length= buff->len;
-    return (uchar*) buff->user;
+    *length = buff->len;
+    return (uchar *) buff->user;
 }
 
 
@@ -342,8 +352,8 @@ void init_max_user_conn(void)
 {
 #ifndef NO_EMBEDDED_ACCESS_CHECKS
     (void)
-    my_hash_init(&hash_user_connections,system_charset_info,max_connections,
-                 0,0, (my_hash_get_key) get_key_conn,
+    my_hash_init(&hash_user_connections, system_charset_info, max_connections,
+                 0, 0, (my_hash_get_key) get_key_conn,
                  (my_hash_free_key) free_user, 0);
 #endif
 }
@@ -373,6 +383,7 @@ Corresponding SQL error is sent.
 bool thd_init_client_charset(THD *thd, uint cs_number)
 {
     CHARSET_INFO *cs;
+
     /*
     Use server character set and collation if
     - opt_character_set_client_handshake is not set
@@ -381,16 +392,17 @@ bool thd_init_client_charset(THD *thd, uint cs_number)
     - client character set doesn't exists in server
     */
     if (!opt_character_set_client_handshake ||
-            !(cs= get_charset(cs_number, MYF(0))) ||
+            !(cs = get_charset(cs_number, MYF(0))) ||
             !my_strcasecmp(&my_charset_latin1,
                            global_system_variables.character_set_client->name,
                            cs->name)) {
-        thd->variables.character_set_client=
+        thd->variables.character_set_client =
             global_system_variables.character_set_client;
-        thd->variables.collation_connection=
+        thd->variables.collation_connection =
             global_system_variables.collation_connection;
-        thd->variables.character_set_results=
+        thd->variables.character_set_results =
             global_system_variables.character_set_results;
+
     } else {
         if (!is_supported_parser_charset(cs)) {
             /* Disallow non-supported parser character sets: UCS2, UTF16, UTF32 */
@@ -398,10 +410,12 @@ bool thd_init_client_charset(THD *thd, uint cs_number)
                      cs->csname);
             return true;
         }
-        thd->variables.character_set_results=
-            thd->variables.collation_connection=
-                thd->variables.character_set_client= cs;
+
+        thd->variables.character_set_results =
+            thd->variables.collation_connection =
+                thd->variables.character_set_client = cs;
     }
+
     return false;
 }
 
@@ -413,10 +427,12 @@ Initialize connection threads
 bool init_new_connection_handler_thread()
 {
     pthread_detach_this_thread();
+
     if (my_thread_init()) {
         statistic_increment(connection_errors_internal, &LOCK_status);
         return 1;
     }
+
     return 0;
 }
 
@@ -435,10 +451,9 @@ RETURN
 
 static int check_connection(THD *thd)
 {
-    uint connect_errors= 0;
+    uint connect_errors = 0;
     int auth_rc;
-    NET *net= &thd->net;
-
+    NET *net = &thd->net;
     DBUG_PRINT("info",
                ("New connection received on %s", vio_description(net->vio)));
 #ifdef SIGNAL_WITH_VIO_CLOSE
@@ -448,39 +463,35 @@ static int check_connection(THD *thd)
     if (!thd->main_security_ctx.host) {       // If TCP/IP connection
         my_bool peer_rc;
         char ip[NI_MAXHOST];
-
-        peer_rc= vio_peer_addr(net->vio, ip, &thd->peer_port, NI_MAXHOST);
-
+        peer_rc = vio_peer_addr(net->vio, ip, &thd->peer_port, NI_MAXHOST);
         /*
         ===========================================================================
         DEBUG code only (begin)
         Simulate various output from vio_peer_addr().
         ===========================================================================
         */
-
         DBUG_EXECUTE_IF("vio_peer_addr_error", {
-            peer_rc= 1;
+            peer_rc = 1;
         }
                        );
         DBUG_EXECUTE_IF("vio_peer_addr_fake_ipv4", {
-            struct sockaddr *sa= (sockaddr *) &net->vio->remote;
-            sa->sa_family= AF_INET;
-            struct in_addr *ip4= &((struct sockaddr_in *) sa)->sin_addr;
+            struct sockaddr *sa = (sockaddr *) &net->vio->remote;
+            sa->sa_family = AF_INET;
+            struct in_addr *ip4 = &((struct sockaddr_in *) sa)->sin_addr;
             /* See RFC 5737, 192.0.2.0/24 is reserved. */
-            const char* fake= "192.0.2.4";
-            ip4->s_addr= inet_addr(fake);
+            const char *fake = "192.0.2.4";
+            ip4->s_addr = inet_addr(fake);
             strcpy(ip, fake);
-            peer_rc= 0;
+            peer_rc = 0;
         }
                        );
-
 #ifdef HAVE_IPV6
         DBUG_EXECUTE_IF("vio_peer_addr_fake_ipv6", {
-            struct sockaddr_in6 *sa= (sockaddr_in6 *) &net->vio->remote;
-            sa->sin6_family= AF_INET6;
-            struct in6_addr *ip6= & sa->sin6_addr;
+            struct sockaddr_in6 *sa = (sockaddr_in6 *) &net->vio->remote;
+            sa->sin6_family = AF_INET6;
+            struct in6_addr *ip6 = & sa->sin6_addr;
             /* See RFC 3849, ipv6 2001:DB8::/32 is reserved. */
-            const char* fake= "2001:db8::6:6";
+            const char *fake = "2001:db8::6:6";
             /* inet_pton(AF_INET6, fake, ip6); not available on Windows XP. */
             ip6->s6_addr[ 0] = 0x20;
             ip6->s6_addr[ 1] = 0x01;
@@ -499,7 +510,7 @@ static int check_connection(THD *thd)
             ip6->s6_addr[14] = 0x00;
             ip6->s6_addr[15] = 0x06;
             strcpy(ip, fake);
-            peer_rc= 0;
+            peer_rc = 0;
         }
                        );
 #endif /* HAVE_IPV6 */
@@ -520,7 +531,8 @@ static int check_connection(THD *thd)
             my_error(ER_BAD_HOST_ERROR, MYF(0));
             return 1;
         }
-        if (!(thd->main_security_ctx.ip= my_strdup(ip,MYF(MY_WME)))) {
+
+        if (!(thd->main_security_ctx.ip = my_strdup(ip, MYF(MY_WME)))) {
             /*
             No error accounting per IP in host_cache,
             this is treated as a global server OOM error.
@@ -529,21 +541,23 @@ static int check_connection(THD *thd)
             statistic_increment(connection_errors_internal, &LOCK_status);
             return 1; /* The error is set by my_strdup(). */
         }
-        thd->main_security_ctx.host_or_ip= thd->main_security_ctx.ip;
+
+        thd->main_security_ctx.host_or_ip = thd->main_security_ctx.ip;
+
         if (!(specialflag & SPECIAL_NO_RESOLVE)) {
             int rc;
-
-            rc= ip_to_hostname(&net->vio->remote,
-                               thd->main_security_ctx.ip,
-                               &thd->main_security_ctx.host,
-                               &connect_errors);
+            rc = ip_to_hostname(&net->vio->remote,
+                                thd->main_security_ctx.ip,
+                                &thd->main_security_ctx.host,
+                                &connect_errors);
 
             /* Cut very long hostnames to avoid possible overflows */
             if (thd->main_security_ctx.host) {
                 if (thd->main_security_ctx.host != my_localhost)
                     thd->main_security_ctx.host[min<size_t>(strlen(thd->main_security_ctx.host),
-                                                            HOSTNAME_LENGTH)]= 0;
-                thd->main_security_ctx.host_or_ip= thd->main_security_ctx.host;
+                                                            HOSTNAME_LENGTH)] = 0;
+
+                thd->main_security_ctx.host_or_ip = thd->main_security_ctx.host;
             }
 
             if (rc == RC_BLOCKED_HOST) {
@@ -552,24 +566,28 @@ static int check_connection(THD *thd)
                 return 1;
             }
         }
-        DBUG_PRINT("info",("Host: %s  ip: %s",
-                           (thd->main_security_ctx.host ?
-                            thd->main_security_ctx.host : "unknown host"),
-                           (thd->main_security_ctx.ip ?
-                            thd->main_security_ctx.ip : "unknown ip")));
+
+        DBUG_PRINT("info", ("Host: %s  ip: %s",
+                            (thd->main_security_ctx.host ?
+                             thd->main_security_ctx.host : "unknown host"),
+                            (thd->main_security_ctx.ip ?
+                             thd->main_security_ctx.ip : "unknown ip")));
+
         if (acl_check_host(thd->main_security_ctx.host, thd->main_security_ctx.ip)) {
             /* HOST_CACHE stats updated by acl_check_host(). */
             my_error(ER_HOST_NOT_PRIVILEGED, MYF(0),
                      thd->main_security_ctx.host_or_ip);
             return 1;
         }
+
     } else { /* Hostname given means that the connection was on a socket */
-        DBUG_PRINT("info",("Host: %s", thd->main_security_ctx.host));
-        thd->main_security_ctx.host_or_ip= thd->main_security_ctx.host;
-        thd->main_security_ctx.ip= 0;
+        DBUG_PRINT("info", ("Host: %s", thd->main_security_ctx.host));
+        thd->main_security_ctx.host_or_ip = thd->main_security_ctx.host;
+        thd->main_security_ctx.ip = 0;
         /* Reset sin_addr */
         memset(&net->vio->remote, 0, sizeof(net->vio->remote));
     }
+
     vio_keepalive(net->vio, TRUE);
 
     if (thd->packet.alloc(thd->variables.net_buffer_length)) {
@@ -588,7 +606,8 @@ static int check_connection(THD *thd)
         return 1; /* The error is set by alloc(). */
     }
 
-    auth_rc= acl_authenticate(thd, 0);
+    auth_rc = acl_authenticate(thd, 0);
+
     if (auth_rc == 0 && connect_errors != 0) {
         /*
           A client connection from this IP was successful,
@@ -619,10 +638,11 @@ bool setup_connection_thread_globals(THD *thd)
 {
     if (thd->store_globals()) {
         close_connection(thd, ER_OUT_OF_RESOURCES);
-        statistic_increment(aborted_connects,&LOCK_status);
+        statistic_increment(aborted_connects, &LOCK_status);
         MYSQL_CALLBACK(thread_scheduler, end_thread, (thd, 0));
         return 1;                                   // Error
     }
+
     return 0;
 }
 
@@ -645,17 +665,15 @@ RETURN
 
 bool login_connection(THD *thd)
 {
-    NET *net= &thd->net;
+    NET *net = &thd->net;
     int error;
     DBUG_ENTER("login_connection");
     DBUG_PRINT("info", ("login_connection called by thread %lu",
                         thd->thread_id));
-
     /* Use "connect_timeout" value during connection phase */
     my_net_set_read_timeout(net, connect_timeout);
     my_net_set_write_timeout(net, connect_timeout);
-
-    error= check_connection(thd);
+    error = check_connection(thd);
     thd->protocol->end_statement();
 
     if (error) {
@@ -663,10 +681,12 @@ bool login_connection(THD *thd)
 #ifdef _WIN32
         if (vio_type(net->vio) == VIO_TYPE_NAMEDPIPE)
             my_sleep(1000);       /* must wait after eof() */
+
 #endif
-        statistic_increment(aborted_connects,&LOCK_status);
+        statistic_increment(aborted_connects, &LOCK_status);
         DBUG_RETURN(1);
     }
+
     /* Connect completed, set read/write timeouts back to default */
     my_net_set_read_timeout(net, thd->variables.net_read_timeout);
     my_net_set_write_timeout(net, thd->variables.net_write_timeout);
@@ -683,9 +703,8 @@ This mainly updates status variables
 
 void end_connection(THD *thd)
 {
-    NET *net= &thd->net;
+    NET *net = &thd->net;
     plugin_thdvar_cleanup(thd);
-
     /*
     The thread may returned back to the pool and assigned to a user
     that doesn't have a limit. Ensure the user is not using resources
@@ -693,16 +712,14 @@ void end_connection(THD *thd)
     */
     release_user_connection(thd);
 
-    if (thd->killed || (net->error && net->vio != 0)) {
-        statistic_increment(aborted_threads,&LOCK_status);
-    }
+    if (thd->killed || (net->error && net->vio != 0))
+        statistic_increment(aborted_threads, &LOCK_status);
 
     if (net->error && net->vio != 0) {
         if (!thd->killed && log_warnings > 1) {
-            Security_context *sctx= thd->security_ctx;
-
+            Security_context *sctx = thd->security_ctx;
             sql_print_warning(ER(ER_NEW_ABORTING_CONNECTION),
-                              thd->thread_id,(thd->db ? thd->db : "unconnected"),
+                              thd->thread_id, (thd->db ? thd->db : "unconnected"),
                               sctx->user ? sctx->user : "unauthenticated",
                               sctx->host_or_ip,
                               (thd->get_stmt_da()->is_error() ?
@@ -717,23 +734,22 @@ void end_connection(THD *thd)
 Initialize THD to handle queries
 */
 
-void prepare_new_connection_state(THD* thd)
+void prepare_new_connection_state(THD *thd)
 {
-    Security_context *sctx= thd->security_ctx;
+    Security_context *sctx = thd->security_ctx;
 
     if (thd->client_capabilities & CLIENT_COMPRESS)
-        thd->net.compress=1;        // Use compression
+        thd->net.compress = 1;      // Use compression
 
     /*
     Much of this is duplicated in create_embedded_thd() for the
     embedded server library.
     TODO: refactor this to avoid code duplication there
     */
-    thd->proc_info= 0;
+    thd->proc_info = 0;
     thd->set_command(COM_SLEEP);
     thd->set_time();
     thd->init_for_queries();
-
     //   if (opt_init_connect.length && !(sctx->master_access & SUPER_ACL))
     //   {
     //     execute_init_command(thd, &opt_init_connect, &LOCK_sys_init_connect);
@@ -800,10 +816,8 @@ This function (normally) does the following:
 
 pthread_handler_t handle_one_connection(void *arg)
 {
-    THD *thd= (THD*) arg;
-
+    THD *thd = (THD *) arg;
     mysql_thread_set_psi_id(thd->thread_id);
-
     do_handle_one_connection(thd);
     return 0;
 }
@@ -812,37 +826,38 @@ bool thd_prepare_connection(THD *thd)
 {
     bool rc;
     lex_start(thd);
-    rc= login_connection(thd);
+    rc = login_connection(thd);
+
     //MYSQL_AUDIT_NOTIFY_CONNECTION_CONNECT(thd);
     if (rc)
         return rc;
 
     MYSQL_CONNECTION_START(thd->thread_id, &thd->security_ctx->priv_user[0],
                            (char *) thd->security_ctx->host_or_ip);
-
     prepare_new_connection_state(thd);
     return FALSE;
 }
 
 bool thd_is_connection_alive(THD *thd)
 {
-    NET *net= &thd->net;
+    NET *net = &thd->net;
+
     if (!net->error &&
             net->vio != 0 &&
             !(thd->killed == THD::KILL_CONNECTION))
         return TRUE;
+
     return FALSE;
 }
 
 void do_handle_one_connection(THD *thd_arg)
 {
-    THD *thd= thd_arg;
-
-    thd->thr_create_utime= my_micro_time();
+    THD *thd = thd_arg;
+    thd->thr_create_utime = my_micro_time();
 
     if (MYSQL_CALLBACK_ELSE(thread_scheduler, init_new_connection_thread, (), 0)) {
         close_connection(thd, ER_OUT_OF_RESOURCES);
-        statistic_increment(aborted_connects,&LOCK_status);
+        statistic_increment(aborted_connects, &LOCK_status);
         MYSQL_CALLBACK(thread_scheduler, end_thread, (thd, 0));
         return;
     }
@@ -853,11 +868,13 @@ void do_handle_one_connection(THD *thd_arg)
     slow_launch_time seconds to create the thread.
     */
     if (thd->prior_thr_create_utime) {
-        ulong launch_time= (ulong) (thd->thr_create_utime -
-                                    thd->prior_thr_create_utime);
-        if (launch_time >= slow_launch_time*1000000L)
+        ulong launch_time = (ulong) (thd->thr_create_utime -
+                                     thd->prior_thr_create_utime);
+
+        if (launch_time >= slow_launch_time * 1000000L)
             statistic_increment(slow_launch_threads, &LOCK_status);
-        thd->prior_thr_create_utime= 0;
+
+        thd->prior_thr_create_utime = 0;
     }
 
     /*
@@ -868,17 +885,17 @@ void do_handle_one_connection(THD *thd_arg)
     need to know the start of the stack so that we could check for
     stack overruns.
     */
-    thd->thread_stack= (char*) &thd;
+    thd->thread_stack = (char *) &thd;
+
     if (setup_connection_thread_globals(thd))
         return;
 
     for (;;) {
         bool rc;
-
-        NET *net= &thd->net;
+        NET *net = &thd->net;
         mysql_socket_set_thread_owner(net->vio->mysql_socket);
+        rc = thd_prepare_connection(thd);
 
-        rc= thd_prepare_connection(thd);
         if (rc)
             goto end_thread;
 
@@ -887,10 +904,11 @@ void do_handle_one_connection(THD *thd_arg)
             if (do_command(thd))
                 break;
         }
-        end_connection(thd);
 
-end_thread:
+        end_connection(thd);
+    end_thread:
         close_connection(thd);
+
         if (MYSQL_CALLBACK_ELSE(thread_scheduler, end_thread, (thd, 1), 0))
             return;                                 // Probably no-threads
 
@@ -899,8 +917,8 @@ end_thread:
         thread-handler=no-threads or this thread has been schedule to
         handle the next connection.
         */
-        thd= current_thd;
-        thd->thread_stack= (char*) &thd;
+        thd = current_thd;
+        thd->thread_stack = (char *) &thd;
     }
 }
 #endif /* EMBEDDED_LIBRARY */

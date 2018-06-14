@@ -37,7 +37,7 @@ extern mysql_cond_t COND_thread_count;
 
   All functions must be called with LOCK_thread_count.
  */
-typedef std::set<THD*>::iterator Thread_iterator;
+typedef std::set<THD *>::iterator Thread_iterator;
 Thread_iterator global_thread_list_begin();
 Thread_iterator global_thread_list_end();
 void add_global_thread(THD *);

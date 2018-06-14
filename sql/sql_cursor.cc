@@ -71,7 +71,7 @@ class Select_materialize: public select_union
 public:
     Materialized_cursor *materialized_cursor;
     Select_materialize(select_result *result_arg)
-        :result(result_arg), materialized_cursor(0) {}
+        : result(result_arg), materialized_cursor(0) {}
     virtual bool send_result_set_metadata(List<Item> &list, uint flags);
 };
 
@@ -111,9 +111,8 @@ Server_side_cursor::~Server_side_cursor()
 
 void Server_side_cursor::operator delete(void *ptr, size_t size)
 {
-    Server_side_cursor *cursor= (Server_side_cursor*) ptr;
-    MEM_ROOT own_root= *cursor->mem_root;
-
+    Server_side_cursor *cursor = (Server_side_cursor *) ptr;
+    MEM_ROOT own_root = *cursor->mem_root;
     DBUG_ENTER("Server_side_cursor::operator delete");
     TRASH(ptr, size);
     /*
@@ -133,14 +132,14 @@ void Server_side_cursor::operator delete(void *ptr, size_t size)
 
 Materialized_cursor::Materialized_cursor(select_result *result_arg,
         TABLE *table_arg)
-    :Server_side_cursor(&table_arg->mem_root, result_arg),
-     table(table_arg),
-     fetch_limit(0),
-     fetch_count(0),
-     is_rnd_inited(0)
+    : Server_side_cursor(&table_arg->mem_root, result_arg),
+      table(table_arg),
+      fetch_limit(0),
+      fetch_count(0),
+      is_rnd_inited(0)
 {
     fake_unit.init_query();
-    fake_unit.thd= table->in_use;
+    fake_unit.thd = table->in_use;
 }
 
 
@@ -162,10 +161,9 @@ int Materialized_cursor::send_result_set_metadata(
     List_iterator_fast<Item> it_dst(item_list);
     Item *item_org;
     Item *item_dst;
-
     thd->set_n_backup_active_arena(this, &backup_arena);
 
-    if ((rc= table->fill_item_list(&item_list)))
+    if ((rc = table->fill_item_list(&item_list)))
         goto end;
 
     DBUG_ASSERT(send_result_set_metadata.elements == item_list.elements);
@@ -177,13 +175,12 @@ int Materialized_cursor::send_result_set_metadata(
       items with original names are always kept in memory,
       but in case this changes a memory leak may be hard to notice.
     */
-    while ((item_dst= it_dst++, item_org= it_org++)) {
+    while ((item_dst = it_dst++, item_org = it_org++)) {
         Send_field send_field;
-        Item_ident *ident= static_cast<Item_ident *>(item_dst);
+        Item_ident *ident = static_cast<Item_ident *>(item_dst);
         item_org->make_field(&send_field);
-
-        ident->db_name=    thd->strdup(send_field.db_name);
-        ident->table_name= thd->strdup(send_field.table_name);
+        ident->db_name =    thd->strdup(send_field.db_name);
+        ident->table_name = thd->strdup(send_field.table_name);
     }
 
     /*
@@ -191,8 +188,7 @@ int Materialized_cursor::send_result_set_metadata(
       mysql_execute_command() is finished, item_list can not be used for
       sending metadata, because it references closed table.
     */
-    rc= result->send_result_set_metadata(item_list, Protocol::SEND_NUM_ROWS);
-
+    rc = result->send_result_set_metadata(item_list, Protocol::SEND_NUM_ROWS);
 end:
     thd->restore_active_arena(this, &backup_arena);
     /* Check for thd->is_error() in case of OOM */
@@ -202,28 +198,24 @@ end:
 
 int Materialized_cursor::open(JOIN *join __attribute__((unused)))
 {
-    THD *thd= fake_unit.thd;
+    THD *thd = fake_unit.thd;
     int rc;
     Query_arena backup_arena;
-
     thd->set_n_backup_active_arena(this, &backup_arena);
-
     /* Create a list of fields and start sequential scan. */
-
 //   rc= result->prepare(item_list, &fake_unit);
-    rc= !rc && table->file->ha_rnd_init(TRUE);
-    is_rnd_inited= !rc;
-
+    rc = !rc && table->file->ha_rnd_init(TRUE);
+    is_rnd_inited = !rc;
     thd->restore_active_arena(this, &backup_arena);
 
     /* Commit or rollback metadata in the client-server protocol. */
 
     if (!rc) {
-        thd->server_status|= SERVER_STATUS_CURSOR_EXISTS;
+        thd->server_status |= SERVER_STATUS_CURSOR_EXISTS;
         //result->send_eof();
-    } else {
+
+    } else
         result->abort_result_set();
-    }
 
     return rc;
 }
@@ -243,13 +235,14 @@ int Materialized_cursor::open(JOIN *join __attribute__((unused)))
 
 void Materialized_cursor::fetch(ulong num_rows)
 {
-    THD *thd= table->in_use;
-
-    int res= 0;
+    THD *thd = table->in_use;
+    int res = 0;
     result->begin_dataset();
-    for (fetch_limit+= num_rows; fetch_count < fetch_limit; fetch_count++) {
-        if ((res= table->file->ha_rnd_next(table->record[0])))
+
+    for (fetch_limit += num_rows; fetch_count < fetch_limit; fetch_count++) {
+        if ((res = table->file->ha_rnd_next(table->record[0])))
             break;
+
         /* Send data only if the read was successful. */
         /*
           If network write failed (i.e. due to a closed socked),
@@ -261,14 +254,16 @@ void Materialized_cursor::fetch(ulong num_rows)
 
     switch (res) {
     case 0:
-        thd->server_status|= SERVER_STATUS_CURSOR_EXISTS;
+        thd->server_status |= SERVER_STATUS_CURSOR_EXISTS;
         //result->send_eof();
         break;
+
     case HA_ERR_END_OF_FILE:
-        thd->server_status|= SERVER_STATUS_LAST_ROW_SENT;
+        thd->server_status |= SERVER_STATUS_LAST_ROW_SENT;
         //result->send_eof();
         close();
         break;
+
     default:
         table->file->print_error(res, MYF(0));
         close();
@@ -281,17 +276,19 @@ void Materialized_cursor::close()
 {
     /* Free item_list items */
     free_items();
+
     if (is_rnd_inited)
         (void) table->file->ha_rnd_end();
+
     /*
       We need to grab table->mem_root to prevent free_tmp_table from freeing:
       the cursor object was allocated in this memory.
     */
-    main_mem_root= table->mem_root;
-    mem_root= &main_mem_root;
+    main_mem_root = table->mem_root;
+    mem_root = &main_mem_root;
     clear_alloc_root(&table->mem_root);
     free_tmp_table(table->in_use, table);
-    table= 0;
+    table = 0;
 }
 
 
@@ -320,20 +317,19 @@ bool Select_materialize::send_result_set_metadata(List<Item> &list, uint flags)
 //                           thd->variables.option_bits | TMP_TABLE_ALL_COLUMNS,
 //                           "", FALSE, TRUE))
 //     return TRUE;
-
-    materialized_cursor= new (&table->mem_root)
+    materialized_cursor = new (&table->mem_root)
     Materialized_cursor(result, table);
 
     if (!materialized_cursor) {
         free_tmp_table(table->in_use, table);
-        table= 0;
+        table = 0;
         return TRUE;
     }
 
     if (materialized_cursor->send_result_set_metadata(unit->thd, list)) {
         delete materialized_cursor;
-        table= 0;
-        materialized_cursor= 0;
+        table = 0;
+        materialized_cursor = 0;
         return TRUE;
     }
 

@@ -29,21 +29,21 @@ typedef struct st_slave_info
 {
     uint32 server_id;
     uint32 rpl_recovery_rank, master_id;
-    char host[HOSTNAME_LENGTH+1];
-    char user[USERNAME_LENGTH+1];
-    char password[MAX_PASSWORD_LENGTH+1];
+    char host[HOSTNAME_LENGTH + 1];
+    char user[USERNAME_LENGTH + 1];
+    char password[MAX_PASSWORD_LENGTH + 1];
     uint16 port;
-    THD* thd;
+    THD *thd;
 } SLAVE_INFO;
 
 void init_slave_list();
 void end_slave_list();
-int register_slave(THD* thd, uchar* packet, uint packet_length);
-void unregister_slave(THD* thd, bool only_mine, bool need_lock_slave_list);
-bool show_slave_hosts(THD* thd);
+int register_slave(THD *thd, uchar *packet, uint packet_length);
+void unregister_slave(THD *thd, bool only_mine, bool need_lock_slave_list);
+bool show_slave_hosts(THD *thd);
 String *get_slave_uuid(THD *thd, String *value);
-bool show_master_status(THD* thd);
-bool show_binlogs(THD* thd);
+bool show_master_status(THD *thd);
+bool show_binlogs(THD *thd);
 void kill_zombie_dump_threads(String *slave_uuid);
 
 /**
@@ -95,10 +95,10 @@ bool com_binlog_dump(THD *thd, char *packet, uint packet_length);
   events from that position; but if gtid_set!=NULL, it will skip all
   events in that set.
 */
-void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
-                       const Gtid_set* gtid_set);
+void mysql_binlog_send(THD *thd, char *log_ident, my_off_t pos,
+                       const Gtid_set *gtid_set);
 
-int reset_master(THD* thd);
+int reset_master(THD *thd);
 
 #endif /* HAVE_REPLICATION */
 

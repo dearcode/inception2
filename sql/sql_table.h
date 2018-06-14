@@ -77,9 +77,9 @@ enum ddl_log_action_code
 
 enum enum_ddl_log_exchange_phase
 {
-    EXCH_PHASE_NAME_TO_TEMP= 0,
-    EXCH_PHASE_FROM_TO_NAME= 1,
-    EXCH_PHASE_TEMP_TO_FROM= 2
+    EXCH_PHASE_NAME_TO_TEMP = 0,
+    EXCH_PHASE_FROM_TO_NAME = 1,
+    EXCH_PHASE_TEMP_TO_FROM = 2
 };
 
 
@@ -113,7 +113,7 @@ typedef struct st_ddl_log_memory_entry
 
 enum enum_explain_filename_mode
 {
-    EXPLAIN_ALL_VERBOSE= 0,
+    EXPLAIN_ALL_VERBOSE = 0,
     EXPLAIN_PARTITIONS_VERBOSE,
     EXPLAIN_PARTITIONS_AS_COMMENT
 };
@@ -130,19 +130,19 @@ enum enum_explain_filename_mode
 #define WFRM_KEEP_SHARE 8
 
 /* Flags for conversion functions. */
-static const uint FN_FROM_IS_TMP=  1 << 0;
-static const uint FN_TO_IS_TMP=    1 << 1;
-static const uint FN_IS_TMP=       FN_FROM_IS_TMP | FN_TO_IS_TMP;
-static const uint NO_FRM_RENAME=   1 << 2;
-static const uint FRM_ONLY=        1 << 3;
+static const uint FN_FROM_IS_TMP =  1 << 0;
+static const uint FN_TO_IS_TMP =    1 << 1;
+static const uint FN_IS_TMP =       FN_FROM_IS_TMP | FN_TO_IS_TMP;
+static const uint NO_FRM_RENAME =   1 << 2;
+static const uint FRM_ONLY =        1 << 3;
 /** Don't remove table in engine. Remove only .FRM and maybe .PAR files. */
-static const uint NO_HA_TABLE=     1 << 4;
+static const uint NO_HA_TABLE =     1 << 4;
 /** Don't resolve MySQL's fake "foo.sym" symbolic directory names. */
-static const uint SKIP_SYMDIR_ACCESS= 1 << 5;
+static const uint SKIP_SYMDIR_ACCESS = 1 << 5;
 
 uint filename_to_tablename(const char *from, char *to, uint to_length
 #ifndef DBUG_OFF
-                           , bool stay_quiet = false
+    , bool stay_quiet = false
 #endif /* DBUG_OFF */
                           );
 uint tablename_to_filename(const char *from, char *to, uint to_length);
@@ -161,7 +161,7 @@ uint inline build_table_filename(char *buff, size_t bufflen, const char *db,
 }
 uint build_table_shadow_filename(char *buff, size_t bufflen,
                                  ALTER_PARTITION_PARAM_TYPE *lpt);
-uint build_tmptable_filename(THD* thd, char *buff, size_t bufflen);
+uint build_tmptable_filename(THD *thd, char *buff, size_t bufflen);
 bool mysql_create_table(THD *thd, TABLE_LIST *create_table,
                         HA_CREATE_INFO *create_info,
                         Alter_info *alter_info);
@@ -194,15 +194,15 @@ bool mysql_create_like_table(THD *thd, TABLE_LIST *table,
                              TABLE_LIST *src_table,
                              HA_CREATE_INFO *create_info);
 bool mysql_rename_table(handlerton *base, const char *old_db,
-                        const char * old_name, const char *new_db,
-                        const char * new_name, uint flags);
+                        const char *old_name, const char *new_db,
+                        const char *new_name, uint flags);
 
-bool mysql_backup_table(THD* thd, TABLE_LIST* table_list);
-bool mysql_restore_table(THD* thd, TABLE_LIST* table_list);
+bool mysql_backup_table(THD *thd, TABLE_LIST *table_list);
+bool mysql_restore_table(THD *thd, TABLE_LIST *table_list);
 
-bool mysql_checksum_table(THD* thd, TABLE_LIST* table_list,
-                          HA_CHECK_OPT* check_opt);
-bool mysql_rm_table(THD *thd,TABLE_LIST *tables, my_bool if_exists,
+bool mysql_checksum_table(THD *thd, TABLE_LIST *table_list,
+                          HA_CHECK_OPT *check_opt);
+bool mysql_rm_table(THD *thd, TABLE_LIST *tables, my_bool if_exists,
                     my_bool drop_temporary);
 int mysql_rm_table_no_locks(THD *thd, TABLE_LIST *tables, bool if_exists,
                             bool drop_temporary, bool drop_view,
@@ -217,12 +217,12 @@ bool fill_field_definition(THD *thd,
 int prepare_create_field(Create_field *sql_field,
                          uint *blob_columns,
                          longlong table_flags);
-const CHARSET_INFO* get_sql_field_charset(Create_field *sql_field,
+const CHARSET_INFO *get_sql_field_charset(Create_field *sql_field,
         HA_CREATE_INFO *create_info);
 bool mysql_write_frm(ALTER_PARTITION_PARAM_TYPE *lpt, uint flags);
 int write_bin_log(THD *thd, bool clear_error,
                   char const *query, ulong query_length,
-                  bool is_trans= FALSE);
+                  bool is_trans = FALSE);
 bool write_ddl_log_entry(DDL_LOG_ENTRY *ddl_log_entry,
                          DDL_LOG_MEMORY_ENTRY **active_entry);
 bool write_execute_ddl_log_entry(uint first_entry,
@@ -244,7 +244,7 @@ void promote_first_timestamp_column(List<Create_field> *column_definitions);
 /*
   These prototypes where under INNODB_COMPATIBILITY_HOOKS.
 */
-uint explain_filename(THD* thd, const char *from, char *to, uint to_length,
+uint explain_filename(THD *thd, const char *from, char *to, uint to_length,
                       enum_explain_filename_mode explain_mode);
 
 

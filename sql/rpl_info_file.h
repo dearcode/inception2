@@ -84,11 +84,11 @@ private:
       @retval true  Error
     */
     static bool do_count_info(const int nparam,
-                              const char* param_pattern_fname,
+                              const char *param_pattern_fname,
                               bool name_indexed,
-                              uint* counter);
+                              uint *counter);
     static int do_reset_info(int const nparam,
-                             const char* param_pattern_fname,
+                             const char *param_pattern_fname,
                              bool name_indexed);
 
     int do_prepare_info_for_read();
@@ -112,16 +112,16 @@ private:
                      const float default_value);
     bool do_get_info(const int pos, Dynamic_ids *value,
                      const Dynamic_ids *default_value);
-    char* do_get_description_info();
+    char *do_get_description_info();
     uint do_get_rpl_info_type();
 
     bool do_is_transactional();
     bool do_update_is_transactional();
 
-    Rpl_info_file(int const nparam, const char* param_pattern_fname,
-                  const char* param_info_fname, bool name_indexed);
+    Rpl_info_file(int const nparam, const char *param_pattern_fname,
+                  const char *param_info_fname, bool name_indexed);
 
-    Rpl_info_file(const Rpl_info_file& info);
-    Rpl_info_file& operator=(const Rpl_info_file& info);
+    Rpl_info_file(const Rpl_info_file &info);
+    Rpl_info_file &operator=(const Rpl_info_file &info);
 };
 #endif /* RPL_INFO_FILE_H */

@@ -29,7 +29,7 @@ class Hash_set
 public:
     typedef T Value_type;
     enum
-    { START_SIZE= 8 };
+    { START_SIZE = 8 };
     /**
       Constructs an empty hash. Does not allocate memory, it is done upon
       the first insert. Thus does not cause or return errors.
@@ -59,9 +59,11 @@ public:
     {
         my_hash_init_opt(&m_hash, &my_charset_bin, START_SIZE, 0, 0, K, 0, MYF(0));
         size_t key_len;
-        const uchar *key= K(reinterpret_cast<uchar*>(value), &key_len, FALSE);
+        const uchar *key = K(reinterpret_cast<uchar *>(value), &key_len, FALSE);
+
         if (my_hash_search(&m_hash, key, key_len) == NULL)
             return my_hash_insert(&m_hash, reinterpret_cast<uchar *>(value));
+
         return FALSE;
     }
     /** Is this hash set empty? */
@@ -89,12 +91,13 @@ public:
         inline T *operator++(int)
         {
             if (m_idx < m_hash->records)
-                return reinterpret_cast<T*>(my_hash_element(m_hash, m_idx++));
+                return reinterpret_cast<T *>(my_hash_element(m_hash, m_idx++));
+
             return NULL;
         }
         void rewind()
         {
-            m_idx= 0;
+            m_idx = 0;
         }
     private:
         HASH *m_hash;

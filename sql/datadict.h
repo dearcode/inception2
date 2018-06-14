@@ -23,7 +23,7 @@
 
 enum frm_type_enum
 {
-    FRMTYPE_ERROR= 0,
+    FRMTYPE_ERROR = 0,
     FRMTYPE_TABLE,
     FRMTYPE_VIEW
 };

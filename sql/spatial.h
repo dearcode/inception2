@@ -25,11 +25,11 @@
 
 #include <algorithm>
 
-const uint SRID_SIZE= 4;
-const uint SIZEOF_STORED_DOUBLE= 8;
-const uint POINT_DATA_SIZE= SIZEOF_STORED_DOUBLE*2;
-const uint WKB_HEADER_SIZE= 1+4;
-const uint32 GET_SIZE_ERROR= ((uint32) -1);
+const uint SRID_SIZE = 4;
+const uint SIZEOF_STORED_DOUBLE = 8;
+const uint POINT_DATA_SIZE = SIZEOF_STORED_DOUBLE * 2;
+const uint WKB_HEADER_SIZE = 1 + 4;
+const uint32 GET_SIZE_ERROR = ((uint32) - 1);
 
 struct st_point_2d
 {
@@ -57,48 +57,54 @@ struct MBR
 
     MBR()
     {
-        xmin= ymin= DBL_MAX;
-        xmax= ymax= -DBL_MAX;
+        xmin = ymin = DBL_MAX;
+        xmax = ymax = -DBL_MAX;
     }
 
     MBR(const double xmin_arg, const double ymin_arg,
         const double xmax_arg, const double ymax_arg)
-        :xmin(xmin_arg), ymin(ymin_arg), xmax(xmax_arg), ymax(ymax_arg)
+        : xmin(xmin_arg), ymin(ymin_arg), xmax(xmax_arg), ymax(ymax_arg)
     {}
 
     MBR(const st_point_2d &min, const st_point_2d &max)
-        :xmin(min.x), ymin(min.y), xmax(max.x), ymax(max.y)
+        : xmin(min.x), ymin(min.y), xmax(max.x), ymax(max.y)
     {}
 
     inline void add_xy(double x, double y)
     {
         /* Not using "else" for proper one point MBR calculation */
         if (x < xmin)
-            xmin= x;
+            xmin = x;
+
         if (x > xmax)
-            xmax= x;
+            xmax = x;
+
         if (y < ymin)
-            ymin= y;
+            ymin = y;
+
         if (y > ymax)
-            ymax= y;
+            ymax = y;
     }
     void add_xy(const char *px, const char *py)
     {
         double x, y;
         float8get(x, px);
         float8get(y, py);
-        add_xy(x,y);
+        add_xy(x, y);
     }
     void add_mbr(const MBR *mbr)
     {
         if (mbr->xmin < xmin)
-            xmin= mbr->xmin;
+            xmin = mbr->xmin;
+
         if (mbr->xmax > xmax)
-            xmax= mbr->xmax;
+            xmax = mbr->xmax;
+
         if (mbr->ymin < ymin)
-            ymin= mbr->ymin;
+            ymin = mbr->ymin;
+
         if (mbr->ymax > ymax)
-            ymax= mbr->ymax;
+            ymax = mbr->ymax;
     }
 
     int equals(const MBR *mbr)
@@ -148,7 +154,7 @@ struct MBR
     bool inner_point(double x, double y) const
     {
         /* The following should be safe, even if we compare doubles */
-        return (xmin<x) && (xmax>x) && (ymin<y) && (ymax>y);
+        return (xmin < x) && (xmax > x) && (ymin < y) && (ymax > y);
     }
 
     /**
@@ -160,7 +166,7 @@ struct MBR
     */
     int dimension() const
     {
-        int d= 0;
+        int d = 0;
 
         if (xmin > xmax)
             return -1;
@@ -191,7 +197,6 @@ struct MBR
         using std::max;
         MBR intersection(max(xmin, mbr->xmin), max(ymin, mbr->ymin),
                          min(xmax, mbr->xmax), min(ymax, mbr->ymax));
-
         return (d == intersection.dimension());
     }
 };
@@ -221,19 +226,19 @@ public:
 
     enum wkbType
     {
-        wkb_point= 1,
-        wkb_linestring= 2,
-        wkb_polygon= 3,
-        wkb_multipoint= 4,
-        wkb_multilinestring= 5,
-        wkb_multipolygon= 6,
-        wkb_geometrycollection= 7,
-        wkb_last=7
+        wkb_point = 1,
+        wkb_linestring = 2,
+        wkb_polygon = 3,
+        wkb_multipoint = 4,
+        wkb_multilinestring = 5,
+        wkb_multipolygon = 6,
+        wkb_geometrycollection = 7,
+        wkb_last = 7
     };
     enum wkbByteOrder
     {
-        wkb_xdr= 0,    /* Big Endian */
-        wkb_ndr= 1     /* Little Endian */
+        wkb_xdr = 0,   /* Big Endian */
+        wkb_ndr = 1    /* Little Endian */
     };
 
     /** Callback which creates Geometry objects on top of a given placement. */
@@ -248,21 +253,21 @@ public:
         Class_info(const char *name, int type_id, create_geom_t create_func);
     };
 
-    virtual const Class_info *get_class_info() const=0;
-    virtual uint32 get_data_size() const=0;
-    virtual bool init_from_wkt(Gis_read_stream *trs, String *wkb)=0;
+    virtual const Class_info *get_class_info() const = 0;
+    virtual uint32 get_data_size() const = 0;
+    virtual bool init_from_wkt(Gis_read_stream *trs, String *wkb) = 0;
     /* returns the length of the wkb that was read */
     virtual uint init_from_wkb(const char *wkb, uint len, wkbByteOrder bo,
-                               String *res)=0;
+                               String *res) = 0;
     virtual uint init_from_opresult(String *bin,
                                     const char *opres, uint opres_length)
     {
         return init_from_wkb(opres + 4, UINT_MAX32, wkb_ndr, bin) + 4;
     }
 
-    virtual bool get_data_as_wkt(String *txt, const char **end) const=0;
-    virtual bool get_mbr(MBR *mbr, const char **end) const=0;
-    virtual bool dimension(uint32 *dim, const char **end) const=0;
+    virtual bool get_data_as_wkt(String *txt, const char **end) const = 0;
+    virtual bool get_mbr(MBR *mbr, const char **end) const = 0;
+    virtual bool dimension(uint32 *dim, const char **end) const = 0;
     virtual int get_x(double *x) const
     {
         return -1;
@@ -284,11 +289,13 @@ public:
     */
     virtual int area(double *ar, const char **end_of_data) const
     {
-        uint32 data_size= get_data_size();
+        uint32 data_size = get_data_size();
+
         if (data_size == GET_SIZE_ERROR || no_data(m_data, data_size))
             return 1;
-        *end_of_data= m_data + data_size;
-        *ar= 0;
+
+        *end_of_data = m_data + data_size;
+        *ar = 0;
         return 0;
     }
     virtual int is_closed(int *closed) const
@@ -336,7 +343,7 @@ public:
         return -1;
     }
     virtual int store_shapes(Gcalc_shape_transporter *trn,
-                             Gcalc_shape_status *st) const=0;
+                             Gcalc_shape_status *st) const = 0;
     int store_shapes(Gcalc_shape_transporter *trn) const
     {
         Gcalc_shape_status dummy;
@@ -350,37 +357,41 @@ public:
                                const char *data, uint32 data_len);
     static Geometry *create_from_wkt(Geometry_buffer *buffer,
                                      Gis_read_stream *trs, String *wkt,
-                                     bool init_stream=1);
+                                     bool init_stream = 1);
     static Geometry *create_from_wkb(Geometry_buffer *buffer,
                                      const char *wkb, uint32 len, String *res);
     static int create_from_opresult(Geometry_buffer *g_buf,
                                     String *res, Gcalc_result_receiver &rr);
     int as_wkt(String *wkt, const char **end)
     {
-        uint32 len= (uint) get_class_info()->m_name.length;
+        uint32 len = (uint) get_class_info()->m_name.length;
+
         if (wkt->reserve(len + 2, 512))
             return 1;
+
         wkt->qs_append(get_class_info()->m_name.str, len);
         wkt->qs_append('(');
+
         if (get_data_as_wkt(wkt, end))
             return 1;
+
         wkt->qs_append(')');
         return 0;
     }
 
     inline void set_data_ptr(const char *data, uint32 data_len)
     {
-        m_data= data;
-        m_data_end= data + data_len;
+        m_data = data;
+        m_data_end = data + data_len;
     }
 
     inline void shift_wkb_header()
     {
-        m_data+= WKB_HEADER_SIZE;
+        m_data += WKB_HEADER_SIZE;
     }
 
     bool envelope(String *result) const;
-    static Class_info *ci_collection[wkb_last+1];
+    static Class_info *ci_collection[wkb_last + 1];
 
 protected:
     static Class_info *find_class(int type_id)
@@ -455,9 +466,11 @@ public:
 
     int get_xy(double *x, double *y) const
     {
-        const char *data= m_data;
+        const char *data = m_data;
+
         if (no_data(data, SIZEOF_STORED_DOUBLE * 2))
             return 1;
+
         float8get(*x, data);
         float8get(*y, data + SIZEOF_STORED_DOUBLE);
         return 0;
@@ -467,22 +480,26 @@ public:
     {
         if (no_data(m_data, SIZEOF_STORED_DOUBLE))
             return 1;
+
         float8get(*x, m_data);
         return 0;
     }
 
     int get_y(double *y) const
     {
-        const char *data= m_data;
-        if (no_data(data, SIZEOF_STORED_DOUBLE * 2)) return 1;
+        const char *data = m_data;
+
+        if (no_data(data, SIZEOF_STORED_DOUBLE * 2))
+            return 1;
+
         float8get(*y, data + SIZEOF_STORED_DOUBLE);
         return 0;
     }
 
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 0;
-        *end= 0;					/* No default end */
+        *dim = 0;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;
@@ -495,7 +512,7 @@ public:
 class Gis_line_string: public Geometry
 {
     // Maximum number of points in LineString that can fit into String
-    static const uint32 max_n_points=
+    static const uint32 max_n_points =
         (uint32) (UINT_MAX32 - WKB_HEADER_SIZE - 4 /* n_points */) /
         POINT_DATA_SIZE;
 public:
@@ -514,8 +531,8 @@ public:
     int point_n(uint32 n, String *result) const;
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 1;
-        *end= 0;					/* No default end */
+        *dim = 1;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;
@@ -544,8 +561,8 @@ public:
     int centroid(String *result) const;
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 2;
-        *end= 0;					/* No default end */
+        *dim = 2;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;
@@ -558,7 +575,7 @@ public:
 class Gis_multi_point: public Geometry
 {
     // Maximum number of points in MultiPoint that can fit into String
-    static const uint32 max_n_points=
+    static const uint32 max_n_points =
         (uint32) (UINT_MAX32 - WKB_HEADER_SIZE - 4 /* n_points */) /
         (WKB_HEADER_SIZE + POINT_DATA_SIZE);
 public:
@@ -574,8 +591,8 @@ public:
     int geometry_n(uint32 num, String *result) const;
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 0;
-        *end= 0;					/* No default end */
+        *dim = 0;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;
@@ -602,8 +619,8 @@ public:
     int is_closed(int *closed) const;
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 1;
-        *end= 0;					/* No default end */
+        *dim = 1;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;
@@ -629,8 +646,8 @@ public:
     int centroid(String *result) const;
     bool dimension(uint32 *dim, const char **end) const
     {
-        *dim= 2;
-        *end= 0;					/* No default end */
+        *dim = 2;
+        *end = 0;					/* No default end */
         return 0;
     }
     int store_shapes(Gcalc_shape_transporter *trn, Gcalc_shape_status *st) const;

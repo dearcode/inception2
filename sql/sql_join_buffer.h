@@ -62,7 +62,8 @@ typedef struct st_cache_field
     {
         if (next_copy_rowid != NULL)
             next_copy_rowid->bind_buffer(buffer);
-        str= buffer;
+
+        str = buffer;
     }
     bool buffer_is_bound() const
     {
@@ -90,7 +91,7 @@ typedef struct st_cache_field
   the engine nodes (NDB Cluster).
 */
 
-class JOIN_CACHE :public QEP_operation
+class JOIN_CACHE : public QEP_operation
 {
 
 private:
@@ -109,7 +110,7 @@ protected:
     /* Calculate the number of bytes used to store an offset value */
     uint offset_size(uint len)
     {
-        return (len < 256 ? 1 : len < 256*256 ? 2 : 4);
+        return (len < 256 ? 1 : len < 256 * 256 ? 2 : 4);
     }
 
     /* Get the offset value that takes ofs_sz bytes at the position ptr */
@@ -118,11 +119,14 @@ protected:
         switch (ofs_sz) {
         case 1:
             return uint(*ptr);
+
         case 2:
             return uint2korr(ptr);
+
         case 4:
             return uint4korr(ptr);
         }
+
         return 0;
     }
 
@@ -131,11 +135,13 @@ protected:
     {
         switch (ofs_sz) {
         case 1:
-            *ptr= (uchar) ofs;
+            *ptr = (uchar) ofs;
             return;
+
         case 2:
             int2store(ptr, (uint16) ofs);
             return;
+
         case 4:
             int4store(ptr, (uint32) ofs);
             return;
@@ -312,7 +318,7 @@ protected:
 
     uchar *get_rec_ref(uchar *ptr)
     {
-        return buff+get_offset(size_of_rec_ofs, ptr-size_of_rec_ofs);
+        return buff + get_offset(size_of_rec_ofs, ptr - size_of_rec_ofs);
     }
     ulong get_rec_length(uchar *ptr)
     {
@@ -323,9 +329,9 @@ protected:
         return (ulong) get_offset(size_of_fld_ofs, ptr);
     }
 
-    void store_rec_ref(uchar *ptr, uchar* ref)
+    void store_rec_ref(uchar *ptr, uchar *ref)
     {
-        store_offset(size_of_rec_ofs, ptr-size_of_rec_ofs, (ulong) (ref-buff));
+        store_offset(size_of_rec_ofs, ptr - size_of_rec_ofs, (ulong) (ref - buff));
     }
 
     void store_rec_length(uchar *ptr, ulong len)
@@ -353,7 +359,7 @@ protected:
     /* Shall calculate how much space is remaining in the join buffer */
     virtual ulong rem_space()
     {
-        return std::max<ulong>(buff_size-(end_pos-buff)-aux_buff_size, 0UL);
+        return std::max<ulong>(buff_size - (end_pos - buff) - aux_buff_size, 0UL);
     }
 
     /* Shall skip record from the join buffer if its match flag is on */
@@ -384,7 +390,7 @@ protected:
     }
 
     /* Find matches from the next table for records from the join buffer */
-    virtual enum_nested_loop_state join_matching_records(bool skip_last)=0;
+    virtual enum_nested_loop_state join_matching_records(bool skip_last) = 0;
 
     /* Add null complements for unmatched outer records from buffer */
     virtual enum_nested_loop_state join_null_complements(bool skip_last);
@@ -422,7 +428,7 @@ public:
     JOIN_CACHE *next_cache;
 
     /* Shall initialize the join cache structure */
-    virtual int init()=0;
+    virtual int init() = 0;
 
     /* The function shall return TRUE only for BKA caches */
     virtual bool is_key_access()
@@ -438,6 +444,7 @@ public:
     {
         if (put_record_in_cache())
             return join_records(false);
+
         return NESTED_LOOP_OK;
     }
     /*
@@ -464,7 +471,7 @@ public:
     /* Shall set the current record link */
     virtual void set_curr_rec_link(uchar *link)
     {
-        curr_rec_link= link;
+        curr_rec_link = link;
     }
 
     /* Shall return the current record link */
@@ -497,24 +504,25 @@ public:
           (next|prev)_cache pointer: remove the link.
         */
         if (prev_cache)
-            prev_cache->next_cache= NULL;
+            prev_cache->next_cache = NULL;
+
         if (next_cache)
-            next_cache->prev_cache= NULL;
+            next_cache->prev_cache = NULL;
 
         my_free(buff);
-        buff= NULL;
+        buff = NULL;
     }
 
     /** Bits describing cache's type @sa setup_join_buffering() */
     enum
-    {ALG_NONE= 0, ALG_BNL= 1, ALG_BKA= 2, ALG_BKA_UNIQUE= 4};
+    {ALG_NONE = 0, ALG_BNL = 1, ALG_BKA = 2, ALG_BKA_UNIQUE = 4};
 
     friend class JOIN_CACHE_BNL;
     friend class JOIN_CACHE_BKA;
     friend class JOIN_CACHE_BKA_UNIQUE;
 };
 
-class JOIN_CACHE_BNL :public JOIN_CACHE
+class JOIN_CACHE_BNL : public JOIN_CACHE
 {
 
 protected:
@@ -531,9 +539,9 @@ public:
     */
     JOIN_CACHE_BNL(JOIN *j, JOIN_TAB *tab)
     {
-        join= j;
-        join_tab= tab;
-        prev_cache= next_cache= 0;
+        join = j;
+        join_tab = tab;
+        prev_cache = next_cache = 0;
     }
 
     /*
@@ -544,12 +552,13 @@ public:
     */
     JOIN_CACHE_BNL(JOIN *j, JOIN_TAB *tab, JOIN_CACHE *prev)
     {
-        join= j;
-        join_tab= tab;
-        prev_cache= prev;
-        next_cache= 0;
+        join = j;
+        join_tab = tab;
+        prev_cache = prev;
+        next_cache = 0;
+
         if (prev)
-            prev->next_cache= this;
+            prev->next_cache = this;
     }
 
     /* Initialize the BNL cache */
@@ -557,7 +566,7 @@ public:
 
 };
 
-class JOIN_CACHE_BKA :public JOIN_CACHE
+class JOIN_CACHE_BKA : public JOIN_CACHE
 {
 protected:
 
@@ -570,8 +579,8 @@ protected:
     /* Shall initialize the MRR buffer */
     virtual void init_mrr_buff()
     {
-        mrr_buff.buffer= end_pos;
-        mrr_buff.buffer_end= buff+buff_size;
+        mrr_buff.buffer = end_pos;
+        mrr_buff.buffer_end = buff + buff_size;
     }
 
     /*
@@ -615,10 +624,10 @@ public:
     */
     JOIN_CACHE_BKA(JOIN *j, JOIN_TAB *tab, uint flags)
     {
-        join= j;
-        join_tab= tab;
-        prev_cache= next_cache= 0;
-        mrr_mode= flags;
+        join = j;
+        join_tab = tab;
+        prev_cache = next_cache = 0;
+        mrr_mode = flags;
     }
 
     /*
@@ -628,15 +637,17 @@ public:
       object to which this cache is linked.
       The MRR mode initially is set to 'flags'.
     */
-    JOIN_CACHE_BKA(JOIN *j, JOIN_TAB *tab, uint flags,  JOIN_CACHE* prev)
+    JOIN_CACHE_BKA(JOIN *j, JOIN_TAB *tab, uint flags,  JOIN_CACHE *prev)
     {
-        join= j;
-        join_tab= tab;
-        prev_cache= prev;
-        next_cache= 0;
+        join = j;
+        join_tab = tab;
+        prev_cache = prev;
+        next_cache = 0;
+
         if (prev)
-            prev->next_cache= this;
-        mrr_mode= flags;
+            prev->next_cache = this;
+
+        mrr_mode = flags;
     }
 
     /* Initialize the BKA cache */
@@ -733,7 +744,7 @@ public:
 
 */
 
-class JOIN_CACHE_BKA_UNIQUE :public JOIN_CACHE_BKA
+class JOIN_CACHE_BKA_UNIQUE : public JOIN_CACHE_BKA
 {
 
 private:
@@ -778,7 +789,7 @@ private:
     /* The offset of the data fields from the beginning of the record fields */
     uint data_fields_offset;
 
-    uint get_hash_idx(uchar* key, uint key_len);
+    uint get_hash_idx(uchar *key, uint key_len);
 
     void cleanup_hash_table();
 
@@ -797,7 +808,7 @@ protected:
     */
     uchar *get_next_key_ref(uchar *key_ref_ptr)
     {
-        return hash_table-get_offset(size_of_key_ofs, key_ref_ptr);
+        return hash_table - get_offset(size_of_key_ofs, key_ref_ptr);
     }
 
     /*
@@ -808,7 +819,7 @@ protected:
     */
     void store_next_key_ref(uchar *key_ref_ptr, uchar *ref)
     {
-        store_offset(size_of_key_ofs, key_ref_ptr, (ulong) (hash_table-ref));
+        store_offset(size_of_key_ofs, key_ref_ptr, (ulong) (hash_table - ref));
     }
 
     /*
@@ -817,7 +828,7 @@ protected:
     */
     bool is_null_key_ref(uchar *key_ref_ptr)
     {
-        ulong nil= 0;
+        ulong nil = 0;
         return memcmp(key_ref_ptr, &nil, size_of_key_ofs ) == 0;
     }
 
@@ -827,18 +838,18 @@ protected:
     */
     void store_null_key_ref(uchar *key_ref_ptr)
     {
-        ulong nil= 0;
+        ulong nil = 0;
         store_offset(size_of_key_ofs, key_ref_ptr, nil);
     }
 
     uchar *get_next_rec_ref(uchar *ref_ptr)
     {
-        return buff+get_offset(get_size_of_rec_offset(), ref_ptr);
+        return buff + get_offset(get_size_of_rec_offset(), ref_ptr);
     }
 
     void store_next_rec_ref(uchar *ref_ptr, uchar *ref)
     {
-        store_offset(get_size_of_rec_offset(), ref_ptr, (ulong) (ref-buff));
+        store_offset(get_size_of_rec_offset(), ref_ptr, (ulong) (ref - buff));
     }
 
     /*
@@ -847,7 +858,7 @@ protected:
     */
     uchar *get_curr_emb_key()
     {
-        return get_curr_rec()+data_fields_offset;
+        return get_curr_rec() + data_fields_offset;
     }
 
     /*
@@ -857,7 +868,7 @@ protected:
     */
     uchar *get_emb_key(uchar *ref_ptr)
     {
-        return buff+get_offset(get_size_of_rec_offset(), ref_ptr);
+        return buff + get_offset(get_size_of_rec_offset(), ref_ptr);
     }
 
     /*
@@ -867,7 +878,7 @@ protected:
     */
     void store_emb_key_ref(uchar *ref_ptr, uchar *ref)
     {
-        store_offset(get_size_of_rec_offset(), ref_ptr, (ulong) (ref-buff));
+        store_offset(get_size_of_rec_offset(), ref_ptr, (ulong) (ref - buff));
     }
 
     /*
@@ -876,7 +887,7 @@ protected:
     */
     ulong rem_space()
     {
-        return std::max<ulong>(last_key_entry-end_pos-aux_buff_size, 0UL);
+        return std::max<ulong>(last_key_entry - end_pos - aux_buff_size, 0UL);
     }
 
     /*
@@ -886,8 +897,8 @@ protected:
     */
     void init_mrr_buff()
     {
-        mrr_buff.buffer= end_pos;
-        mrr_buff.buffer_end= last_key_entry;
+        mrr_buff.buffer = end_pos;
+        mrr_buff.buffer_end = last_key_entry;
     }
 
     /* Skip record from JOIN_CACHE_BKA_UNIQUE buffer if its match flag is on */
@@ -913,7 +924,7 @@ public:
       The MRR mode initially is set to 'flags'.
     */
     JOIN_CACHE_BKA_UNIQUE(JOIN *j, JOIN_TAB *tab, uint flags)
-        :JOIN_CACHE_BKA(j, tab, flags) {}
+        : JOIN_CACHE_BKA(j, tab, flags) {}
 
     /*
       This constructor creates a linked BKA_UNIQUE join cache. The cache is
@@ -922,8 +933,8 @@ public:
       object to which this cache is linked.
       The MRR mode initially is set to 'flags'.
     */
-    JOIN_CACHE_BKA_UNIQUE(JOIN *j, JOIN_TAB *tab, uint flags,  JOIN_CACHE* prev)
-        :JOIN_CACHE_BKA(j, tab, flags, prev) {}
+    JOIN_CACHE_BKA_UNIQUE(JOIN *j, JOIN_TAB *tab, uint flags,  JOIN_CACHE *prev)
+        : JOIN_CACHE_BKA(j, tab, flags, prev) {}
 
     /* Initialize the BKA_UNIQUE cache */
     int init();
@@ -945,7 +956,7 @@ public:
     /* Get the head of the record chain attached to the current key entry */
     uchar *get_curr_key_chain()
     {
-        return get_next_rec_ref(curr_key_entry+key_entry_length-
+        return get_next_rec_ref(curr_key_entry + key_entry_length -
                                 get_size_of_rec_offset());
     }
 

@@ -64,10 +64,10 @@ class sp_instr : public Query_arena,
 {
 public:
     sp_instr(uint ip, sp_pcontext *ctx)
-        :Query_arena(0, STMT_INITIALIZED_FOR_SP),
-         m_marked(false),
-         m_ip(ip),
-         m_parsing_ctx(ctx)
+        : Query_arena(0, STMT_INITIALIZED_FOR_SP),
+          m_marked(false),
+          m_ip(ip),
+          m_parsing_ctx(ctx)
     { }
 
     virtual ~sp_instr()
@@ -120,7 +120,7 @@ public:
     */
     virtual uint opt_mark(sp_head *sp, List<sp_instr> *leads)
     {
-        m_marked= true;
+        m_marked = true;
         return get_ip() + 1;
     }
 
@@ -143,7 +143,7 @@ public:
     */
     virtual void opt_move(uint dst, List<sp_branch_instr> *ibp)
     {
-        m_ip= dst;
+        m_ip = dst;
     }
 
     bool opt_is_marked() const
@@ -183,12 +183,12 @@ class sp_lex_instr : public sp_instr
 {
 public:
     sp_lex_instr(uint ip, sp_pcontext *ctx, LEX *lex, bool is_lex_owner)
-        :sp_instr(ip, ctx),
-         m_lex(NULL),
-         m_is_lex_owner(false),
-         m_first_execution(true),
-         m_prelocking_tables(NULL),
-         m_lex_query_tables_own_last(NULL)
+        : sp_instr(ip, ctx),
+          m_lex(NULL),
+          m_is_lex_owner(false),
+          m_first_execution(true),
+          m_prelocking_tables(NULL),
+          m_lex_query_tables_own_last(NULL)
     {
         set_lex(lex, is_lex_owner);
     }
@@ -406,9 +406,9 @@ public:
     sp_instr_stmt(uint ip,
                   LEX *lex,
                   LEX_STRING query)
-        :sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
-         m_query(query),
-         m_valid(true)
+        : sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
+          m_query(query),
+          m_valid(true)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -436,7 +436,7 @@ public:
 
     virtual void invalidate()
     {
-        m_valid= false;
+        m_valid = false;
     }
 
     virtual void get_query(String *sql_query) const
@@ -446,7 +446,7 @@ public:
 
     virtual bool on_after_expr_parsing(THD *thd)
     {
-        m_valid= true;
+        m_valid = true;
         return false;
     }
 
@@ -472,10 +472,10 @@ public:
                  Item *value_item,
                  LEX_STRING value_query,
                  bool is_lex_owner)
-        :sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, is_lex_owner),
-         m_offset(offset),
-         m_value_item(value_item),
-         m_value_query(value_query)
+        : sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, is_lex_owner),
+          m_offset(offset),
+          m_value_item(value_item),
+          m_value_query(value_query)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -497,15 +497,13 @@ public:
 
     virtual void invalidate()
     {
-        m_value_item= NULL;
+        m_value_item = NULL;
     }
 
     virtual bool on_after_expr_parsing(THD *thd)
     {
         DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-        m_value_item= thd->lex->select_lex.item_list.head();
-
+        m_value_item = thd->lex->select_lex.item_list.head();
         return false;
     }
 
@@ -540,11 +538,11 @@ public:
                                Item_trigger_field *trigger_field,
                                Item *value_item,
                                LEX_STRING value_query)
-        :sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
-         m_trigger_field_name(trigger_field_name),
-         m_trigger_field(trigger_field),
-         m_value_item(value_item),
-         m_value_query(value_query)
+        : sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
+          m_trigger_field_name(trigger_field_name),
+          m_trigger_field(trigger_field),
+          m_value_item(value_item),
+          m_value_query(value_query)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -566,7 +564,7 @@ public:
 
     virtual void invalidate()
     {
-        m_value_item= NULL;
+        m_value_item = NULL;
     }
 
     virtual bool on_after_expr_parsing(THD *thd);
@@ -605,10 +603,10 @@ public:
                      Item *expr_item,
                      LEX_STRING expr_query,
                      enum enum_field_types return_field_type)
-        :sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
-         m_expr_item(expr_item),
-         m_expr_query(expr_query),
-         m_return_field_type(return_field_type)
+        : sp_lex_instr(ip, lex->get_sp_current_parsing_ctx(), lex, true),
+          m_expr_item(expr_item),
+          m_expr_query(expr_query),
+          m_return_field_type(return_field_type)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -623,7 +621,7 @@ public:
 
     virtual uint opt_mark(sp_head *sp, List<sp_instr> *leads)
     {
-        m_marked= true;
+        m_marked = true;
         return UINT_MAX;
     }
 
@@ -641,15 +639,13 @@ public:
     virtual void invalidate()
     {
         // it's already deleted.
-        m_expr_item= NULL;
+        m_expr_item = NULL;
     }
 
     virtual bool on_after_expr_parsing(THD *thd)
     {
         DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-        m_expr_item= thd->lex->select_lex.item_list.head();
-
+        m_expr_item = thd->lex->select_lex.item_list.head();
         return false;
     }
 
@@ -686,15 +682,15 @@ class sp_instr_jump : public sp_instr,
 {
 public:
     sp_instr_jump(uint ip, sp_pcontext *ctx)
-        :sp_instr(ip, ctx),
-         m_dest(0),
-         m_optdest(NULL)
+        : sp_instr(ip, ctx),
+          m_dest(0),
+          m_optdest(NULL)
     { }
 
     sp_instr_jump(uint ip, sp_pcontext *ctx, uint dest)
-        :sp_instr(ip, ctx),
-         m_dest(dest),
-         m_optdest(NULL)
+        : sp_instr(ip, ctx),
+          m_dest(dest),
+          m_optdest(NULL)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -709,7 +705,7 @@ public:
 
     virtual bool execute(THD *thd, uint *nextp)
     {
-        *nextp= m_dest;
+        *nextp = m_dest;
         return false;
     }
 
@@ -726,14 +722,14 @@ public:
     virtual void set_destination(uint old_dest, uint new_dest)
     {
         if (m_dest == old_dest)
-            m_dest= new_dest;
+            m_dest = new_dest;
     }
 
     virtual void backpatch(uint dest)
     {
         /* Calling backpatch twice is a logic flaw in jump resolution. */
         DBUG_ASSERT(m_dest == 0);
-        m_dest= dest;
+        m_dest = dest;
     }
 
 protected:
@@ -756,31 +752,31 @@ class sp_lex_branch_instr : public sp_lex_instr,
 protected:
     sp_lex_branch_instr(uint ip, sp_pcontext *ctx, LEX *lex,
                         Item *expr_item, LEX_STRING expr_query)
-        :sp_lex_instr(ip, ctx, lex, true),
-         m_dest(0),
-         m_cont_dest(0),
-         m_optdest(NULL),
-         m_cont_optdest(NULL),
-         m_expr_item(expr_item),
-         m_expr_query(expr_query)
+        : sp_lex_instr(ip, ctx, lex, true),
+          m_dest(0),
+          m_cont_dest(0),
+          m_optdest(NULL),
+          m_cont_optdest(NULL),
+          m_expr_item(expr_item),
+          m_expr_query(expr_query)
     { }
 
     sp_lex_branch_instr(uint ip, sp_pcontext *ctx, LEX *lex,
                         Item *expr_item, LEX_STRING expr_query,
                         uint dest)
-        :sp_lex_instr(ip, ctx, lex, true),
-         m_dest(dest),
-         m_cont_dest(0),
-         m_optdest(NULL),
-         m_cont_optdest(NULL),
-         m_expr_item(expr_item),
-         m_expr_query(expr_query)
+        : sp_lex_instr(ip, ctx, lex, true),
+          m_dest(dest),
+          m_cont_dest(0),
+          m_optdest(NULL),
+          m_cont_optdest(NULL),
+          m_expr_item(expr_item),
+          m_expr_query(expr_query)
     { }
 
 public:
     void set_cont_dest(uint cont_dest)
     {
-        m_cont_dest= cont_dest;
+        m_cont_dest = cont_dest;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -807,7 +803,7 @@ public:
 
     virtual void invalidate()
     {
-        m_expr_item= NULL; /* it's already deleted. */
+        m_expr_item = NULL; /* it's already deleted. */
     }
 
     virtual LEX_STRING get_expr_query() const
@@ -822,17 +818,17 @@ public:
     virtual void set_destination(uint old_dest, uint new_dest)
     {
         if (m_dest == old_dest)
-            m_dest= new_dest;
+            m_dest = new_dest;
 
         if (m_cont_dest == old_dest)
-            m_cont_dest= new_dest;
+            m_cont_dest = new_dest;
     }
 
     virtual void backpatch(uint dest)
     {
         /* Calling backpatch twice is a logic flaw in jump resolution. */
         DBUG_ASSERT(m_dest == 0);
-        m_dest= dest;
+        m_dest = dest;
     }
 
 protected:
@@ -866,8 +862,8 @@ public:
                          LEX *lex,
                          Item *expr_item,
                          LEX_STRING expr_query)
-        :sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
-                             expr_item, expr_query)
+        : sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
+                              expr_item, expr_query)
     { }
 
     sp_instr_jump_if_not(uint ip,
@@ -875,8 +871,8 @@ public:
                          Item *expr_item,
                          LEX_STRING expr_query,
                          uint dest)
-        :sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
-                             expr_item, expr_query, dest)
+        : sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
+                              expr_item, expr_query, dest)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -894,9 +890,7 @@ public:
     virtual bool on_after_expr_parsing(THD *thd)
     {
         DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-        m_expr_item= thd->lex->select_lex.item_list.head();
-
+        m_expr_item = thd->lex->select_lex.item_list.head();
         return false;
     }
 };
@@ -917,9 +911,9 @@ public:
                            uint case_expr_id,
                            Item *case_expr_item,
                            LEX_STRING case_expr_query)
-        :sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
-                             case_expr_item, case_expr_query),
-         m_case_expr_id(case_expr_id)
+        : sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
+                              case_expr_item, case_expr_query),
+          m_case_expr_id(case_expr_id)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -956,7 +950,7 @@ public:
     virtual void set_destination(uint old_dest, uint new_dest)
     {
         if (m_cont_dest == old_dest)
-            m_cont_dest= new_dest;
+            m_cont_dest = new_dest;
     }
 
     virtual void backpatch(uint dest)
@@ -971,9 +965,7 @@ public:
     virtual bool on_after_expr_parsing(THD *thd)
     {
         DBUG_ASSERT(thd->lex->select_lex.item_list.elements == 1);
-
-        m_expr_item= thd->lex->select_lex.item_list.head();
-
+        m_expr_item = thd->lex->select_lex.item_list.head();
         return false;
     }
 
@@ -999,9 +991,9 @@ public:
                             int case_expr_id,
                             Item *when_expr_item,
                             LEX_STRING when_expr_query)
-        :sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
-                             when_expr_item, when_expr_query),
-         m_case_expr_id(case_expr_id)
+        : sp_lex_branch_instr(ip, lex->get_sp_current_parsing_ctx(), lex,
+                              when_expr_item, when_expr_query),
+          m_case_expr_id(case_expr_id)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1019,9 +1011,9 @@ public:
     virtual void invalidate()
     {
         // Items should be already deleted in lex-keeper.
-        m_case_expr_item= NULL;
-        m_eq_item= NULL;
-        m_expr_item= NULL; // it's a WHEN-expression.
+        m_case_expr_item = NULL;
+        m_eq_item = NULL;
+        m_expr_item = NULL; // it's a WHEN-expression.
     }
 
     virtual bool on_after_expr_parsing(THD *thd)
@@ -1077,10 +1069,10 @@ public:
     sp_instr_hpush_jump(uint ip,
                         sp_pcontext *ctx,
                         sp_handler *handler)
-        :sp_instr_jump(ip, ctx),
-         m_handler(handler),
-         m_opt_hpop(0),
-         m_frame(ctx->current_var_count())
+        : sp_instr_jump(ip, ctx),
+          m_handler(handler),
+          m_opt_hpop(0),
+          m_frame(ctx->current_var_count())
     {
         DBUG_ASSERT(m_handler->condition_values.elements == 0);
     }
@@ -1088,7 +1080,7 @@ public:
     virtual ~sp_instr_hpush_jump()
     {
         m_handler->condition_values.empty();
-        m_handler= NULL;
+        m_handler = NULL;
     }
 
     void add_condition(sp_condition_value *condition_value)
@@ -1128,10 +1120,11 @@ public:
     virtual void backpatch(uint dest)
     {
         DBUG_ASSERT(!m_dest || !m_opt_hpop);
+
         if (!m_dest)
-            m_dest= dest;
+            m_dest = dest;
         else
-            m_opt_hpop= dest;
+            m_opt_hpop = dest;
     }
 
 private:
@@ -1177,8 +1170,8 @@ class sp_instr_hreturn : public sp_instr_jump
 {
 public:
     sp_instr_hreturn(uint ip, sp_pcontext *ctx)
-        :sp_instr_jump(ip, ctx),
-         m_frame(ctx->current_var_count())
+        : sp_instr_jump(ip, ctx),
+          m_frame(ctx->current_var_count())
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1236,15 +1229,14 @@ public:
                    LEX *cursor_lex,
                    LEX_STRING cursor_query,
                    int cursor_idx)
-        :sp_lex_instr(ip, ctx, cursor_lex, true),
-         m_cursor_query(cursor_query),
-         m_valid(true),
-         m_cursor_idx(cursor_idx)
+        : sp_lex_instr(ip, ctx, cursor_lex, true),
+          m_cursor_query(cursor_query),
+          m_valid(true),
+          m_cursor_idx(cursor_idx)
     {
         // Cursor can't be stored in Query Cache, so we should prevent opening QC
         // for try to write results which are absent.
-
-        cursor_lex->safe_to_cache_query= false;
+        cursor_lex->safe_to_cache_query = false;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1284,7 +1276,7 @@ public:
 
     virtual void invalidate()
     {
-        m_valid= false;
+        m_valid = false;
     }
 
     virtual void get_query(String *sql_query) const
@@ -1294,7 +1286,7 @@ public:
 
     virtual bool on_after_expr_parsing(THD *thd)
     {
-        m_valid= true;
+        m_valid = true;
         return false;
     }
 
@@ -1320,8 +1312,8 @@ class sp_instr_cpop : public sp_instr
 {
 public:
     sp_instr_cpop(uint ip, sp_pcontext *ctx, uint count)
-        :sp_instr(ip, ctx),
-         m_count(count)
+        : sp_instr(ip, ctx),
+          m_count(count)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1350,8 +1342,8 @@ class sp_instr_copen : public sp_instr
 {
 public:
     sp_instr_copen(uint ip, sp_pcontext *ctx, int cursor_idx)
-        :sp_instr(ip, ctx),
-         m_cursor_idx(cursor_idx)
+        : sp_instr(ip, ctx),
+          m_cursor_idx(cursor_idx)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1382,8 +1374,8 @@ class sp_instr_cclose : public sp_instr
 {
 public:
     sp_instr_cclose(uint ip, sp_pcontext *ctx, int cursor_idx)
-        :sp_instr(ip, ctx),
-         m_cursor_idx(cursor_idx)
+        : sp_instr(ip, ctx),
+          m_cursor_idx(cursor_idx)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1414,8 +1406,8 @@ class sp_instr_cfetch : public sp_instr
 {
 public:
     sp_instr_cfetch(uint ip, sp_pcontext *ctx, int cursor_idx)
-        :sp_instr(ip, ctx),
-         m_cursor_idx(cursor_idx)
+        : sp_instr(ip, ctx),
+          m_cursor_idx(cursor_idx)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1455,8 +1447,8 @@ class sp_instr_error : public sp_instr
 {
 public:
     sp_instr_error(uint ip, sp_pcontext *ctx, int errcode)
-        :sp_instr(ip, ctx),
-         m_errcode(errcode)
+        : sp_instr(ip, ctx),
+          m_errcode(errcode)
     { }
 
     /////////////////////////////////////////////////////////////////////////
@@ -1472,13 +1464,13 @@ public:
     virtual bool execute(THD *thd, uint *nextp)
     {
         my_message(m_errcode, ER(m_errcode), MYF(0));
-        *nextp= get_ip() + 1;
+        *nextp = get_ip() + 1;
         return true;
     }
 
     virtual uint opt_mark(sp_head *sp, List<sp_instr> *leads)
     {
-        m_marked= true;
+        m_marked = true;
         return UINT_MAX;
     }
 

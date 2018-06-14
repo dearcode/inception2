@@ -139,7 +139,7 @@ public:
     */
     void set_start_user_configured(bool config)
     {
-        start_user_configured= config;
+        start_user_configured = config;
     }
     /**
       Sets either user's name in the master.info repository when CHANGE
@@ -148,13 +148,13 @@ public:
 
       @param user_arg is user's name.
     */
-    void set_user(const char* user_arg)
+    void set_user(const char *user_arg)
     {
-        if (user_arg && start_user_configured) {
+        if (user_arg && start_user_configured)
             strmake(start_user, user_arg, sizeof(start_user) - 1);
-        } else if (user_arg) {
+
+        else if (user_arg)
             strmake(user, user_arg, sizeof(user) - 1);
-        }
     }
     /*
       Returns user's size name. See @code get_user().
@@ -185,7 +185,7 @@ public:
 
       @return false if there is no error, otherwise true is returned.
     */
-    bool set_password(const char* password_arg, int password_arg_size);
+    bool set_password(const char *password_arg, int password_arg_size);
     /**
       Returns either user's password in the master.info repository or
       user's password used in START SLAVE.
@@ -222,7 +222,7 @@ public:
 
       @param DEFAULT_AUTH.
     */
-    void set_plugin_auth(const char* src)
+    void set_plugin_auth(const char *src)
     {
         if (src)
             strmake(start_plugin_auth, src, sizeof(start_plugin_auth) - 1);
@@ -232,7 +232,7 @@ public:
 
       @param DEFAULT_AUTH.
     */
-    void set_plugin_dir(const char* src)
+    void set_plugin_dir(const char *src)
     {
         if (src)
             strmake(start_plugin_dir, src, sizeof(start_plugin_dir) - 1);
@@ -247,13 +247,13 @@ public:
     RPL_TABLE_LIST *tables_to_lock;           /* RBR: Tables to lock  */
     uint tables_to_lock_count;        /* RBR: Count of tables to lock */
 
-    table_info_t*		table_info;
-    THD*		thd;
+    table_info_t		*table_info;
+    THD		*thd;
     ulong		thread_id;
     time_t	exec_time;
     int		seqno;
 
-    MYSQL* mysql;
+    MYSQL *mysql;
     uint32 file_id;				/* for 3.23 load data infile */
     Relay_log_info *rli;
     uint port;
@@ -286,14 +286,14 @@ public:
     uint8 relay_log_checksum_alg;
 
     ulong retry_count;
-    char master_uuid[UUID_LENGTH+1];
-    char bind_addr[HOSTNAME_LENGTH+1];
+    char master_uuid[UUID_LENGTH + 1];
+    char bind_addr[HOSTNAME_LENGTH + 1];
 
     ulong master_gtid_mode;
 
     int mi_init_info();
     void end_info();
-    int flush_info(bool force= FALSE);
+    int flush_info(bool force = FALSE);
     void set_relay_log_info(Relay_log_info *info);
 
     bool shall_ignore_server_id(ulong s_id);
@@ -311,7 +311,7 @@ public:
     }
     void clear_in_memory_info(bool all);
 
-    inline const char* get_master_log_name()
+    inline const char *get_master_log_name()
     {
         return master_log_name;
     }
@@ -325,9 +325,9 @@ public:
     }
     inline void set_master_log_pos(ulonglong log_pos)
     {
-        master_log_pos= log_pos;
+        master_log_pos = log_pos;
     }
-    inline const char* get_io_rpl_log_name()
+    inline const char *get_io_rpl_log_name()
     {
         return (master_log_name[0] ? master_log_name : "FIRST");
     }
@@ -340,7 +340,7 @@ public:
 
     void set_auto_position(bool auto_position_param)
     {
-        auto_position= auto_position_param;
+        auto_position = auto_position_param;
     }
 
 private:
@@ -371,7 +371,7 @@ public:
     void set_mi_description_event(Format_description_log_event *fdle)
     {
         delete mi_description_event;
-        mi_description_event= fdle;
+        mi_description_event = fdle;
     }
 
 // private:
@@ -395,8 +395,8 @@ public:
         uint param_id
     );
 
-    Master_info(const Master_info& info);
-    Master_info& operator=(const Master_info& info);
+    Master_info(const Master_info &info);
+    Master_info &operator=(const Master_info &info);
 };
 int change_master_server_id_cmp(ulong *id1, ulong *id2);
 

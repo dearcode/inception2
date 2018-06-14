@@ -61,16 +61,16 @@
 template<typename Element_type, typename Comp_func>
 void insert_sort(Element_type **first, Element_type **last, Comp_func comp)
 {
-    for (Element_type **high_water_mark= first+1;
+    for (Element_type **high_water_mark = first + 1;
             high_water_mark < last;
             high_water_mark++) {
-        for (Element_type **cur= high_water_mark; cur > first ; cur--) {
-            if (comp(*(cur-1), *cur))
+        for (Element_type **cur = high_water_mark; cur > first ; cur--) {
+            if (comp(*(cur - 1), *cur))
                 break;
 
-            Element_type *tmp= *(cur-1);
-            *(cur-1)= *cur;
-            *cur= tmp;
+            Element_type *tmp = *(cur - 1);
+            *(cur - 1) = *cur;
+            *cur = tmp;
         }
     }
 }
@@ -97,7 +97,7 @@ void insert_sort(Element_type **first, Element_type **last, Comp_func comp)
 template<typename Element_type, typename Comp_func>
 void merge_sort(Element_type **first, Element_type **last, Comp_func comp)
 {
-    const uint elements= last - first;
+    const uint elements = last - first;
 
     /*
       Tests showed that the value 5 was a good number for JOIN_TAB
@@ -107,17 +107,15 @@ void merge_sort(Element_type **first, Element_type **last, Comp_func comp)
         insert_sort(first, last, comp);
         return;
     }
-    Element_type **middle= first + (elements)/2;
 
+    Element_type **middle = first + (elements) / 2;
     merge_sort (first, middle, comp);
     merge_sort (middle, last, comp);
-
     std::queue<Element_type *> merged;
+    Element_type **cur1 = first;
+    Element_type **cur2 = middle;
 
-    Element_type **cur1= first;
-    Element_type **cur2= middle;
-
-    for (uint i= 0; i < elements; i++) {
+    for (uint i = 0; i < elements; i++) {
         DBUG_ASSERT (cur1 < middle || cur2 < last);
 
         if (cur1 == middle)
@@ -130,9 +128,10 @@ void merge_sort(Element_type **first, Element_type **last, Comp_func comp)
             merged.push(*cur2++);
     }
 
-    Element_type **result= first;
+    Element_type **result = first;
+
     while (!merged.empty()) {
-        *result++= merged.front();
+        *result++ = merged.front();
         merged.pop();
     }
 }

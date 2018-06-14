@@ -63,9 +63,9 @@ public:
 
       @param[in] hanlder Pointer to the handler.
     */
-    void set_rpl_info_handler(Rpl_info_handler * param_handler)
+    void set_rpl_info_handler(Rpl_info_handler *param_handler)
     {
-        handler= param_handler;
+        handler = param_handler;
     }
 
     /**
@@ -135,9 +135,9 @@ protected:
     */
     uint internal_id;
 
-    Rpl_info(const char* type
+    Rpl_info(const char *type
 #ifdef HAVE_PSI_INTERFACE
-             ,PSI_mutex_key *param_key_info_run_lock,
+             , PSI_mutex_key *param_key_info_run_lock,
              PSI_mutex_key *param_key_info_data_lock,
              PSI_mutex_key *param_key_info_sleep_lock,
              PSI_mutex_key *param_key_info_data_cond,
@@ -145,14 +145,14 @@ protected:
              PSI_mutex_key *param_key_info_stop_cond,
              PSI_mutex_key *param_key_info_sleep_cond
 #endif
-             ,uint param_id
+             , uint param_id
             );
 
 private:
-    virtual bool read_info(Rpl_info_handler *from)= 0;
-    virtual bool write_info(Rpl_info_handler *to)= 0;
+    virtual bool read_info(Rpl_info_handler *from) = 0;
+    virtual bool write_info(Rpl_info_handler *to) = 0;
 
-    Rpl_info(const Rpl_info& info);
-    Rpl_info& operator=(const Rpl_info& info);
+    Rpl_info(const Rpl_info &info);
+    Rpl_info &operator=(const Rpl_info &info);
 };
 #endif /* RPL_INFO_H */

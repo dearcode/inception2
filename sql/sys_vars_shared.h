@@ -40,9 +40,9 @@ extern sys_var_chain all_sys_vars;
 class PolyLock
 {
 public:
-    virtual void rdlock()= 0;
-    virtual void wrlock()= 0;
-    virtual void unlock()= 0;
+    virtual void rdlock() = 0;
+    virtual void wrlock() = 0;
+    virtual void unlock() = 0;
     virtual ~PolyLock() {}
 };
 
@@ -90,11 +90,13 @@ class AutoWLock
 public:
     AutoWLock(PolyLock *l) : lock(l)
     {
-        if (lock) lock->wrlock();
+        if (lock)
+            lock->wrlock();
     }
     ~AutoWLock()
     {
-        if (lock) lock->unlock();
+        if (lock)
+            lock->unlock();
     }
 };
 
@@ -104,11 +106,13 @@ class AutoRLock
 public:
     AutoRLock(PolyLock *l) : lock(l)
     {
-        if (lock) lock->rdlock();
+        if (lock)
+            lock->rdlock();
     }
     ~AutoRLock()
     {
-        if (lock) lock->unlock();
+        if (lock)
+            lock->unlock();
     }
 };
 

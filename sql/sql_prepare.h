@@ -64,7 +64,7 @@ public:
     }
     void reset_reprepare_observer()
     {
-        m_invalidated= FALSE;
+        m_invalidated = FALSE;
     }
 private:
     bool m_invalidated;
@@ -92,7 +92,7 @@ void reinit_stmt_before_use(THD *thd, LEX *lex);
 class Server_runnable
 {
 public:
-    virtual bool execute_server_code(THD *thd)= 0;
+    virtual bool execute_server_code(THD *thd) = 0;
     virtual ~Server_runnable();
 };
 
@@ -114,7 +114,7 @@ class Ed_row;
 class Ed_result_set: public Sql_alloc
 {
 public:
-    operator List<Ed_row>&()
+    operator List<Ed_row> &()
     {
         return *m_rows;
     }
@@ -326,7 +326,7 @@ public:
     */
     bool move_to_next_result()
     {
-        m_current_rset= m_current_rset->m_next_rset;
+        m_current_rset = m_current_rset->m_next_rset;
         return test(m_current_rset);
     }
 
@@ -384,8 +384,8 @@ public:
     }
 
     Ed_row(Ed_column *column_array_arg, size_t column_count_arg)
-        :m_column_array(column_array_arg),
-         m_column_count(column_count_arg)
+        : m_column_array(column_array_arg),
+          m_column_count(column_count_arg)
     {}
 private:
     Ed_column *m_column_array;

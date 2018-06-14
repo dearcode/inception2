@@ -20,10 +20,10 @@
 #include "sql_alloc.h"
 #include "mysql_com.h"                          /* rand_struct */
 
-class SQL_CRYPT :public Sql_alloc
+class SQL_CRYPT : public Sql_alloc
 {
-    struct rand_struct rand,org_rand;
-    char decode_buff[256],encode_buff[256];
+    struct rand_struct rand, org_rand;
+    char decode_buff[256], encode_buff[256];
     uint shift;
 public:
     SQL_CRYPT() {}
@@ -35,8 +35,8 @@ public:
     void init(ulong *seed);
     void reinit()
     {
-        shift=0;
-        rand=org_rand;
+        shift = 0;
+        rand = org_rand;
     }
     void encode(char *str, uint length);
     void decode(char *str, uint length);

@@ -28,7 +28,7 @@
 */
 
 #ifndef TZDIR
-#define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
+    #define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
 #endif /* !defined TZDIR */
 
 /*
@@ -80,43 +80,43 @@ struct tzhead
 */
 
 #ifndef TZ_MAX_TIMES
-/*
-  The TZ_MAX_TIMES value below is enough to handle a bit more than a
-  year's worth of solar time (corrected daily to the nearest second) or
-  138 years of Pacific Presidential Election time
-  (where there are three time zone transitions every fourth year).
-*/
-#define TZ_MAX_TIMES	370
+    /*
+    The TZ_MAX_TIMES value below is enough to handle a bit more than a
+    year's worth of solar time (corrected daily to the nearest second) or
+    138 years of Pacific Presidential Election time
+    (where there are three time zone transitions every fourth year).
+    */
+    #define TZ_MAX_TIMES	370
 #endif /* !defined TZ_MAX_TIMES */
 
 #ifndef TZ_MAX_TYPES
-#ifdef SOLAR
-#define TZ_MAX_TYPES	256 /* Limited by what (unsigned char)'s can hold */
-#else
-/*
-  Must be at least 14 for Europe/Riga as of Jan 12 1995,
-  as noted by Earl Chew <earl@hpato.aus.hp.com>.
-*/
-#define TZ_MAX_TYPES	20	/* Maximum number of local time types */
-#endif /* defined SOLAR */
+    #ifdef SOLAR
+        #define TZ_MAX_TYPES	256 /* Limited by what (unsigned char)'s can hold */
+    #else
+        /*
+        Must be at least 14 for Europe/Riga as of Jan 12 1995,
+        as noted by Earl Chew <earl@hpato.aus.hp.com>.
+        */
+        #define TZ_MAX_TYPES	20	/* Maximum number of local time types */
+    #endif /* defined SOLAR */
 #endif /* !defined TZ_MAX_TYPES */
 
 #ifndef TZ_MAX_CHARS
-#define TZ_MAX_CHARS	50	/* Maximum number of abbreviation characters */
-/* (limited by what unsigned chars can hold) */
+    #define TZ_MAX_CHARS	50	/* Maximum number of abbreviation characters */
+    /* (limited by what unsigned chars can hold) */
 #endif /* !defined TZ_MAX_CHARS */
 
 #ifndef TZ_MAX_LEAPS
-#define TZ_MAX_LEAPS	50	/* Maximum number of leap second corrections */
+    #define TZ_MAX_LEAPS	50	/* Maximum number of leap second corrections */
 #endif /* !defined TZ_MAX_LEAPS */
 
 #ifndef TZ_MAX_REV_RANGES
-#ifdef SOLAR
-/* Solar (Asia/RiyadhXX) zones need significantly bigger TZ_MAX_REV_RANGES */
-#define TZ_MAX_REV_RANGES (TZ_MAX_TIMES*2+TZ_MAX_LEAPS*2+2)
-#else
-#define TZ_MAX_REV_RANGES (TZ_MAX_TIMES+TZ_MAX_LEAPS+2)
-#endif
+    #ifdef SOLAR
+        /* Solar (Asia/RiyadhXX) zones need significantly bigger TZ_MAX_REV_RANGES */
+        #define TZ_MAX_REV_RANGES (TZ_MAX_TIMES*2+TZ_MAX_LEAPS*2+2)
+    #else
+        #define TZ_MAX_REV_RANGES (TZ_MAX_TIMES+TZ_MAX_LEAPS+2)
+    #endif
 #endif
 
 #define SECS_PER_MIN	60

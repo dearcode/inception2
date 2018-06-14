@@ -28,15 +28,15 @@
 template <uint default_width> class Bitmap
 {
     MY_BITMAP map;
-    uint32 buffer[(default_width+31)/32];
+    uint32 buffer[(default_width + 31) / 32];
 public:
     Bitmap()
     {
         init();
     }
-    Bitmap(const Bitmap& from)
+    Bitmap(const Bitmap &from)
     {
-        *this=from;
+        *this = from;
     }
     explicit Bitmap(uint prefix_to_set)
     {
@@ -55,7 +55,7 @@ public:
     {
         return default_width;
     }
-    Bitmap& operator=(const Bitmap& map2)
+    Bitmap &operator=(const Bitmap &map2)
     {
         init();
         memcpy(buffer, map2.buffer, sizeof(buffer));
@@ -81,29 +81,30 @@ public:
     {
         bitmap_clear_all(&map);
     }
-    void intersect(const Bitmap& map2)
+    void intersect(const Bitmap &map2)
     {
         bitmap_intersect(&map, &map2.map);
     }
     void intersect(ulonglong map2buff)
     {
         MY_BITMAP map2;
-        bitmap_init(&map2, (uint32 *)&map2buff, sizeof(ulonglong)*8, 0);
+        bitmap_init(&map2, (uint32 *)&map2buff, sizeof(ulonglong) * 8, 0);
         bitmap_intersect(&map, &map2);
     }
     /* Use highest bit for all bits above sizeof(ulonglong)*8. */
     void intersect_extended(ulonglong map2buff)
     {
         intersect(map2buff);
+
         if (map.n_bits > sizeof(ulonglong) * 8)
             bitmap_set_above(&map, sizeof(ulonglong),
                              test(map2buff & (LL(1) << (sizeof(ulonglong) * 8 - 1))));
     }
-    void subtract(const Bitmap& map2)
+    void subtract(const Bitmap &map2)
     {
         bitmap_subtract(&map, &map2.map);
     }
-    void merge(const Bitmap& map2)
+    void merge(const Bitmap &map2)
     {
         bitmap_union(&map, &map2.map);
     }
@@ -123,38 +124,44 @@ public:
     {
         return bitmap_is_set_all(&map);
     }
-    my_bool is_subset(const Bitmap& map2) const
+    my_bool is_subset(const Bitmap &map2) const
     {
         return bitmap_is_subset(&map, &map2.map);
     }
-    my_bool is_overlapping(const Bitmap& map2) const
+    my_bool is_overlapping(const Bitmap &map2) const
     {
         return bitmap_is_overlapping(&map, &map2.map);
     }
-    my_bool operator==(const Bitmap& map2) const
+    my_bool operator==(const Bitmap &map2) const
     {
         return bitmap_cmp(&map, &map2.map);
     }
     char *print(char *buf) const
     {
-        char *s=buf;
-        const uchar *e=(uchar *)buffer, *b=e+sizeof(buffer)-1;
-        while (!*b && b>e)
+        char *s = buf;
+        const uchar *e = (uchar *)buffer, *b = e + sizeof(buffer) - 1;
+
+        while (!*b && b > e)
             b--;
-        if ((*s=_dig_vec_upper[*b >> 4]) != '0')
+
+        if ((*s = _dig_vec_upper[*b >> 4]) != '0')
             s++;
-        *s++=_dig_vec_upper[*b & 15];
-        while (--b>=e) {
-            *s++=_dig_vec_upper[*b >> 4];
-            *s++=_dig_vec_upper[*b & 15];
+
+        *s++ = _dig_vec_upper[*b & 15];
+
+        while (--b >= e) {
+            *s++ = _dig_vec_upper[*b >> 4];
+            *s++ = _dig_vec_upper[*b & 15];
         }
-        *s=0;
+
+        *s = 0;
         return buf;
     }
     ulonglong to_ulonglong() const
     {
         if (sizeof(buffer) >= 8)
             return uint8korr(buffer);
+
         DBUG_ASSERT(sizeof(buffer) >= 4);
         return (ulonglong) uint4korr(buffer);
     }
@@ -205,46 +212,46 @@ public:
     }
     void set_bit(uint n)
     {
-        map|= ((ulonglong)1) << n;
+        map |= ((ulonglong)1) << n;
     }
     void clear_bit(uint n)
     {
-        map&= ~(((ulonglong)1) << n);
+        map &= ~(((ulonglong)1) << n);
     }
     void set_prefix(uint n)
     {
         if (n >= length())
             set_all();
         else
-            map= (((ulonglong)1) << n)-1;
+            map = (((ulonglong)1) << n) - 1;
     }
     void set_all()
     {
-        map=~(ulonglong)0;
+        map = ~(ulonglong)0;
     }
     void clear_all()
     {
-        map=(ulonglong)0;
+        map = (ulonglong)0;
     }
-    void intersect(const Bitmap<64>& map2)
+    void intersect(const Bitmap<64> &map2)
     {
-        map&= map2.map;
+        map &= map2.map;
     }
     void intersect(ulonglong map2)
     {
-        map&= map2;
+        map &= map2;
     }
     void intersect_extended(ulonglong map2)
     {
-        map&= map2;
+        map &= map2;
     }
-    void subtract(const Bitmap<64>& map2)
+    void subtract(const Bitmap<64> &map2)
     {
-        map&= ~map2.map;
+        map &= ~map2.map;
     }
-    void merge(const Bitmap<64>& map2)
+    void merge(const Bitmap<64> &map2)
     {
-        map|= map2.map;
+        map |= map2.map;
     }
     my_bool is_set(uint n) const
     {
@@ -252,7 +259,7 @@ public:
     }
     my_bool is_prefix(uint n) const
     {
-        return map == (((ulonglong)1) << n)-1;
+        return map == (((ulonglong)1) << n) - 1;
     }
     my_bool is_clear_all() const
     {
@@ -262,21 +269,21 @@ public:
     {
         return map == ~(ulonglong)0;
     }
-    my_bool is_subset(const Bitmap<64>& map2) const
+    my_bool is_subset(const Bitmap<64> &map2) const
     {
         return !(map & ~map2.map);
     }
-    my_bool is_overlapping(const Bitmap<64>& map2) const
+    my_bool is_overlapping(const Bitmap<64> &map2) const
     {
-        return (map & map2.map)!= 0;
+        return (map & map2.map) != 0;
     }
-    my_bool operator==(const Bitmap<64>& map2) const
+    my_bool operator==(const Bitmap<64> &map2) const
     {
         return map == map2.map;
     }
     char *print(char *buf) const
     {
-        longlong2str(map,buf,16);
+        longlong2str(map, buf, 16);
         return buf;
     }
     ulonglong to_ulonglong() const
@@ -295,22 +302,25 @@ public:
     Table_map_iterator(ulonglong t) : bmp(t), no(0) {}
     int next_bit()
     {
-        static const char last_bit[16]= {32, 0, 1, 0,
-                                         2, 0, 1, 0,
-                                         3, 0, 1, 0,
-                                         2, 0, 1, 0
-                                        };
+        static const char last_bit[16] = {32, 0, 1, 0,
+                                          2, 0, 1, 0,
+                                          3, 0, 1, 0,
+                                          2, 0, 1, 0
+                                         };
         uint bit;
-        while ((bit= last_bit[bmp & 0xF]) == 32) {
+
+        while ((bit = last_bit[bmp & 0xF]) == 32) {
             no += 4;
-            bmp= bmp >> 4;
+            bmp = bmp >> 4;
+
             if (!bmp)
                 return BITMAP_END;
         }
+
         bmp &= ~(1LL << bit);
         return no + bit;
     }
     enum
-    { BITMAP_END= 64 };
+    { BITMAP_END = 64 };
 };
 #endif /* SQL_BITMAP_INCLUDED */

@@ -27,11 +27,11 @@ typedef struct st_sort_field SORT_FIELD;
 extern const char *lock_descriptions[TL_WRITE_ONLY + 1];
 
 #ifndef DBUG_OFF
-void print_where(Item *cond,const char *info, enum_query_type query_type);
+void print_where(Item *cond, const char *info, enum_query_type query_type);
 void TEST_join(JOIN *join);
-void print_plan(JOIN* join,uint idx, double record_count, double read_time,
+void print_plan(JOIN *join, uint idx, double record_count, double read_time,
                 double current_read_time, const char *info);
-void dump_TABLE_LIST_graph(SELECT_LEX *select_lex, TABLE_LIST* tl);
+void dump_TABLE_LIST_graph(SELECT_LEX *select_lex, TABLE_LIST *tl);
 #endif
 void mysql_print_status();
 class Opt_trace_context;

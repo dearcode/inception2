@@ -16,11 +16,11 @@
    51 Franklin Street, Suite 500, Boston, MA 02110-1335 USA */
 
 #if defined(__IBMC__) || defined(__IBMCPP__)
-/* Further down, "next_in_lock" and "next_in_context" have the same type,
-   and in "sql_plist.h" this leads to an identical signature, which causes
-   problems in function overloading.
-*/
-#pragma namemangling(v5)
+    /* Further down, "next_in_lock" and "next_in_context" have the same type,
+    and in "sql_plist.h" this leads to an identical signature, which causes
+    problems in function overloading.
+    */
+    #pragma namemangling(v5)
 #endif
 
 
@@ -107,7 +107,7 @@ public:
        This one is only used for DEBUG_SYNC.
        (Do not use it to peek/poke into other parts of THD.)
      */
-    virtual THD* get_thd() = 0;
+    virtual THD *get_thd() = 0;
 
     /**
        @see THD::notify_shared_lock()
@@ -132,7 +132,7 @@ enum enum_mdl_type
       Compatible with other IX locks, but is incompatible with scoped S and
       X locks.
     */
-    MDL_INTENTION_EXCLUSIVE= 0,
+    MDL_INTENTION_EXCLUSIVE = 0,
     /*
       A shared metadata lock.
       To be used in cases when we are interested in object metadata only
@@ -250,7 +250,7 @@ enum enum_mdl_duration
       Locks with statement duration are automatically released at the end
       of statement or transaction.
     */
-    MDL_STATEMENT= 0,
+    MDL_STATEMENT = 0,
     /**
       Locks with transaction duration are automatically released at the end
       of transaction.
@@ -302,21 +302,21 @@ public:
       MDL_key is also used outside of the MDL subsystem.
     */
     enum enum_mdl_namespace
-    { GLOBAL=0,
-      SCHEMA,
-      TABLE,
-      FUNCTION,
-      PROCEDURE,
-      TRIGGER,
-      EVENT,
-      COMMIT,
-      /* This should be the last ! */
-      NAMESPACE_END
+    {   GLOBAL = 0,
+        SCHEMA,
+        TABLE,
+        FUNCTION,
+        PROCEDURE,
+        TRIGGER,
+        EVENT,
+        COMMIT,
+        /* This should be the last ! */
+        NAMESPACE_END
     };
 
     const uchar *ptr() const
     {
-        return (uchar*) m_ptr;
+        return (uchar *) m_ptr;
     }
     uint length() const
     {
@@ -360,23 +360,23 @@ public:
     void mdl_key_init(enum_mdl_namespace mdl_namespace,
                       const char *db, const char *name)
     {
-        m_ptr[0]= (char) mdl_namespace;
+        m_ptr[0] = (char) mdl_namespace;
         /*
           It is responsibility of caller to ensure that db and object names
           are not longer than NAME_LEN. Still we play safe and try to avoid
           buffer overruns.
         */
         DBUG_ASSERT(strlen(db) <= NAME_LEN && strlen(name) <= NAME_LEN);
-        m_db_name_length= static_cast<uint16>(strmake(m_ptr + 1, db, NAME_LEN) -
-                                              m_ptr - 1);
-        m_length= static_cast<uint16>(strmake(m_ptr + m_db_name_length + 2, name,
-                                              NAME_LEN) - m_ptr + 1);
+        m_db_name_length = static_cast<uint16>(strmake(m_ptr + 1, db, NAME_LEN) -
+                                               m_ptr - 1);
+        m_length = static_cast<uint16>(strmake(m_ptr + m_db_name_length + 2, name,
+                                               NAME_LEN) - m_ptr + 1);
     }
     void mdl_key_init(const MDL_key *rhs)
     {
         memcpy(m_ptr, rhs->m_ptr, rhs->m_length);
-        m_length= rhs->m_length;
-        m_db_name_length= rhs->m_db_name_length;
+        m_length = rhs->m_length;
+        m_db_name_length = rhs->m_db_name_length;
     }
     bool is_equal(const MDL_key *rhs) const
     {
@@ -412,7 +412,7 @@ public:
       Get thread state name to be used in case when we have to
       wait on resource identified by key.
     */
-    const PSI_stage_info * get_wait_state_name() const
+    const PSI_stage_info *get_wait_state_name() const
     {
         return & m_namespace_to_wait_state_name[(int)mdl_namespace()];
     }
@@ -480,7 +480,7 @@ public:
     inline void set_type(enum_mdl_type type_arg)
     {
         DBUG_ASSERT(ticket == NULL);
-        type= type_arg;
+        type = type_arg;
     }
 
     /*
@@ -496,9 +496,9 @@ public:
       is mandatory. Can only be used before the request has been
       granted.
     */
-    MDL_request& operator=(const MDL_request &rhs)
+    MDL_request &operator=(const MDL_request &rhs)
     {
-        ticket= NULL;
+        ticket = NULL;
         /* Do nothing, in particular, don't try to copy the key. */
         return *this;
     }
@@ -506,10 +506,10 @@ public:
     MDL_request() {}
 
     MDL_request(const MDL_request *rhs)
-        :type(rhs->type),
-         duration(rhs->duration),
-         ticket(NULL),
-         key(&rhs->key)
+        : type(rhs->type),
+          duration(rhs->duration),
+          ticket(NULL),
+          key(&rhs->key)
     {}
 };
 
@@ -530,7 +530,7 @@ public:
 
     virtual bool inspect_edge(MDL_context *dest) = 0;
     virtual ~MDL_wait_for_graph_visitor();
-    MDL_wait_for_graph_visitor() :m_lock_open_count(0) {}
+    MDL_wait_for_graph_visitor() : m_lock_open_count(0) {}
 public:
     /**
      XXX, hack: During deadlock search, we may need to
@@ -561,8 +561,8 @@ public:
 
     enum enum_deadlock_weight
     {
-        DEADLOCK_WEIGHT_DML= 0,
-        DEADLOCK_WEIGHT_DDL= 100
+        DEADLOCK_WEIGHT_DML = 0,
+        DEADLOCK_WEIGHT_DDL = 100
     };
     /* A helper used to determine which lock request should be aborted. */
     virtual uint get_deadlock_weight() const = 0;
@@ -835,7 +835,7 @@ public:
     */
     void init(MDL_context_owner *arg)
     {
-        m_owner= arg;
+        m_owner = arg;
     }
 
     void set_needs_thr_lock_abort(bool needs_thr_lock_abort)
@@ -848,7 +848,7 @@ public:
                 always re-try reading it after small timeout and therefore
                 will see the new value eventually.
         */
-        m_needs_thr_lock_abort= needs_thr_lock_abort;
+        m_needs_thr_lock_abort = needs_thr_lock_abort;
     }
     bool get_needs_thr_lock_abort() const
     {
@@ -965,7 +965,7 @@ public:
     void will_wait_for(MDL_wait_for_subgraph *waiting_for_arg)
     {
         mysql_prlock_wrlock(&m_LOCK_waiting_for);
-        m_waiting_for=  waiting_for_arg;
+        m_waiting_for =  waiting_for_arg;
         mysql_prlock_unlock(&m_LOCK_waiting_for);
     }
 
@@ -973,7 +973,7 @@ public:
     void done_waiting_for()
     {
         mysql_prlock_wrlock(&m_LOCK_waiting_for);
-        m_waiting_for= NULL;
+        m_waiting_for = NULL;
         mysql_prlock_unlock(&m_LOCK_waiting_for);
     }
     void lock_deadlock_victim()
@@ -995,7 +995,7 @@ void mdl_destroy();
 
 
 #ifndef DBUG_OFF
-extern mysql_mutex_t LOCK_open;
+    extern mysql_mutex_t LOCK_open;
 #endif
 
 

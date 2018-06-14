@@ -39,7 +39,7 @@
 */
 static int check_event_type(int type, Relay_log_info *rli)
 {
-    Format_description_log_event *fd_event= rli->get_rli_description_event();
+    Format_description_log_event *fd_event = rli->get_rli_description_event();
 
     /*
       Convert event type id of certain old versions (see comment in
@@ -48,16 +48,17 @@ static int check_event_type(int type, Relay_log_info *rli)
     if (fd_event && fd_event->event_type_permutation) {
 #ifndef DBUG_OFF
         Log_event_type new_type;
-        new_type= (Log_event_type) fd_event->event_type_permutation[type];
+        new_type = (Log_event_type) fd_event->event_type_permutation[type];
         DBUG_PRINT("info", ("converting event type %d to %d (%s)",
                             type, new_type, Log_event::get_type_str(new_type)));
 #endif
-        type= fd_event->event_type_permutation[type];
+        type = fd_event->event_type_permutation[type];
     }
 
     switch (type) {
     case START_EVENT_V3:
     case FORMAT_DESCRIPTION_EVENT:
+
         /*
           We need a preliminary FD event in order to parse the FD event,
           if we don't already have one.
@@ -79,6 +80,7 @@ static int check_event_type(int type, Relay_log_info *rli)
     case PRE_GA_WRITE_ROWS_EVENT:
     case PRE_GA_UPDATE_ROWS_EVENT:
     case PRE_GA_DELETE_ROWS_EVENT:
+
         /*
           Row events are only allowed if a Format_description_event has
           already been seen.
@@ -90,6 +92,7 @@ static int check_event_type(int type, Relay_log_info *rli)
                      MYF(0), Log_event::get_type_str((Log_event_type)type));
             return 1;
         }
+
         break;
 
     default:
@@ -120,36 +123,37 @@ static int check_event_type(int type, Relay_log_info *rli)
   statement.
 */
 
-void mysql_client_binlog_statement(THD* thd)
+void mysql_client_binlog_statement(THD *thd)
 {
     DBUG_ENTER("mysql_client_binlog_statement");
-    DBUG_PRINT("info",("binlog base64: '%*s'",
-                       (int) (thd->lex->comment.length < 2048 ?
-                              thd->lex->comment.length : 2048),
-                       thd->lex->comment.str));
+    DBUG_PRINT("info", ("binlog base64: '%*s'",
+                        (int) (thd->lex->comment.length < 2048 ?
+                               thd->lex->comment.length : 2048),
+                        thd->lex->comment.str));
 
     if (check_global_access(thd, SUPER_ACL))
         DBUG_VOID_RETURN;
 
-    size_t coded_len= thd->lex->comment.length;
+    size_t coded_len = thd->lex->comment.length;
+
     if (!coded_len) {
         my_error(ER_SYNTAX_ERROR, MYF(0));
         DBUG_VOID_RETURN;
     }
-    size_t decoded_len= base64_needed_decoded_length(coded_len);
 
+    size_t decoded_len = base64_needed_decoded_length(coded_len);
     /*
       option_bits will be changed when applying the event. But we don't expect
       it be changed permanently after BINLOG statement, so backup it first.
       It will be restored at the end of this function.
     */
-    ulonglong thd_options= thd->variables.option_bits;
-
+    ulonglong thd_options = thd->variables.option_bits;
     /*
       Allocation
     */
-    int err= 0;
-    Relay_log_info *rli= thd->rli_fake;
+    int err = 0;
+    Relay_log_info *rli = thd->rli_fake;
+
     if (!rli) {
         /*
           We create a Relay_log_info object with a INFO_REPOSITORY_DUMMY because
@@ -157,14 +161,14 @@ void mysql_client_binlog_statement(THD* thd)
           future, we need to improve the code around the BINLOG command as only a
           small part of the object is required to execute it. / Alfranio
         */
-        if ((rli= Rpl_info_factory::create_rli(INFO_REPOSITORY_DUMMY, FALSE))) {
-            thd->rli_fake= rli;
-            rli->info_thd= thd;
+        if ((rli = Rpl_info_factory::create_rli(INFO_REPOSITORY_DUMMY, FALSE))) {
+            thd->rli_fake = rli;
+            rli->info_thd = thd;
         }
     }
 
-    const char *error= 0;
-    char *buf= (char *) my_malloc(decoded_len, MYF(MY_WME));
+    const char *error = 0;
+    char *buf = (char *) my_malloc(decoded_len, MYF(MY_WME));
     Log_event *ev = 0;
 
     /*
@@ -177,12 +181,11 @@ void mysql_client_binlog_statement(THD* thd)
 
     DBUG_ASSERT(rli->belongs_to_client());
 
-    for (char const *strptr= thd->lex->comment.str ;
+    for (char const *strptr = thd->lex->comment.str ;
             strptr < thd->lex->comment.str + thd->lex->comment.length ; ) {
-        char const *endptr= 0;
-        int bytes_decoded= base64_decode(strptr, coded_len, buf, &endptr,
-                                         MY_BASE64_DECODE_ALLOW_MULTIPLE_CHUNKS);
-
+        char const *endptr = 0;
+        int bytes_decoded = base64_decode(strptr, coded_len, buf, &endptr,
+                                          MY_BASE64_DECODE_ALLOW_MULTIPLE_CHUNKS);
 #ifndef HAVE_purify
         /*
           This debug printout should not be used for valgrind builds
@@ -197,14 +200,14 @@ void mysql_client_binlog_statement(THD* thd)
         if (bytes_decoded < 0) {
             my_error(ER_BASE64_DECODE_ERROR, MYF(0));
             goto end;
+
         } else if (bytes_decoded == 0)
             break; // If no bytes where read, the string contained only whitespace
 
         DBUG_ASSERT(bytes_decoded > 0);
         DBUG_ASSERT(endptr > strptr);
-        coded_len-= endptr - strptr;
-        strptr= endptr;
-
+        coded_len -= endptr - strptr;
+        strptr = endptr;
         /*
           Now we have one or more events stored in the buffer. The size of
           the buffer is computed based on how much base64-encoded data
@@ -215,36 +218,37 @@ void mysql_client_binlog_statement(THD* thd)
           TODO: Switch to use a stream-based base64 encoder/decoder in
           order to be able to read exactly what is necessary.
         */
-
-        DBUG_PRINT("info",("binlog base64 decoded_len: %lu  bytes_decoded: %d",
-                           (ulong) decoded_len, bytes_decoded));
+        DBUG_PRINT("info", ("binlog base64 decoded_len: %lu  bytes_decoded: %d",
+                            (ulong) decoded_len, bytes_decoded));
 
         /*
           Now we start to read events of the buffer, until there are no
           more.
         */
-        for (char *bufptr= buf ; bytes_decoded > 0 ; ) {
+        for (char *bufptr = buf ; bytes_decoded > 0 ; ) {
             /*
               Checking that the first event in the buffer is not truncated.
             */
             ulong event_len;
+
             if (bytes_decoded < EVENT_LEN_OFFSET + 4 ||
-                    (event_len= uint4korr(bufptr + EVENT_LEN_OFFSET)) >
+                    (event_len = uint4korr(bufptr + EVENT_LEN_OFFSET)) >
                     (uint) bytes_decoded) {
                 my_error(ER_SYNTAX_ERROR, MYF(0));
                 goto end;
             }
+
             DBUG_PRINT("info", ("event_len=%lu, bytes_decoded=%d",
                                 event_len, bytes_decoded));
 
             if (check_event_type(bufptr[EVENT_TYPE_OFFSET], rli))
                 goto end;
 
-            ev= Log_event::read_log_event(bufptr, event_len, &error,
-                                          rli->get_rli_description_event(),
-                                          0);
+            ev = Log_event::read_log_event(bufptr, event_len, &error,
+                                           rli->get_rli_description_event(),
+                                           0);
+            DBUG_PRINT("info", ("binlog base64 err=%s", error));
 
-            DBUG_PRINT("info",("binlog base64 err=%s", error));
             if (!ev) {
                 /*
                   This could actually be an out-of-memory, but it is more likely
@@ -256,9 +260,8 @@ void mysql_client_binlog_statement(THD* thd)
 
             bytes_decoded -= event_len;
             bufptr += event_len;
-
-            DBUG_PRINT("info",("ev->get_type_code()=%d", ev->get_type_code()));
-            ev->thd= thd;
+            DBUG_PRINT("info", ("ev->get_type_code()=%d", ev->get_type_code()));
+            ev->thd = thd;
             /*
               We go directly to the application phase, since we don't need
               to check if the event shall be skipped or not.
@@ -268,8 +271,9 @@ void mysql_client_binlog_statement(THD* thd)
               reporting.
             */
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
-            err= ev->apply_event(rli);
+            err = ev->apply_event(rli);
 #endif
+
             /*
               Format_description_log_event should not be deleted because it
               will be used to read info about the relay log's format; it
@@ -281,8 +285,9 @@ void mysql_client_binlog_statement(THD* thd)
             if (ev->get_type_code() != FORMAT_DESCRIPTION_EVENT &&
                     ev->get_type_code() != ROWS_QUERY_LOG_EVENT) {
                 delete ev;
-                ev= NULL;
+                ev = NULL;
             }
+
             if (err) {
                 /*
                   TODO: Maybe a better error message since the BINLOG statement
@@ -294,18 +299,20 @@ void mysql_client_binlog_statement(THD* thd)
         }
     }
 
-    DBUG_PRINT("info",("binlog base64 execution finished successfully"));
+    DBUG_PRINT("info", ("binlog base64 execution finished successfully"));
     my_ok(thd);
-
 end:
+
     if (rli) {
         if ((error || err) && rli->rows_query_ev) {
             delete rli->rows_query_ev;
-            rli->rows_query_ev= NULL;
+            rli->rows_query_ev = NULL;
         }
+
         rli->slave_close_thread_tables(thd);
     }
-    thd->variables.option_bits= thd_options;
+
+    thd->variables.option_bits = thd_options;
     my_free(buf);
     DBUG_VOID_RETURN;
 }

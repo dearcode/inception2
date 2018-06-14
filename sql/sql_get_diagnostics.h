@@ -74,7 +74,7 @@ public:
     /** Set which diagnostics area to access. */
     void set_which_da(Which_area area)
     {
-        m_area= area;
+        m_area = area;
     }
 
     /** Get which diagnostics area to access. */
@@ -120,7 +120,7 @@ protected:
         Item *value;
 
         /* Get this item's value. */
-        if (! (value= diag_item->get_value(thd, ctx)))
+        if (! (value = diag_item->get_value(thd, ctx)))
             return true;
 
         /* Set variable/parameter value. */

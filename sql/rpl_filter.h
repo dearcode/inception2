@@ -26,8 +26,8 @@ typedef struct st_dynamic_array DYNAMIC_ARRAY;
 
 typedef struct st_table_rule_ent
 {
-    char* db;
-    char* tbl_name;
+    char *db;
+    char *tbl_name;
     uint key_len;
 } TABLE_RULE_ENT;
 
@@ -43,13 +43,13 @@ class Rpl_filter
 public:
     Rpl_filter();
     ~Rpl_filter();
-    Rpl_filter(Rpl_filter const&);
-    Rpl_filter& operator=(Rpl_filter const&);
+    Rpl_filter(Rpl_filter const &);
+    Rpl_filter &operator=(Rpl_filter const &);
 
     /* Checks - returns true if ok to replicate/log */
 
-    bool tables_ok(const char* db, TABLE_LIST* tables);
-    bool db_ok(const char* db);
+    bool tables_ok(const char *db, TABLE_LIST *tables);
+    bool db_ok(const char *db);
     bool db_ok_with_wild_table(const char *db);
 
     bool is_on();
@@ -60,45 +60,45 @@ public:
     int build_do_table_hash();
     int build_ignore_table_hash();
 
-    int add_do_table_array(const char* table_spec);
-    int add_ignore_table_array(const char* table_spec);
+    int add_do_table_array(const char *table_spec);
+    int add_ignore_table_array(const char *table_spec);
 
-    int add_wild_do_table(const char* table_spec);
-    int add_wild_ignore_table(const char* table_spec);
+    int add_wild_do_table(const char *table_spec);
+    int add_wild_ignore_table(const char *table_spec);
 
-    void add_do_db(const char* db_spec);
-    void add_ignore_db(const char* db_spec);
+    void add_do_db(const char *db_spec);
+    void add_ignore_db(const char *db_spec);
 
-    void add_db_rewrite(const char* from_db, const char* to_db);
+    void add_db_rewrite(const char *from_db, const char *to_db);
 
     /* Getters - to get information about current rules */
 
-    void get_do_table(String* str);
-    void get_ignore_table(String* str);
+    void get_do_table(String *str);
+    void get_ignore_table(String *str);
 
-    void get_wild_do_table(String* str);
-    void get_wild_ignore_table(String* str);
+    void get_wild_do_table(String *str);
+    void get_wild_ignore_table(String *str);
 
-    const char* get_rewrite_db(const char* db, size_t *new_len);
+    const char *get_rewrite_db(const char *db, size_t *new_len);
 
-    I_List<i_string>* get_do_db();
-    I_List<i_string>* get_ignore_db();
+    I_List<i_string> *get_do_db();
+    I_List<i_string> *get_ignore_db();
 
 private:
     bool table_rules_on;
 
-    void init_table_rule_hash(HASH* h, bool* h_inited);
-    void init_table_rule_array(DYNAMIC_ARRAY* a, bool* a_inited);
+    void init_table_rule_hash(HASH *h, bool *h_inited);
+    void init_table_rule_array(DYNAMIC_ARRAY *a, bool *a_inited);
 
-    int add_table_rule_to_array(DYNAMIC_ARRAY* a, const char* table_spec);
-    int add_table_rule_to_hash(HASH* h, const char* table_spec, uint len);
+    int add_table_rule_to_array(DYNAMIC_ARRAY *a, const char *table_spec);
+    int add_table_rule_to_hash(HASH *h, const char *table_spec, uint len);
 
     void free_string_array(DYNAMIC_ARRAY *a);
 
-    void table_rule_ent_hash_to_str(String* s, HASH* h, bool inited);
-    void table_rule_ent_dynamic_array_to_str(String* s, DYNAMIC_ARRAY* a,
+    void table_rule_ent_hash_to_str(String *s, HASH *h, bool inited);
+    void table_rule_ent_dynamic_array_to_str(String *s, DYNAMIC_ARRAY *a,
             bool inited);
-    TABLE_RULE_ENT* find_wild(DYNAMIC_ARRAY *a, const char* key, int len);
+    TABLE_RULE_ENT *find_wild(DYNAMIC_ARRAY *a, const char *key, int len);
 
     int build_table_hash_from_array(DYNAMIC_ARRAY *table_array, HASH *table_hash,
                                     bool array_inited, bool *hash_inited);

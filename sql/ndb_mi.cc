@@ -31,7 +31,7 @@ uint32 ndb_mi_get_master_server_id()
     return (uint32) active_mi->master_id;
 }
 
-const char* ndb_mi_get_group_master_log_name()
+const char *ndb_mi_get_group_master_log_name()
 {
 #if MYSQL_VERSION_ID < 50600
     return active_mi->rli.group_master_log_name;
@@ -77,7 +77,7 @@ uint32 ndb_mi_get_slave_run_id()
     return active_mi->rli->slave_run_id;
 }
 
-bool ndb_mi_get_in_relay_log_statement(Relay_log_info* rli)
+bool ndb_mi_get_in_relay_log_statement(Relay_log_info *rli)
 {
     return (rli->get_flag(Relay_log_info::IN_STMT) != 0);
 }

@@ -75,7 +75,7 @@ public:
         friend class injector;
     public:
         /* Convenience definitions */
-        typedef uchar* record_type;
+        typedef uchar *record_type;
         typedef uint32 server_id_type;
 
         /*
@@ -126,8 +126,8 @@ public:
                       save_read_set(m_table->read_set),
                       save_write_set(m_table->write_set)
                 {
-                    m_table->column_bitmaps_set_no_signal(const_cast<MY_BITMAP*>(new_rs),
-                                                          const_cast<MY_BITMAP*>(new_ws));
+                    m_table->column_bitmaps_set_no_signal(const_cast<MY_BITMAP *>(new_rs),
+                                                          const_cast<MY_BITMAP *>(new_ws));
                 }
 
                 ~save_sets()
@@ -190,13 +190,13 @@ public:
         };
 
         transaction() : m_thd(NULL) { }
-        transaction(transaction const&);
+        transaction(transaction const &);
         ~transaction();
 
         /* Clear transaction, i.e., make calls to 'good()' return false. */
         void clear()
         {
-            m_thd= NULL;
+            m_thd = NULL;
         }
 
         /* Is the transaction in a good state? */
@@ -206,7 +206,7 @@ public:
         }
 
         /* Default assignment operator: standard implementation */
-        transaction& operator=(transaction t)
+        transaction &operator=(transaction t)
         {
             swap(t);
             return *this;
@@ -236,7 +236,7 @@ public:
         int write_row (server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type record,
-                       const uchar* extra_row_info);
+                       const uchar *extra_row_info);
         int write_row (server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type record);
@@ -247,7 +247,7 @@ public:
         int delete_row(server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type record,
-                       const uchar* extra_row_info);
+                       const uchar *extra_row_info);
         int delete_row(server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type record);
@@ -257,7 +257,7 @@ public:
         int update_row(server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type before, record_type after,
-                       const uchar* extra_row_info);
+                       const uchar *extra_row_info);
         int update_row(server_id_type sid, table tbl,
                        MY_BITMAP const *cols, size_t colcnt,
                        record_type before, record_type after);
@@ -309,32 +309,30 @@ public:
         /* Only the injector may construct these object */
         transaction(MYSQL_BIN_LOG *, THD *);
 
-        void swap(transaction& o)
+        void swap(transaction &o)
         {
             /* std::swap(m_start_pos, o.m_start_pos); */
             {
-                binlog_pos const tmp= m_start_pos;
-                m_start_pos= o.m_start_pos;
-                o.m_start_pos= tmp;
+                binlog_pos const tmp = m_start_pos;
+                m_start_pos = o.m_start_pos;
+                o.m_start_pos = tmp;
             }
-
             /* std::swap(m_end_pos, o.m_end_pos); */
             {
-                binlog_pos const tmp= m_next_pos;
-                m_next_pos= o.m_next_pos;
-                o.m_next_pos= tmp;
+                binlog_pos const tmp = m_next_pos;
+                m_next_pos = o.m_next_pos;
+                o.m_next_pos = tmp;
             }
-
             /* std::swap(m_thd, o.m_thd); */
             {
-                THD* const tmp= m_thd;
-                m_thd= o.m_thd;
-                o.m_thd= tmp;
+                THD *const tmp = m_thd;
+                m_thd = o.m_thd;
+                o.m_thd = tmp;
             }
             {
-                enum_state const tmp= m_state;
-                m_state= o.m_state;
-                o.m_state= tmp;
+                enum_state const tmp = m_state;
+                m_state = o.m_state;
+                o.m_state = tmp;
             }
         }
 
@@ -382,16 +380,16 @@ public:
             static char const *state_name[] = {
                 "START_STATE", "TABLE_STATE", "ROW_STATE", "STATE_COUNT"
             };
-
             DBUG_ASSERT(0 <= target_state && target_state <= STATE_COUNT);
             DBUG_PRINT("info", ("In state %s", state_name[m_state]));
 #endif
 
             if (m_state <= target_state && target_state <= m_state + 1 &&
                     m_state < STATE_COUNT)
-                m_state= target_state;
+                m_state = target_state;
             else
-                m_state= STATE_COUNT;
+                m_state = STATE_COUNT;
+
             return m_state == STATE_COUNT ? 1 : 0;
         }
 
@@ -412,13 +410,13 @@ public:
      */
     void new_trans(THD *, transaction *);
 
-    int record_incident(THD*, Incident incident);
-    int record_incident(THD*, Incident incident, LEX_STRING const message);
+    int record_incident(THD *, Incident incident);
+    int record_incident(THD *, Incident incident, LEX_STRING const message);
 
 private:
     explicit injector();
     ~injector() { }             /* Nothing needs to be done */
-    injector(injector const&);  /* You're not allowed to copy injector
+    injector(injector const &);  /* You're not allowed to copy injector
                                    instances.
                                 */
 };

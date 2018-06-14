@@ -85,8 +85,7 @@ protected:
 protected:
     virtual void change_env(THD *thd) const
     {
-        thd->variables.collation_database= m_db_cl;
-
+        thd->variables.collation_database = m_db_cl;
         Default_object_creation_ctx::change_env(thd);
     }
 
@@ -115,8 +114,8 @@ public:
     sp_name(LEX_STRING db, LEX_STRING name, bool use_explicit_name)
         : m_db(db), m_name(name), m_explicit_name(use_explicit_name)
     {
-        m_qname.str= 0;
-        m_qname.length= 0;
+        m_qname.str = 0;
+        m_qname.length = 0;
     }
 
     /** Create temporary sp_name object from MDL key. */
@@ -192,11 +191,10 @@ public:
         if (!is_parsing_sp_body())
             return;
 
-        thd->mem_root= m_saved_memroot;
-        thd->free_list= m_saved_free_list;
-
-        m_saved_memroot= NULL;
-        m_saved_free_list= NULL;
+        thd->mem_root = m_saved_memroot;
+        thd->free_list = m_saved_free_list;
+        m_saved_memroot = NULL;
+        m_saved_free_list = NULL;
     }
 
     /**
@@ -228,8 +226,8 @@ public:
     {
 #ifndef DBUG_OFF
         DBUG_ASSERT(m_expr_start_ptr);
-        const char *p= m_expr_start_ptr;
-        m_expr_start_ptr= NULL;
+        const char *p = m_expr_start_ptr;
+        m_expr_start_ptr = NULL;
         return p;
 #else
         return m_expr_start_ptr;
@@ -247,7 +245,7 @@ public:
     void push_expr_start_ptr(const char *expr_start_ptr)
     {
         DBUG_ASSERT(!m_expr_start_ptr);
-        m_expr_start_ptr= expr_start_ptr;
+        m_expr_start_ptr = expr_start_ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -259,7 +257,7 @@ public:
 
     void set_current_stmt_start_ptr(const char *stmt_start_ptr)
     {
-        m_current_stmt_start_ptr= stmt_start_ptr;
+        m_current_stmt_start_ptr = stmt_start_ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -271,7 +269,7 @@ public:
 
     void set_option_start_ptr(const char *option_start_ptr)
     {
-        m_option_start_ptr= option_start_ptr;
+        m_option_start_ptr = option_start_ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -283,7 +281,7 @@ public:
 
     void set_parameter_start_ptr(const char *ptr)
     {
-        m_param_start_ptr= ptr;
+        m_param_start_ptr = ptr;
     }
 
     const char *get_parameter_end_ptr() const
@@ -293,7 +291,7 @@ public:
 
     void set_parameter_end_ptr(const char *ptr)
     {
-        m_param_end_ptr= ptr;
+        m_param_end_ptr = ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -305,7 +303,7 @@ public:
 
     void set_body_start_ptr(const char *ptr)
     {
-        m_body_start_ptr= ptr;
+        m_body_start_ptr = ptr;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -470,17 +468,17 @@ public:
     /** Possible values of m_flags */
     enum
     {
-        HAS_RETURN= 1,              // For FUNCTIONs only: is set if has RETURN
-        MULTI_RESULTS= 8,           // Is set if a procedure with SELECT(s)
-        CONTAINS_DYNAMIC_SQL= 16,   // Is set if a procedure with PREPARE/EXECUTE
-        IS_INVOKED= 32,             // Is set if this sp_head is being used
-        HAS_SET_AUTOCOMMIT_STMT= 64,// Is set if a procedure with 'set autocommit'
+        HAS_RETURN = 1,             // For FUNCTIONs only: is set if has RETURN
+        MULTI_RESULTS = 8,          // Is set if a procedure with SELECT(s)
+        CONTAINS_DYNAMIC_SQL = 16,  // Is set if a procedure with PREPARE/EXECUTE
+        IS_INVOKED = 32,            // Is set if this sp_head is being used
+        HAS_SET_AUTOCOMMIT_STMT = 64, // Is set if a procedure with 'set autocommit'
         /* Is set if a procedure with COMMIT (implicit or explicit) | ROLLBACK */
-        HAS_COMMIT_OR_ROLLBACK= 128,
-        LOG_SLOW_STATEMENTS= 256,   // Used by events
-        LOG_GENERAL_LOG= 512,        // Used by events
-        HAS_SQLCOM_RESET= 1024,
-        HAS_SQLCOM_FLUSH= 2048,
+        HAS_COMMIT_OR_ROLLBACK = 128,
+        LOG_SLOW_STATEMENTS = 256,  // Used by events
+        LOG_GENERAL_LOG = 512,       // Used by events
+        HAS_SQLCOM_RESET = 1024,
+        HAS_SQLCOM_FLUSH = 2048,
 
         /**
           Marks routines that directly (i.e. not by calling other routines)
@@ -494,7 +492,7 @@ public:
           b) because in CONTAINS SQL case they don't provide enough
           information anyway.
          */
-        MODIFIES_DATA= 4096
+        MODIFIES_DATA = 4096
     };
 
 public:
@@ -632,7 +630,7 @@ public:
     /// Set the value of the SP cache version.
     void set_sp_cache_version(ulong sp_cache_version)
     {
-        m_sp_cache_version= sp_cache_version;
+        m_sp_cache_version = sp_cache_version;
     }
 
     Stored_program_creation_ctx *get_creation_ctx()
@@ -642,7 +640,7 @@ public:
 
     void set_creation_ctx(Stored_program_creation_ctx *creation_ctx)
     {
-        m_creation_ctx= creation_ctx->clone(mem_root);
+        m_creation_ctx = creation_ctx->clone(mem_root);
     }
 
     /// Set the body-definition start position.
@@ -791,7 +789,8 @@ public:
     char *name(uint *lenp = 0) const
     {
         if (lenp)
-            *lenp= (uint) m_name.length;
+            *lenp = (uint) m_name.length;
+
         return m_name.str;
     }
 
@@ -902,8 +901,8 @@ public:
             my_error(ER_STMT_NOT_ALLOWED_IN_SF_OR_TRG, MYF(0), "FLUSH");
 
         return test(m_flags &
-                    (CONTAINS_DYNAMIC_SQL|MULTI_RESULTS|HAS_SET_AUTOCOMMIT_STMT|
-                     HAS_COMMIT_OR_ROLLBACK|HAS_SQLCOM_RESET|HAS_SQLCOM_FLUSH));
+                    (CONTAINS_DYNAMIC_SQL | MULTI_RESULTS | HAS_SET_AUTOCOMMIT_STMT |
+                     HAS_COMMIT_OR_ROLLBACK | HAS_SQLCOM_RESET | HAS_SQLCOM_FLUSH));
     }
 
 #ifndef DBUG_OFF

@@ -27,7 +27,7 @@
 
 enum NDB_SHARE_STATE
 {
-    NSS_INITIAL= 0,
+    NSS_INITIAL = 0,
     NSS_DROPPED,
     NSS_ALTERED
 };
@@ -36,21 +36,21 @@ enum NDB_SHARE_STATE
 enum enum_conflict_fn_type
 {
     CFT_NDB_UNDEF = 0
-    ,CFT_NDB_MAX
-    ,CFT_NDB_OLD
-    ,CFT_NDB_MAX_DEL_WIN
-    ,CFT_NDB_EPOCH
-    ,CFT_NUMBER_OF_CFTS /* End marker */
+    , CFT_NDB_MAX
+    , CFT_NDB_OLD
+    , CFT_NDB_MAX_DEL_WIN
+    , CFT_NDB_EPOCH
+    , CFT_NUMBER_OF_CFTS /* End marker */
 };
 
 #ifdef HAVE_NDB_BINLOG
-static const Uint32 MAX_CONFLICT_ARGS= 8;
+static const Uint32 MAX_CONFLICT_ARGS = 8;
 
 enum enum_conflict_fn_arg_type
 {
     CFAT_END
-    ,CFAT_COLUMN_NAME
-    ,CFAT_EXTRA_GCI_BITS
+    , CFAT_COLUMN_NAME
+    , CFAT_EXTRA_GCI_BITS
 };
 
 struct st_conflict_fn_arg
@@ -72,7 +72,7 @@ struct st_conflict_fn_arg_def
 
 /* What type of operation was issued */
 enum enum_conflicting_op_type
-{                /* NdbApi          */
+{   /* NdbApi          */
     WRITE_ROW,     /* insert (!write) */
     UPDATE_ROW,    /* update          */
     DELETE_ROW     /* delete          */
@@ -84,18 +84,18 @@ enum enum_conflicting_op_type
   Type of function used to prepare for conflict detection on
   an NdbApi operation
 */
-typedef int (* prepare_detect_func) (struct NDB_CONFLICT_FN_SHARE* cfn_share,
+typedef int (* prepare_detect_func) (struct NDB_CONFLICT_FN_SHARE *cfn_share,
                                      enum_conflicting_op_type op_type,
-                                     const uchar* old_data,
-                                     const uchar* new_data,
-                                     const MY_BITMAP* write_set,
-                                     class NdbInterpretedCode* code);
+                                     const uchar *old_data,
+                                     const uchar *new_data,
+                                     const MY_BITMAP *write_set,
+                                     class NdbInterpretedCode *code);
 
 struct st_conflict_fn_def
 {
     const char *name;
     enum_conflict_fn_type type;
-    const st_conflict_fn_arg_def* arg_defs;
+    const st_conflict_fn_arg_def *arg_defs;
     prepare_detect_func prep_func;
 };
 
@@ -110,9 +110,9 @@ enum enum_conflict_cause
 /* NdbOperation custom data which points out handler and record. */
 struct Ndb_exceptions_data
 {
-    struct NDB_SHARE* share;
-    const NdbRecord* key_rec;
-    const uchar* row;
+    struct NDB_SHARE *share;
+    const NdbRecord *key_rec;
+    const uchar *row;
     enum_conflicting_op_type op_type;
 };
 
@@ -124,7 +124,7 @@ enum enum_conflict_fn_flags
 
 struct NDB_CONFLICT_FN_SHARE
 {
-    const st_conflict_fn_def* m_conflict_fn;
+    const st_conflict_fn_def *m_conflict_fn;
 
     /* info about original table */
     uint8 m_pk_cols;
@@ -170,7 +170,7 @@ struct NDB_SHARE
     char *table_name;
     Ndb::TupleIdRange tuple_id_range;
     struct Ndb_statistics stat;
-    struct Ndb_index_stat* index_stat_list;
+    struct Ndb_index_stat *index_stat_list;
     bool util_thread; // if opened by util thread
     uint32 connect_count;
     uint32 flags;
@@ -186,23 +186,21 @@ struct NDB_SHARE
 
 
 inline
-NDB_SHARE_STATE
-get_ndb_share_state(NDB_SHARE *share)
+NDB_SHARE_STATE get_ndb_share_state(NDB_SHARE *share)
 {
     NDB_SHARE_STATE state;
     pthread_mutex_lock(&share->mutex);
-    state= share->state;
+    state = share->state;
     pthread_mutex_unlock(&share->mutex);
     return state;
 }
 
 
 inline
-void
-set_ndb_share_state(NDB_SHARE *share, NDB_SHARE_STATE state)
+void set_ndb_share_state(NDB_SHARE *share, NDB_SHARE_STATE state)
 {
     pthread_mutex_lock(&share->mutex);
-    share->state= state;
+    share->state = state;
     pthread_mutex_unlock(&share->mutex);
 }
 

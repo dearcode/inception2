@@ -337,6 +337,7 @@ public:
     {
         if (get_function_default_columns(table))
             return true;
+
         bitmap_union(columns, m_function_default_columns);
         return false;
     }

@@ -32,7 +32,7 @@ int max_binlog_dump_events = 0; // unlimited
 my_bool opt_sporadic_binlog_dump_fail = 0;
 
 #ifndef DBUG_OFF
-static int binlog_dump_count = 0;
+    static int binlog_dump_count = 0;
 #endif
 
 #define SLAVE_LIST_CHUNK 128
@@ -42,19 +42,19 @@ extern TYPELIB binlog_checksum_typelib;
 
 
 #define get_object(p, obj, msg) \
-{\
-  uint len = (uint)*p++;  \
-  if (p + len > p_end || len >= sizeof(obj)) \
-  {\
-    errmsg= msg;\
-    goto err; \
-  }\
-  strmake(obj,(char*) p,len); \
-  p+= len; \
-}\
+    {\
+        uint len = (uint)*p++;  \
+        if (p + len > p_end || len >= sizeof(obj)) \
+        {\
+            errmsg= msg;\
+            goto err; \
+        }\
+        strmake(obj,(char*) p,len); \
+        p+= len; \
+    }\
 
 extern "C" uint32
-*slave_list_key(SLAVE_INFO* si, size_t *len,
+*slave_list_key(SLAVE_INFO *si, size_t *len,
                 my_bool not_used __attribute__((unused)))
 {
     *len = 4;
@@ -69,15 +69,14 @@ extern "C" void slave_info_free(void *s)
 #ifdef HAVE_PSI_INTERFACE
 static PSI_mutex_key key_LOCK_slave_list;
 
-static PSI_mutex_info all_slave_list_mutexes[]= {
+static PSI_mutex_info all_slave_list_mutexes[] = {
     { &key_LOCK_slave_list, "LOCK_slave_list", PSI_FLAG_GLOBAL}
 };
 
 static void init_all_slave_list_mutexes(void)
 {
     int count;
-
-    count= array_elements(all_slave_list_mutexes);
+    count = array_elements(all_slave_list_mutexes);
     mysql_mutex_register("sql", all_slave_list_mutexes, count);
 }
 #endif /* HAVE_PSI_INTERFACE */
@@ -87,7 +86,6 @@ void init_slave_list()
 #ifdef HAVE_PSI_INTERFACE
     init_all_slave_list_mutexes();
 #endif
-
     my_hash_init(&slave_list, system_charset_info, SLAVE_LIST_CHUNK, 0, 0,
                  (my_hash_get_key) slave_list_key,
                  (my_hash_free_key) slave_info_free, 0);
@@ -112,26 +110,28 @@ void end_slave_list()
     1	Error.   Error message sent to client
 */
 
-int register_slave(THD* thd, uchar* packet, uint packet_length)
+int register_slave(THD *thd, uchar *packet, uint packet_length)
 {
     int res;
     SLAVE_INFO *si;
-    uchar *p= packet, *p_end= packet + packet_length;
-    const char *errmsg= "Wrong parameters to function register_slave";
+    uchar *p = packet, *p_end = packet + packet_length;
+    const char *errmsg = "Wrong parameters to function register_slave";
 
 //   if (check_access(thd, REPL_SLAVE_ACL, any_db, NULL, NULL, 0, 0))
 //     return 1;
-    if (!(si = (SLAVE_INFO*)my_malloc(sizeof(SLAVE_INFO), MYF(MY_WME))))
+    if (!(si = (SLAVE_INFO *)my_malloc(sizeof(SLAVE_INFO), MYF(MY_WME))))
         goto err2;
 
-    thd->server_id= si->server_id= uint4korr(p);
-    p+= 4;
-    get_object(p,si->host, "Failed to register slave: too long 'report-host'");
-    get_object(p,si->user, "Failed to register slave: too long 'report-user'");
-    get_object(p,si->password, "Failed to register slave; too long 'report-password'");
-    if (p+10 > p_end)
+    thd->server_id = si->server_id = uint4korr(p);
+    p += 4;
+    get_object(p, si->host, "Failed to register slave: too long 'report-host'");
+    get_object(p, si->user, "Failed to register slave: too long 'report-user'");
+    get_object(p, si->password, "Failed to register slave; too long 'report-password'");
+
+    if (p + 10 > p_end)
         goto err;
-    si->port= uint2korr(p);
+
+    si->port = uint2korr(p);
     p += 2;
     /*
        We need to by pass the bytes used in the fake rpl_recovery_rank
@@ -140,16 +140,16 @@ int register_slave(THD* thd, uchar* packet, uint packet_length)
        See: BUG#49259
     */
     p += 4;
-    if (!(si->master_id= uint4korr(p)))
-        si->master_id= server_id;
-    si->thd= thd;
 
+    if (!(si->master_id = uint4korr(p)))
+        si->master_id = server_id;
+
+    si->thd = thd;
     mysql_mutex_lock(&LOCK_slave_list);
     unregister_slave(thd, false, false/*need_lock_slave_list=false*/);
-    res= my_hash_insert(&slave_list, (uchar*) si);
+    res = my_hash_insert(&slave_list, (uchar *) si);
     mysql_mutex_unlock(&LOCK_slave_list);
     return res;
-
 err:
     my_free(si);
     my_message(ER_UNKNOWN_ERROR, errmsg, MYF(0)); /* purecov: inspected */
@@ -157,7 +157,7 @@ err2:
     return 1;
 }
 
-void unregister_slave(THD* thd, bool only_mine, bool need_lock_slave_list)
+void unregister_slave(THD *thd, bool only_mine, bool need_lock_slave_list)
 {
     if (thd->server_id) {
         if (need_lock_slave_list)
@@ -165,11 +165,12 @@ void unregister_slave(THD* thd, bool only_mine, bool need_lock_slave_list)
         else
             mysql_mutex_assert_owner(&LOCK_slave_list);
 
-        SLAVE_INFO* old_si;
-        if ((old_si = (SLAVE_INFO*)my_hash_search(&slave_list,
-                      (uchar*)&thd->server_id, 4)) &&
+        SLAVE_INFO *old_si;
+
+        if ((old_si = (SLAVE_INFO *)my_hash_search(&slave_list,
+                      (uchar *)&thd->server_id, 4)) &&
                 (!only_mine || old_si->thd == thd))
-            my_hash_delete(&slave_list, (uchar*)old_si);
+            my_hash_delete(&slave_list, (uchar *)old_si);
 
         if (need_lock_slave_list)
             mysql_mutex_unlock(&LOCK_slave_list);
@@ -186,19 +187,20 @@ void unregister_slave(THD* thd, bool only_mine, bool need_lock_slave_list)
   @retval FALSE success
   @retval TRUE failure
 */
-bool show_slave_hosts(THD* thd)
+bool show_slave_hosts(THD *thd)
 {
     List<Item> field_list;
-    Protocol *protocol= thd->protocol;
+    Protocol *protocol = thd->protocol;
     DBUG_ENTER("show_slave_hosts");
-
     field_list.push_back(new Item_return_int("Server_id", 10,
                          MYSQL_TYPE_LONG));
     field_list.push_back(new Item_empty_string("Host", 20));
+
     if (opt_show_slave_auth_info) {
-        field_list.push_back(new Item_empty_string("User",20));
-        field_list.push_back(new Item_empty_string("Password",20));
+        field_list.push_back(new Item_empty_string("User", 20));
+        field_list.push_back(new Item_empty_string("Password", 20));
     }
+
     field_list.push_back(new Item_return_int("Port", 7, MYSQL_TYPE_LONG));
     field_list.push_back(new Item_return_int("Master_id", 10,
                          MYSQL_TYPE_LONG));
@@ -211,26 +213,30 @@ bool show_slave_hosts(THD* thd)
     mysql_mutex_lock(&LOCK_slave_list);
 
     for (uint i = 0; i < slave_list.records; ++i) {
-        SLAVE_INFO* si = (SLAVE_INFO*) my_hash_element(&slave_list, i);
+        SLAVE_INFO *si = (SLAVE_INFO *) my_hash_element(&slave_list, i);
         protocol->prepare_for_resend();
         protocol->store((uint32) si->server_id);
         protocol->store(si->host, &my_charset_bin);
+
         if (opt_show_slave_auth_info) {
             protocol->store(si->user, &my_charset_bin);
             protocol->store(si->password, &my_charset_bin);
         }
+
         protocol->store((uint32) si->port);
         protocol->store((uint32) si->master_id);
-
         /* get slave's UUID */
         String slave_uuid;
+
         if (get_slave_uuid(si->thd, &slave_uuid))
             protocol->store(slave_uuid.c_ptr_safe(), &my_charset_bin);
+
         if (protocol->write()) {
             mysql_mutex_unlock(&LOCK_slave_list);
             DBUG_RETURN(TRUE);
         }
     }
+
     mysql_mutex_unlock(&LOCK_slave_list);
     my_eof(thd);
     DBUG_RETURN(FALSE);
@@ -245,22 +251,22 @@ inline void fix_checksum(String *packet, ulong ev_offset)
 {
     /* recalculate the crc for this event */
     uint data_len = uint4korr(packet->ptr() + ev_offset + EVENT_LEN_OFFSET);
-    ha_checksum crc= my_checksum(0L, NULL, 0);
+    ha_checksum crc = my_checksum(0L, NULL, 0);
     DBUG_ASSERT(data_len ==
                 LOG_EVENT_MINIMAL_HEADER_LEN + FORMAT_DESCRIPTION_HEADER_LEN +
                 BINLOG_CHECKSUM_ALG_DESC_LEN + BINLOG_CHECKSUM_LEN);
-    crc= my_checksum(crc, (uchar *)packet->ptr() + ev_offset, data_len -
-                     BINLOG_CHECKSUM_LEN);
+    crc = my_checksum(crc, (uchar *)packet->ptr() + ev_offset, data_len -
+                      BINLOG_CHECKSUM_LEN);
     int4store(packet->ptr() + ev_offset + data_len - BINLOG_CHECKSUM_LEN, crc);
 }
 
 
-static user_var_entry * get_binlog_checksum_uservar(THD * thd)
+static user_var_entry *get_binlog_checksum_uservar(THD *thd)
 {
-    LEX_STRING name=  { C_STRING_WITH_LEN("master_binlog_checksum")};
-    user_var_entry *entry=
-        (user_var_entry*) my_hash_search(&thd->user_vars, (uchar*) name.str,
-                                         name.length);
+    LEX_STRING name =  { C_STRING_WITH_LEN("master_binlog_checksum")};
+    user_var_entry *entry =
+        (user_var_entry *) my_hash_search(&thd->user_vars, (uchar *) name.str,
+                                          name.length);
     return entry;
 }
 
@@ -273,11 +279,11 @@ static user_var_entry * get_binlog_checksum_uservar(THD * thd)
   @return        TRUE if handshake took place, FALSE otherwise
 */
 
-static bool is_slave_checksum_aware(THD * thd)
+static bool is_slave_checksum_aware(THD *thd)
 {
     DBUG_ENTER("is_slave_checksum_aware");
-    user_var_entry *entry= get_binlog_checksum_uservar(thd);
-    DBUG_RETURN(entry? true  : false);
+    user_var_entry *entry = get_binlog_checksum_uservar(thd);
+    DBUG_RETURN(entry ? true  : false);
 }
 
 /**
@@ -294,23 +300,25 @@ static bool is_slave_checksum_aware(THD * thd)
                 @c enum enum_binlog_checksum_alg
 */
 
-static uint8 get_binlog_checksum_value_at_connect(THD * thd)
+static uint8 get_binlog_checksum_value_at_connect(THD *thd)
 {
     uint8 ret;
-
     DBUG_ENTER("get_binlog_checksum_value_at_connect");
-    user_var_entry *entry= get_binlog_checksum_uservar(thd);
-    if (!entry) {
-        ret= BINLOG_CHECKSUM_ALG_UNDEF;
-    } else {
+    user_var_entry *entry = get_binlog_checksum_uservar(thd);
+
+    if (!entry)
+        ret = BINLOG_CHECKSUM_ALG_UNDEF;
+
+    else {
         DBUG_ASSERT(entry->type() == STRING_RESULT);
         String str;
         uint dummy_errors;
         str.copy(entry->ptr(), entry->length(), &my_charset_bin, &my_charset_bin,
                  &dummy_errors);
-        ret= (uint8) find_type ((char*) str.ptr(), &binlog_checksum_typelib, 1) - 1;
+        ret = (uint8) find_type ((char *) str.ptr(), &binlog_checksum_typelib, 1) - 1;
         DBUG_ASSERT(ret <= BINLOG_CHECKSUM_ALG_CRC32); // while it's just on CRC32 alg
     }
+
     DBUG_RETURN(ret);
 }
 
@@ -332,59 +340,54 @@ static uint8 get_binlog_checksum_value_at_connect(THD * thd)
     part.
 */
 
-static int fake_rotate_event(NET* net, String* packet, char* log_file_name,
-                             ulonglong position, const char** errmsg,
+static int fake_rotate_event(NET *net, String *packet, char *log_file_name,
+                             ulonglong position, const char **errmsg,
                              uint8 checksum_alg_arg)
 {
     DBUG_ENTER("fake_rotate_event");
-    char header[LOG_EVENT_HEADER_LEN], buf[ROTATE_HEADER_LEN+100];
-
+    char header[LOG_EVENT_HEADER_LEN], buf[ROTATE_HEADER_LEN + 100];
     /*
       this Rotate is to be sent with checksum if and only if
       slave's get_master_version_and_clock time handshake value
       of master's @@global.binlog_checksum was TRUE
     */
-
-    my_bool do_checksum= checksum_alg_arg != BINLOG_CHECKSUM_ALG_OFF &&
-                         checksum_alg_arg != BINLOG_CHECKSUM_ALG_UNDEF;
-
+    my_bool do_checksum = checksum_alg_arg != BINLOG_CHECKSUM_ALG_OFF &&
+                          checksum_alg_arg != BINLOG_CHECKSUM_ALG_UNDEF;
     /*
       'when' (the timestamp) is set to 0 so that slave could distinguish between
       real and fake Rotate events (if necessary)
     */
     memset(header, 0, 4);
     header[EVENT_TYPE_OFFSET] = ROTATE_EVENT;
-
-    char* p = log_file_name+dirname_length(log_file_name);
+    char *p = log_file_name + dirname_length(log_file_name);
     uint ident_len = (uint) strlen(p);
     ulong event_len = ident_len + LOG_EVENT_HEADER_LEN + ROTATE_HEADER_LEN +
                       (do_checksum ? BINLOG_CHECKSUM_LEN : 0);
     int4store(header + SERVER_ID_OFFSET, server_id);
     int4store(header + EVENT_LEN_OFFSET, event_len);
     int2store(header + FLAGS_OFFSET, LOG_EVENT_ARTIFICIAL_F);
-
     // TODO: check what problems this may cause and fix them
     int4store(header + LOG_POS_OFFSET, 0);
-
     packet->append(header, sizeof(header));
-    int8store(buf+R_POS_OFFSET,position);
+    int8store(buf + R_POS_OFFSET, position);
     packet->append(buf, ROTATE_HEADER_LEN);
     packet->append(p, ident_len);
 
     if (do_checksum) {
         char b[BINLOG_CHECKSUM_LEN];
-        ha_checksum crc= my_checksum(0L, NULL, 0);
-        crc= my_checksum(crc, (uchar*)header, sizeof(header));
-        crc= my_checksum(crc, (uchar*)buf, ROTATE_HEADER_LEN);
-        crc= my_checksum(crc, (uchar*)p, ident_len);
+        ha_checksum crc = my_checksum(0L, NULL, 0);
+        crc = my_checksum(crc, (uchar *)header, sizeof(header));
+        crc = my_checksum(crc, (uchar *)buf, ROTATE_HEADER_LEN);
+        crc = my_checksum(crc, (uchar *)p, ident_len);
         int4store(b, crc);
         packet->append(b, sizeof(b));
     }
 
-    if (my_net_write(net, (uchar*) packet->ptr(), packet->length())) {
+    if (my_net_write(net, (uchar *) packet->ptr(), packet->length())) {
         *errmsg = "failed on my_net_write()";
         DBUG_RETURN(-1);
     }
+
     DBUG_RETURN(0);
 }
 
@@ -397,40 +400,39 @@ static int fake_rotate_event(NET* net, String* packet, char* log_file_name,
 static int reset_transmit_packet(THD *thd, ushort flags,
                                  ulong *ev_offset, const char **errmsg)
 {
-    int ret= 0;
-    String *packet= &thd->packet;
-
+    int ret = 0;
+    String *packet = &thd->packet;
     /* reserve and set default header */
     packet->length(0);
     packet->set("\0", 1, &my_charset_bin);
 
     if (RUN_HOOK(binlog_transmit, reserve_header, (thd, flags, packet))) {
-        *errmsg= "Failed to run hook 'reserve_header'";
-        my_errno= ER_UNKNOWN_ERROR;
-        ret= 1;
+        *errmsg = "Failed to run hook 'reserve_header'";
+        my_errno = ER_UNKNOWN_ERROR;
+        ret = 1;
     }
-    *ev_offset= packet->length();
+
+    *ev_offset = packet->length();
     DBUG_PRINT("info", ("rpl_master.cc:reset_transmit_packet returns %d", ret));
     return ret;
 }
 
 static int send_file(THD *thd)
 {
-    NET* net = &thd->net;
+    NET *net = &thd->net;
     int fd = -1, error = 1;
     size_t bytes;
-    char fname[FN_REFLEN+1];
+    char fname[FN_REFLEN + 1];
     const char *errmsg = 0;
     int old_timeout;
     unsigned long packet_len;
     uchar buf[IO_SIZE];				// It's safe to alloc this
     DBUG_ENTER("send_file");
-
     /*
       The client might be slow loading the data, give him wait_timeout to do
       the job
     */
-    old_timeout= net->read_timeout;
+    old_timeout = net->read_timeout;
     my_net_set_read_timeout(net, thd->variables.net_wait_timeout);
 
     /*
@@ -443,19 +445,20 @@ static int send_file(THD *thd)
     }
 
     // terminate with \0 for fn_format
-    *((char*)net->read_pos +  packet_len) = 0;
-    fn_format(fname, (char*) net->read_pos + 1, "", "", 4);
+    *((char *)net->read_pos +  packet_len) = 0;
+    fn_format(fname, (char *) net->read_pos + 1, "", "", 4);
+
     // this is needed to make replicate-ignore-db
-    if (!strcmp(fname,"/dev/null"))
+    if (!strcmp(fname, "/dev/null"))
         goto end;
 
-    if ((fd= mysql_file_open(key_file_send_file,
-                             fname, O_RDONLY, MYF(0))) < 0) {
+    if ((fd = mysql_file_open(key_file_send_file,
+                              fname, O_RDONLY, MYF(0))) < 0) {
         errmsg = "on open of file";
         goto err;
     }
 
-    while ((long) (bytes= mysql_file_read(fd, buf, IO_SIZE, MYF(0))) > 0) {
+    while ((long) (bytes = mysql_file_read(fd, buf, IO_SIZE, MYF(0))) > 0) {
         if (my_net_write(net, buf, bytes)) {
             errmsg = "while writing data to client";
             goto err;
@@ -463,21 +466,25 @@ static int send_file(THD *thd)
     }
 
 end:
-    if (my_net_write(net, (uchar*) "", 0) || net_flush(net) ||
+
+    if (my_net_write(net, (uchar *) "", 0) || net_flush(net) ||
             (my_net_read(net) == packet_error)) {
         errmsg = "while negotiating file transfer close";
         goto err;
     }
-    error = 0;
 
+    error = 0;
 err:
     my_net_set_read_timeout(net, old_timeout);
+
     if (fd >= 0)
         mysql_file_close(fd, MYF(0));
+
     if (errmsg) {
         sql_print_error("Failed in send_file() %s", errmsg);
         DBUG_PRINT("error", ("%s", errmsg));
     }
+
     DBUG_RETURN(error);
 }
 
@@ -486,31 +493,40 @@ int test_for_non_eof_log_read_errors(int error, const char **errmsg)
 {
     if (error == LOG_READ_EOF)
         return 0;
-    my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+
+    my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+
     switch (error) {
     case LOG_READ_BOGUS:
         *errmsg = "bogus data in log event";
         break;
+
     case LOG_READ_TOO_LARGE:
         *errmsg = "log event entry exceeded max_allowed_packet; \
 Increase max_allowed_packet on master";
         break;
+
     case LOG_READ_IO:
         *errmsg = "I/O error reading log event";
         break;
+
     case LOG_READ_MEM:
         *errmsg = "memory allocation failed reading log event";
         break;
+
     case LOG_READ_TRUNC:
         *errmsg = "binlog truncated in the middle of event; consider out of disk space on master";
         break;
+
     case LOG_READ_CHECKSUM_FAILURE:
         *errmsg = "event read from binlog did not pass crc check";
         break;
+
     default:
         *errmsg = "unknown error reading log event on the master";
         break;
     }
+
     return error;
 }
 
@@ -524,14 +540,14 @@ Increase max_allowed_packet on master";
   @return        heartbeat period an ulonglong of nanoseconds
                  or zero if heartbeat was not demanded by slave
 */
-static ulonglong get_heartbeat_period(THD * thd)
+static ulonglong get_heartbeat_period(THD *thd)
 {
     my_bool null_value;
-    LEX_STRING name=  { C_STRING_WITH_LEN("master_heartbeat_period")};
-    user_var_entry *entry=
-        (user_var_entry*) my_hash_search(&thd->user_vars, (uchar*) name.str,
-                                         name.length);
-    return entry? entry->val_int(&null_value) : 0;
+    LEX_STRING name =  { C_STRING_WITH_LEN("master_heartbeat_period")};
+    user_var_entry *entry =
+        (user_var_entry *) my_hash_search(&thd->user_vars, (uchar *) name.str,
+                                          name.length);
+    return entry ? entry->val_int(&null_value) : 0;
 }
 
 /*
@@ -548,49 +564,44 @@ static ulonglong get_heartbeat_period(THD * thd)
     The  error to send is serious and should force terminating
     the dump thread.
 */
-static int send_heartbeat_event(NET* net, String* packet,
+static int send_heartbeat_event(NET *net, String *packet,
                                 const struct event_coordinates *coord,
                                 uint8 checksum_alg_arg)
 {
     DBUG_ENTER("send_heartbeat_event");
     char header[LOG_EVENT_HEADER_LEN];
-    my_bool do_checksum= checksum_alg_arg != BINLOG_CHECKSUM_ALG_OFF &&
-                         checksum_alg_arg != BINLOG_CHECKSUM_ALG_UNDEF;
+    my_bool do_checksum = checksum_alg_arg != BINLOG_CHECKSUM_ALG_OFF &&
+                          checksum_alg_arg != BINLOG_CHECKSUM_ALG_UNDEF;
     /*
       'when' (the timestamp) is set to 0 so that slave could distinguish between
       real and fake Rotate events (if necessary)
     */
     memset(header, 0, 4);  // when
-
     header[EVENT_TYPE_OFFSET] = HEARTBEAT_LOG_EVENT;
-
-    char* p= coord->file_name + dirname_length(coord->file_name);
-
+    char *p = coord->file_name + dirname_length(coord->file_name);
     uint ident_len = strlen(p);
     ulong event_len = ident_len + LOG_EVENT_HEADER_LEN +
                       (do_checksum ? BINLOG_CHECKSUM_LEN : 0);
     int4store(header + SERVER_ID_OFFSET, server_id);
     int4store(header + EVENT_LEN_OFFSET, event_len);
     int2store(header + FLAGS_OFFSET, 0);
-
     int4store(header + LOG_POS_OFFSET, coord->pos);  // log_pos
-
     packet->append(header, sizeof(header));
     packet->append(p, ident_len);             // log_file_name
 
     if (do_checksum) {
         char b[BINLOG_CHECKSUM_LEN];
-        ha_checksum crc= my_checksum(0L, NULL, 0);
-        crc= my_checksum(crc, (uchar*) header, sizeof(header));
-        crc= my_checksum(crc, (uchar*) p, ident_len);
+        ha_checksum crc = my_checksum(0L, NULL, 0);
+        crc = my_checksum(crc, (uchar *) header, sizeof(header));
+        crc = my_checksum(crc, (uchar *) p, ident_len);
         int4store(b, crc);
         packet->append(b, sizeof(b));
     }
 
-    if (my_net_write(net, (uchar*) packet->ptr(), packet->length()) ||
-            net_flush(net)) {
+    if (my_net_write(net, (uchar *) packet->ptr(), packet->length()) ||
+            net_flush(net))
         DBUG_RETURN(-1);
-    }
+
     DBUG_RETURN(0);
 }
 
@@ -614,15 +625,14 @@ static int send_heartbeat_event(NET* net, String* packet,
    @retval           0                  ok
    @retval          -1                  error
 */
-static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
+static int send_last_skip_group_heartbeat(THD *thd, NET *net, String *packet,
         const struct event_coordinates *last_skip_coord,
         ulong *ev_offset,
         uint8 checksum_alg_arg, const char **errmsg)
 {
     DBUG_ENTER("send_last_skip_group_heartbeat");
     String save_packet;
-    int save_offset= *ev_offset;
-
+    int save_offset = *ev_offset;
     /* Save the current read packet */
     save_packet.swap(*packet);
 
@@ -631,15 +641,14 @@ static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
 
     /* Send heart beat event to the slave to update slave  threads coordinates */
     if (send_heartbeat_event(net, packet, last_skip_coord, checksum_alg_arg)) {
-        *errmsg= "Failed on my_net_write()";
-        my_errno= ER_UNKNOWN_ERROR;
+        *errmsg = "Failed on my_net_write()";
+        my_errno = ER_UNKNOWN_ERROR;
         DBUG_RETURN(-1);
     }
 
     /* Restore the packet and event offset */
     packet->swap(save_packet);
-    *ev_offset= save_offset;
-
+    *ev_offset = save_offset;
     DBUG_PRINT("info", ("rpl_master.cc:send_last_skip_group_heartbeat returns 0"));
     DBUG_RETURN(0);
 }
@@ -650,10 +659,10 @@ static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
   report error.
 */
 #define CHECK_PACKET_SIZE(BYTES)                                        \
-  do {                                                                  \
-    if (packet_bytes_todo < BYTES)                                      \
-      goto error_malformed_packet;                                      \
-  } while (0)
+    do {                                                                  \
+        if (packet_bytes_todo < BYTES)                                      \
+            goto error_malformed_packet;                                      \
+    } while (0)
 
 /**
   Auxiliary macro used to define READ_INT and READ_STRING.
@@ -663,12 +672,12 @@ static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
   position.
 */
 #define READ(DECODE, BYTES)                                             \
-  do {                                                                  \
-    CHECK_PACKET_SIZE(BYTES);                                           \
-    DECODE;                                                             \
-    packet_position+= BYTES;                                            \
-    packet_bytes_todo-= BYTES;                                          \
-  } while (0)
+    do {                                                                  \
+        CHECK_PACKET_SIZE(BYTES);                                           \
+        DECODE;                                                             \
+        packet_position+= BYTES;                                            \
+        packet_bytes_todo-= BYTES;                                          \
+    } while (0)
 
 #define SKIP(BYTES) READ((void)(0), BYTES)
 
@@ -678,7 +687,7 @@ static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
   the reading position.
 */
 #define READ_INT(VAR, BYTES)                                            \
-  READ(VAR= uint ## BYTES ## korr(packet_position), BYTES)
+    READ(VAR= uint ## BYTES ## korr(packet_position), BYTES)
 
 /**
   Check that there are at least BYTES more bytes to read and that
@@ -686,12 +695,12 @@ static int send_last_skip_group_heartbeat(THD *thd, NET* net, String *packet,
   the given variable VAR, then advance the reading position.
 */
 #define READ_STRING(VAR, BYTES, BUFFER_SIZE)                            \
-  do {                                                                  \
-    if (BUFFER_SIZE <= BYTES)                                           \
-      goto error_malformed_packet;                                      \
-    READ(memcpy(VAR, packet_position, BYTES), BYTES);                   \
-    VAR[BYTES]= '\0';                                                   \
-  } while (0)
+    do {                                                                  \
+        if (BUFFER_SIZE <= BYTES)                                           \
+            goto error_malformed_packet;                                      \
+        READ(memcpy(VAR, packet_position, BYTES), BYTES);                   \
+        VAR[BYTES]= '\0';                                                   \
+    } while (0)
 
 
 bool com_binlog_dump(THD *thd, char *packet, uint packet_length)
@@ -699,11 +708,11 @@ bool com_binlog_dump(THD *thd, char *packet, uint packet_length)
     DBUG_ENTER("com_binlog_dump");
     ulong pos;
     String slave_uuid;
-    const uchar* packet_position= (uchar *) packet;
-    uint packet_bytes_todo= packet_length;
-
+    const uchar *packet_position = (uchar *) packet;
+    uint packet_bytes_todo = packet_length;
     status_var_increment(thd->status_var.com_other);
-    thd->enable_slow_log= opt_log_slow_admin_statements;
+    thd->enable_slow_log = opt_log_slow_admin_statements;
+
     if (check_global_access(thd, REPL_SLAVE_ACL))
         DBUG_RETURN(false);
 
@@ -715,18 +724,14 @@ bool com_binlog_dump(THD *thd, char *packet, uint packet_length)
     READ_INT(pos, 4);
     SKIP(2); /* flags field is unused */
     READ_INT(thd->server_id, 4);
-
     get_slave_uuid(thd, &slave_uuid);
     kill_zombie_dump_threads(&slave_uuid);
-
     general_log_print(thd, thd->get_command(), "Log: '%s'  Pos: %ld",
                       packet + 10, (long) pos);
     mysql_binlog_send(thd, thd->strdup(packet + 10), (my_off_t) pos, NULL);
-
     unregister_slave(thd, true, true/*need_lock_slave_list=true*/);
     /*  fake COM_QUIT -- if we get here, the thread needs to terminate */
     DBUG_RETURN(true);
-
 error_malformed_packet:
     my_error(ER_MALFORMED_PACKET, MYF(0));
     DBUG_RETURN(true);
@@ -741,18 +746,18 @@ bool com_binlog_dump_gtid(THD *thd, char *packet, uint packet_length)
       breaking compatitibilty. /Alfranio.
     */
     String slave_uuid;
-    uint32 data_size= 0;
-    uint64 pos= 0;
+    uint32 data_size = 0;
+    uint64 pos = 0;
     char name[FN_REFLEN + 1];
-    uint32 name_size= 0;
-    char* gtid_string= NULL;
-    const uchar* packet_position= (uchar *) packet;
-    uint packet_bytes_todo= packet_length;
+    uint32 name_size = 0;
+    char *gtid_string = NULL;
+    const uchar *packet_position = (uchar *) packet;
+    uint packet_bytes_todo = packet_length;
     Sid_map sid_map(NULL/*no sid_lock because this is a completely local object*/);
     Gtid_set slave_gtid_executed(&sid_map);
-
     status_var_increment(thd->status_var.com_other);
-    thd->enable_slow_log= opt_log_slow_admin_statements;
+    thd->enable_slow_log = opt_log_slow_admin_statements;
+
     if (check_global_access(thd, REPL_SLAVE_ACL))
         DBUG_RETURN(false);
 
@@ -763,71 +768,67 @@ bool com_binlog_dump_gtid(THD *thd, char *packet, uint packet_length)
     READ_INT(pos, 8);
     READ_INT(data_size, 4);
     CHECK_PACKET_SIZE(data_size);
+
     if (slave_gtid_executed.add_gtid_encoding(packet_position, data_size) !=
             RETURN_STATUS_OK)
         DBUG_RETURN(true);
-    gtid_string= slave_gtid_executed.to_string();
+
+    gtid_string = slave_gtid_executed.to_string();
     DBUG_PRINT("info", ("Slave %d requested to read %s at position %llu gtid set "
                         "'%s'.", thd->server_id, name, pos, gtid_string));
-
     get_slave_uuid(thd, &slave_uuid);
     kill_zombie_dump_threads(&slave_uuid);
     general_log_print(thd, thd->get_command(), "Log: '%s' Pos: %llu GTIDs: '%s'",
                       name, pos, gtid_string);
     my_free(gtid_string);
     mysql_binlog_send(thd, name, (my_off_t) pos, &slave_gtid_executed);
-
     unregister_slave(thd, true, true/*need_lock_slave_list=true*/);
     /*  fake COM_QUIT -- if we get here, the thread needs to terminate */
     DBUG_RETURN(true);
-
 error_malformed_packet:
     my_error(ER_MALFORMED_PACKET, MYF(0));
     DBUG_RETURN(true);
 }
 
 
-void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
-                       const Gtid_set* slave_gtid_executed)
+void mysql_binlog_send(THD *thd, char *log_ident, my_off_t pos,
+                       const Gtid_set *slave_gtid_executed)
 {
     /**
       @todo: Clean up loop so that, among other things, we only have one
       call to send_file(). This is WL#5721.
     */
 #define GOTO_ERR                                                        \
-  do {                                                                  \
-    DBUG_PRINT("info", ("mysql_binlog_send fails; goto err from line %d", \
-                        __LINE__));                                     \
-    goto err;                                                           \
-  } while (0)
+    do {                                                                  \
+        DBUG_PRINT("info", ("mysql_binlog_send fails; goto err from line %d", \
+                            __LINE__));                                     \
+        goto err;                                                           \
+    } while (0)
     LOG_INFO linfo;
     char *log_file_name = linfo.log_file_name;
     char search_file_name[FN_REFLEN], *name;
-
     ulong ev_offset;
-    bool using_gtid_protocol= slave_gtid_executed != NULL;
-    bool searching_first_gtid= using_gtid_protocol;
-    bool skip_group= false;
-    bool binlog_has_previous_gtids_log_event= false;
-    Sid_map *sid_map= slave_gtid_executed ? slave_gtid_executed->get_sid_map() : NULL;
-
+    bool using_gtid_protocol = slave_gtid_executed != NULL;
+    bool searching_first_gtid = using_gtid_protocol;
+    bool skip_group = false;
+    bool binlog_has_previous_gtids_log_event = false;
+    Sid_map *sid_map = slave_gtid_executed ? slave_gtid_executed->get_sid_map() : NULL;
     IO_CACHE log;
     File file = -1;
-    String* packet = &thd->packet;
+    String *packet = &thd->packet;
     int error;
     const char *errmsg = "Unknown error";
     char error_text[MAX_SLAVE_ERRMSG]; // to be send to slave via my_message()
-    NET* net = &thd->net;
+    NET *net = &thd->net;
     mysql_mutex_t *log_lock;
     mysql_cond_t *log_cond;
-    bool binlog_can_be_corrupted= FALSE;
-    uint8 current_checksum_alg= BINLOG_CHECKSUM_ALG_UNDEF;
-    Format_description_log_event fdle(BINLOG_VERSION), *p_fdle= &fdle;
-
+    bool binlog_can_be_corrupted = FALSE;
+    uint8 current_checksum_alg = BINLOG_CHECKSUM_ALG_UNDEF;
+    Format_description_log_event fdle(BINLOG_VERSION), *p_fdle = &fdle;
 #ifndef DBUG_OFF
     int left_events = max_binlog_dump_events;
 #endif
-    int old_max_allowed_packet= thd->variables.max_allowed_packet;
+    int old_max_allowed_packet = thd->variables.max_allowed_packet;
     /*
       Dump thread sends ER_MASTER_FATAL_ERROR_READING_BINLOG instead of the real
       errors happend on master to slave when erorr is encountered.
@@ -838,90 +839,95 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
       Diagnostics_area.
     */
     Diagnostics_area temp_da;
-    Diagnostics_area *saved_da= thd->get_stmt_da();
+    Diagnostics_area *saved_da = thd->get_stmt_da();
     thd->set_stmt_da(&temp_da);
-
     DBUG_ENTER("mysql_binlog_send");
-    DBUG_PRINT("enter",("log_ident: '%s'  pos: %ld", log_ident, (long) pos));
-
+    DBUG_PRINT("enter", ("log_ident: '%s'  pos: %ld", log_ident, (long) pos));
     memset(&log, 0, sizeof(log));
     /*
        heartbeat_period from @master_heartbeat_period user variable
     */
-    ulonglong heartbeat_period= get_heartbeat_period(thd);
+    ulonglong heartbeat_period = get_heartbeat_period(thd);
     struct timespec heartbeat_buf;
-    struct timespec *heartbeat_ts= NULL;
-    const LOG_POS_COORD start_coord= { log_ident, pos },
-                        *p_start_coord= &start_coord;
-    LOG_POS_COORD coord_buf= { log_file_name, BIN_LOG_HEADER_SIZE },
-                  *p_coord= &coord_buf;
-
+    struct timespec *heartbeat_ts = NULL;
+    const LOG_POS_COORD start_coord = { log_ident, pos },
+                        *p_start_coord = &start_coord;
+    LOG_POS_COORD coord_buf = { log_file_name, BIN_LOG_HEADER_SIZE },
+                  *p_coord = &coord_buf;
     /*
       We use the following variables to send a HB event
       when groups are skipped during a GTID protocol.
     */
     /* Flag to check if last transaction was skipped */
-    bool last_skip_group= skip_group;
+    bool last_skip_group = skip_group;
     /* File name where last skip group is present */
-    char last_skip_log_name[FN_REFLEN+1];
+    char last_skip_log_name[FN_REFLEN + 1];
     /* Coordinates of the last skip group */
-    LOG_POS_COORD last_skip_coord_buf= {last_skip_log_name, BIN_LOG_HEADER_SIZE},
-                  *p_last_skip_coord= &last_skip_coord_buf;
+    LOG_POS_COORD last_skip_coord_buf = {last_skip_log_name, BIN_LOG_HEADER_SIZE},
+                  *p_last_skip_coord = &last_skip_coord_buf;
 
     if (heartbeat_period != LL(0)) {
-        heartbeat_ts= &heartbeat_buf;
+        heartbeat_ts = &heartbeat_buf;
         set_timespec_nsec(*heartbeat_ts, 0);
     }
+
     if (log_warnings > 1)
         sql_print_information("Start binlog_dump to master_thread_id(%lu) slave_server(%d), pos(%s, %lu)",
                               thd->thread_id, thd->server_id, log_ident, (ulong)pos);
+
     if (RUN_HOOK(binlog_transmit, transmit_start, (thd, 0/*flags*/, log_ident, pos))) {
-        errmsg= "Failed to run hook 'transmit_start'";
-        my_errno= ER_UNKNOWN_ERROR;
+        errmsg = "Failed to run hook 'transmit_start'";
+        my_errno = ER_UNKNOWN_ERROR;
         GOTO_ERR;
     }
 
 #ifndef DBUG_OFF
+
     if (opt_sporadic_binlog_dump_fail && (binlog_dump_count++ % 2)) {
         errmsg = "Master fails in COM_BINLOG_DUMP because of --opt-sporadic-binlog-dump-fail";
-        my_errno= ER_UNKNOWN_ERROR;
+        my_errno = ER_UNKNOWN_ERROR;
         GOTO_ERR;
     }
+
 #endif
 
     if (!mysql_bin_log.is_open()) {
         errmsg = "Binary log is not open";
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
+
     if (!server_id_supplied) {
         errmsg = "Misconfigured master - server_id was not set";
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
 
     if (slave_gtid_executed != NULL) {
         global_sid_lock->wrlock();
+
         if (!gtid_state->get_lost_gtids()->is_subset(slave_gtid_executed)) {
             global_sid_lock->unlock();
-            errmsg= ER(ER_MASTER_HAS_PURGED_REQUIRED_GTIDS);
-            my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+            errmsg = ER(ER_MASTER_HAS_PURGED_REQUIRED_GTIDS);
+            my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
             GOTO_ERR;
         }
+
         global_sid_lock->unlock();
     }
 
-    name=search_file_name;
+    name = search_file_name;
+
     if (log_ident[0])
         mysql_bin_log.make_log_name(search_file_name, log_ident);
     else
-        name=0;					// Find first log
+        name = 0;					// Find first log
 
     linfo.index_file_offset = 0;
 
     if (mysql_bin_log.find_log_pos(&linfo, name, 1)) {
         errmsg = "Could not find first log file name in binary log index file";
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
 
@@ -929,18 +935,20 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
     thd->current_linfo = &linfo;
     mysql_mutex_unlock(&LOCK_thread_count);
 
-    if ((file=open_binlog_file(&log, log_file_name, &errmsg)) < 0) {
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+    if ((file = open_binlog_file(&log, log_file_name, &errmsg)) < 0) {
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
+
     if (pos < BIN_LOG_HEADER_SIZE) {
-        errmsg= "Client requested master to start replication from position < 4";
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        errmsg = "Client requested master to start replication from position < 4";
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
+
     if (pos > my_b_filelength(&log)) {
-        errmsg= "Client requested master to start replication from position > file size";
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        errmsg = "Client requested master to start replication from position > file size";
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
 
@@ -983,7 +991,7 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
            read anything from the binlog; if it fails it's because of an
            error in my_net_write(), fortunately it will say so in errmsg.
         */
-        my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+        my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
         GOTO_ERR;
     }
 
@@ -992,16 +1000,16 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
       this larger than the corresponding packet (query) sent
       from client to master.
     */
-    thd->variables.max_allowed_packet= MAX_MAX_ALLOWED_PACKET;
-
+    thd->variables.max_allowed_packet = MAX_MAX_ALLOWED_PACKET;
     /*
       We can set log_lock now, it does not move (it's a member of
       mysql_bin_log, and it's already inited, and it will be destroyed
       only at shutdown).
     */
-    p_coord->pos= pos; // the first hb matches the slave's last seen value
-    log_lock= mysql_bin_log.get_log_lock();
-    log_cond= mysql_bin_log.get_log_cond();
+    p_coord->pos = pos; // the first hb matches the slave's last seen value
+    log_lock = mysql_bin_log.get_log_lock();
+    log_cond = mysql_bin_log.get_log_cond();
+
     if (pos > BIN_LOG_HEADER_SIZE) {
         /* reset transmit packet for the event read from binary log
            file */
@@ -1022,38 +1030,41 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
             DBUG_PRINT("info",
                        ("Looked for a Format_description_log_event, found event type %s",
                         Log_event::get_type_str((Log_event_type)(*packet)[EVENT_TYPE_OFFSET + ev_offset])));
+
             if ((*packet)[EVENT_TYPE_OFFSET + ev_offset] == FORMAT_DESCRIPTION_EVENT) {
-                current_checksum_alg= get_checksum_alg(packet->ptr() + ev_offset,
-                                                       packet->length() - ev_offset);
+                current_checksum_alg = get_checksum_alg(packet->ptr() + ev_offset,
+                                                        packet->length() - ev_offset);
                 DBUG_ASSERT(current_checksum_alg == BINLOG_CHECKSUM_ALG_OFF ||
                             current_checksum_alg == BINLOG_CHECKSUM_ALG_UNDEF ||
                             current_checksum_alg == BINLOG_CHECKSUM_ALG_CRC32);
+
                 if (!is_slave_checksum_aware(thd) &&
                         current_checksum_alg != BINLOG_CHECKSUM_ALG_OFF &&
                         current_checksum_alg != BINLOG_CHECKSUM_ALG_UNDEF) {
-                    my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                    errmsg= "Slave can not handle replication events with the checksum "
-                            "that master is configured to log";
+                    my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                    errmsg = "Slave can not handle replication events with the checksum "
+                             "that master is configured to log";
                     sql_print_warning("Master is configured to log replication events "
                                       "with checksum, but will not send such events to "
                                       "slaves that cannot process them");
                     GOTO_ERR;
                 }
-                binlog_can_be_corrupted= test((*packet)[FLAGS_OFFSET+ev_offset] &
-                                              LOG_EVENT_BINLOG_IN_USE_F);
-                (*packet)[FLAGS_OFFSET+ev_offset] &= ~LOG_EVENT_BINLOG_IN_USE_F;
+
+                binlog_can_be_corrupted = test((*packet)[FLAGS_OFFSET + ev_offset] &
+                                               LOG_EVENT_BINLOG_IN_USE_F);
+                (*packet)[FLAGS_OFFSET + ev_offset] &= ~LOG_EVENT_BINLOG_IN_USE_F;
                 /*
                   mark that this event with "log_pos=0", so the slave
                   should not increment master's binlog position
                   (rli->group_master_log_pos)
                 */
-                int4store((char*) packet->ptr()+LOG_POS_OFFSET+ev_offset, 0);
+                int4store((char *) packet->ptr() + LOG_POS_OFFSET + ev_offset, 0);
                 /*
                   if reconnect master sends FD event with `created' as 0
                   to avoid destroying temp tables.
                 */
-                int4store((char*) packet->ptr()+LOG_EVENT_MINIMAL_HEADER_LEN+
-                          ST_CREATED_OFFSET+ev_offset, (ulong) 0);
+                int4store((char *) packet->ptr() + LOG_EVENT_MINIMAL_HEADER_LEN +
+                          ST_CREATED_OFFSET + ev_offset, (ulong) 0);
 
                 /* fix the checksum due to latest changes in header */
                 if (current_checksum_alg != BINLOG_CHECKSUM_ALG_OFF &&
@@ -1061,9 +1072,9 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                     fix_checksum(packet, ev_offset);
 
                 /* send it */
-                if (my_net_write(net, (uchar*) packet->ptr(), packet->length())) {
+                if (my_net_write(net, (uchar *) packet->ptr(), packet->length())) {
                     errmsg = "Failed on my_net_write()";
-                    my_errno= ER_UNKNOWN_ERROR;
+                    my_errno = ER_UNKNOWN_ERROR;
                     GOTO_ERR;
                 }
 
@@ -1074,15 +1085,18 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                   3.23&4.x.
                 */
             }
+
         } else {
             if (test_for_non_eof_log_read_errors(error, &errmsg))
                 GOTO_ERR;
+
             /*
               It's EOF, nothing to do, go on reading next events, the
               Format_description_log_event will be found naturally if it is written.
             */
         }
     } /* end of if (pos > BIN_LOG_HEADER_SIZE); */
+
     else {
         /* The Format_description_log_event event will be found naturally. */
     }
@@ -1091,72 +1105,77 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
     my_b_seek(&log, pos);			// Seek will done on next read
 
     while (!net->error && net->vio != 0 && !thd->killed) {
-        Log_event_type event_type= UNKNOWN_EVENT;
-        bool goto_next_binlog= false;
+        Log_event_type event_type = UNKNOWN_EVENT;
+        bool goto_next_binlog = false;
 
         /* reset the transmit packet for the event read from binary log
            file */
         if (reset_transmit_packet(thd, 0/*flags*/, &ev_offset, &errmsg))
             GOTO_ERR;
 
-        while (!(error= Log_event::read_log_event(&log, packet, log_lock,
-                        current_checksum_alg))) {
+        while (!(error = Log_event::read_log_event(&log, packet, log_lock,
+                         current_checksum_alg))) {
             DBUG_PRINT("info", ("read_log_event returned 0 on line %d", __LINE__));
 #ifndef DBUG_OFF
+
             if (max_binlog_dump_events && !left_events--) {
                 net_flush(net);
                 errmsg = "Debugging binlog dump abort";
-                my_errno= ER_UNKNOWN_ERROR;
+                my_errno = ER_UNKNOWN_ERROR;
                 GOTO_ERR;
             }
+
 #endif
             /*
               log's filename does not change while it's active
             */
-            p_coord->pos= uint4korr(packet->ptr() + ev_offset + LOG_POS_OFFSET);
-
-            event_type= (Log_event_type)((*packet)[LOG_EVENT_OFFSET+ev_offset]);
+            p_coord->pos = uint4korr(packet->ptr() + ev_offset + LOG_POS_OFFSET);
+            event_type = (Log_event_type)((*packet)[LOG_EVENT_OFFSET + ev_offset]);
 
             switch (event_type) {
             case FORMAT_DESCRIPTION_EVENT:
-                skip_group= false;
-                current_checksum_alg= get_checksum_alg(packet->ptr() + ev_offset,
-                                                       packet->length() - ev_offset);
+                skip_group = false;
+                current_checksum_alg = get_checksum_alg(packet->ptr() + ev_offset,
+                                                        packet->length() - ev_offset);
                 DBUG_ASSERT(current_checksum_alg == BINLOG_CHECKSUM_ALG_OFF ||
                             current_checksum_alg == BINLOG_CHECKSUM_ALG_UNDEF ||
                             current_checksum_alg == BINLOG_CHECKSUM_ALG_CRC32);
+
                 if (!is_slave_checksum_aware(thd) &&
                         current_checksum_alg != BINLOG_CHECKSUM_ALG_OFF &&
                         current_checksum_alg != BINLOG_CHECKSUM_ALG_UNDEF) {
-                    my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                    errmsg= "Slave can not handle replication events with the checksum "
-                            "that master is configured to log";
+                    my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                    errmsg = "Slave can not handle replication events with the checksum "
+                             "that master is configured to log";
                     sql_print_warning("Master is configured to log replication events "
                                       "with checksum, but will not send such events to "
                                       "slaves that cannot process them");
                     GOTO_ERR;
                 }
-                binlog_can_be_corrupted= test((*packet)[FLAGS_OFFSET+ev_offset] &
-                                              LOG_EVENT_BINLOG_IN_USE_F);
-                (*packet)[FLAGS_OFFSET+ev_offset] &= ~LOG_EVENT_BINLOG_IN_USE_F;
+
+                binlog_can_be_corrupted = test((*packet)[FLAGS_OFFSET + ev_offset] &
+                                               LOG_EVENT_BINLOG_IN_USE_F);
+                (*packet)[FLAGS_OFFSET + ev_offset] &= ~LOG_EVENT_BINLOG_IN_USE_F;
                 /*
                   Fixes the information on the checksum algorithm when a new
                   format description is read. Notice that this only necessary
                   when we need to filter out some transactions which were
                   already processed.
                 */
-                p_fdle->checksum_alg= current_checksum_alg;
+                p_fdle->checksum_alg = current_checksum_alg;
                 break;
 
             case ANONYMOUS_GTID_LOG_EVENT:
                 /* do nothing */
                 break;
+
             case GTID_LOG_EVENT:
                 if (gtid_mode == 0) {
-                    my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                    errmsg= ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
+                    my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                    errmsg = ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
                     GOTO_ERR;
                 }
+
                 if (using_gtid_protocol) {
                     /*
                       The current implementation checks if the GTID was not processed
@@ -1166,7 +1185,7 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
 
                       I think we can do better than that. /Alfranio.
                     */
-                    ulonglong checksum_size=
+                    ulonglong checksum_size =
                         ((p_fdle->checksum_alg != BINLOG_CHECKSUM_ALG_OFF &&
                           p_fdle->checksum_alg != BINLOG_CHECKSUM_ALG_UNDEF) ?
                          BINLOG_CHECKSUM_LEN + ev_offset : ev_offset);
@@ -1177,33 +1196,37 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                     Gtid_log_event gtid_ev(packet->ptr() + ev_offset,
                                            packet->length() - checksum_size,
                                            p_fdle);
-                    skip_group= slave_gtid_executed->contains_gtid(gtid_ev.get_sidno(sid_map),
-                                gtid_ev.get_gno());
-                    searching_first_gtid= skip_group;
+                    skip_group = slave_gtid_executed->contains_gtid(gtid_ev.get_sidno(sid_map),
+                                 gtid_ev.get_gno());
+                    searching_first_gtid = skip_group;
                     DBUG_PRINT("info", ("Dumping GTID sidno(%d) gno(%lld) skip group(%d) "
                                         "searching gtid(%d).",
                                         gtid_ev.get_sidno(sid_map), gtid_ev.get_gno(),
                                         skip_group, searching_first_gtid));
                 }
+
                 break;
 
             case STOP_EVENT:
-                binlog_can_be_corrupted= false;
+                binlog_can_be_corrupted = false;
+
             /* FALLTHROUGH */
             case INCIDENT_EVENT:
-                skip_group= searching_first_gtid;
+                skip_group = searching_first_gtid;
                 break;
 
             case PREVIOUS_GTIDS_LOG_EVENT:
-                binlog_has_previous_gtids_log_event= true;
+                binlog_has_previous_gtids_log_event = true;
+
                 if (gtid_mode == 0) {
-                    my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                    errmsg= ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
+                    my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                    errmsg = ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
                     GOTO_ERR;
                 }
+
             /* FALLTHROUGH */
             case ROTATE_EVENT:
-                skip_group= false;
+                skip_group = false;
                 break;
 
             default:
@@ -1216,7 +1239,7 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                       protocol, that means we must skip the entire binary log
                       and jump to the next one.
                     */
-                    goto_next_binlog= true;
+                    goto_next_binlog = true;
 
                 break;
             }
@@ -1250,16 +1273,17 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
             }
 
             pos = my_b_tell(&log);
+
             if (RUN_HOOK(binlog_transmit, before_send_event,
                          (thd, 0/*flags*/, packet, log_file_name, pos))) {
-                my_errno= ER_UNKNOWN_ERROR;
-                errmsg= "run 'before_send_event' hook failed";
+                my_errno = ER_UNKNOWN_ERROR;
+                errmsg = "run 'before_send_event' hook failed";
                 GOTO_ERR;
             }
 
             /* The present event was skipped, so store the event coordinates */
             if (skip_group) {
-                p_last_skip_coord->pos= p_coord->pos;
+                p_last_skip_coord->pos = p_coord->pos;
                 strcpy(p_last_skip_coord->file_name, p_coord->file_name);
             }
 
@@ -1275,23 +1299,20 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                   no need to send a HB event (which might have coordinates
                   of previous binlog file).
                 */
-
                 if (send_last_skip_group_heartbeat(thd, net, packet, p_last_skip_coord,
                                                    &ev_offset, current_checksum_alg,
-                                                   &errmsg)) {
+                                                   &errmsg))
                     GOTO_ERR;
-                }
             }
 
             /* save this flag for next iteration */
-            last_skip_group= skip_group;
+            last_skip_group = skip_group;
 
-            if (skip_group == false && my_net_write(net, (uchar*) packet->ptr(), packet->length())) {
+            if (skip_group == false && my_net_write(net, (uchar *) packet->ptr(), packet->length())) {
                 errmsg = "Failed on my_net_write()";
-                my_errno= ER_UNKNOWN_ERROR;
+                my_errno = ER_UNKNOWN_ERROR;
                 GOTO_ERR;
             }
-
 
             DBUG_EXECUTE_IF("dump_thread_wait_before_send_xid", {
                 if (event_type == XID_EVENT)
@@ -1299,20 +1320,20 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                     net_flush(net);
                 }
             });
-
             DBUG_PRINT("info", ("log event code %d", event_type));
+
             if (skip_group == false && event_type == LOAD_EVENT) {
                 if (send_file(thd)) {
                     errmsg = "failed in send_file()";
-                    my_errno= ER_UNKNOWN_ERROR;
+                    my_errno = ER_UNKNOWN_ERROR;
                     GOTO_ERR;
                 }
             }
 
             if (RUN_HOOK(binlog_transmit, after_send_event, (thd, 0/*flags*/, packet,
                          log_file_name, skip_group ? pos : 0))) {
-                errmsg= "Failed to run hook 'after_send_event'";
-                my_errno= ER_UNKNOWN_ERROR;
+                errmsg = "Failed to run hook 'after_send_event'";
+                my_errno = ER_UNKNOWN_ERROR;
                 GOTO_ERR;
             }
 
@@ -1337,7 +1358,7 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
             */
             if (net_flush(net)) {
                 errmsg = "failed on net_flush()";
-                my_errno= ER_UNKNOWN_ERROR;
+                my_errno = ER_UNKNOWN_ERROR;
                 GOTO_ERR;
             }
 
@@ -1348,15 +1369,16 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
             to signal us.
                  */
             {
-                log.error=0;
+                log.error = 0;
                 bool read_packet = 0;
-
 #ifndef DBUG_OFF
+
                 if (max_binlog_dump_events && !left_events--) {
                     errmsg = "Debugging binlog dump abort";
-                    my_errno= ER_UNKNOWN_ERROR;
+                    my_errno = ER_UNKNOWN_ERROR;
                     GOTO_ERR;
                 }
+
 #endif
 
                 /* reset the transmit packet for the event read from binary log
@@ -1373,41 +1395,43 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                       binary log.  We can avoid the following read if the counter
                       has not been updated since last read.
                 */
-
                 mysql_mutex_lock(log_lock);
-                switch (error= Log_event::read_log_event(&log, packet, (mysql_mutex_t*) 0,
-                               current_checksum_alg)) {
+
+                switch (error = Log_event::read_log_event(&log, packet, (mysql_mutex_t *) 0,
+                                current_checksum_alg)) {
                 case 0:
                     DBUG_PRINT("info", ("read_log_event returned 0 on line %d",
                                         __LINE__));
                     /* we read successfully, so we'll need to send it to the slave */
                     mysql_mutex_unlock(log_lock);
                     read_packet = 1;
-                    p_coord->pos= uint4korr(packet->ptr() + ev_offset + LOG_POS_OFFSET);
-                    event_type= (Log_event_type)((*packet)[LOG_EVENT_OFFSET+ev_offset]);
+                    p_coord->pos = uint4korr(packet->ptr() + ev_offset + LOG_POS_OFFSET);
+                    event_type = (Log_event_type)((*packet)[LOG_EVENT_OFFSET + ev_offset]);
                     DBUG_ASSERT(event_type != FORMAT_DESCRIPTION_EVENT);
                     break;
 
                 case LOG_READ_EOF: {
                     int ret;
                     ulong signal_cnt;
-                    DBUG_PRINT("wait",("waiting for data in binary log"));
-                    if (thd->server_id==0) { // for mysqlbinlog (mysqlbinlog.server_id==0)
+                    DBUG_PRINT("wait", ("waiting for data in binary log"));
+
+                    if (thd->server_id == 0) { // for mysqlbinlog (mysqlbinlog.server_id==0)
                         mysql_mutex_unlock(log_lock);
                         goto end;
                     }
 
 #ifndef DBUG_OFF
-                    ulong hb_info_counter= 0;
+                    ulong hb_info_counter = 0;
 #endif
                     PSI_stage_info old_stage;
-                    signal_cnt= mysql_bin_log.signal_cnt;
+                    signal_cnt = mysql_bin_log.signal_cnt;
 
                     do {
                         if (heartbeat_period != 0) {
                             DBUG_ASSERT(heartbeat_ts);
                             set_timespec_nsec(*heartbeat_ts, heartbeat_period);
                         }
+
                         /*
                           When using GTIDs, if the dump thread has reached the end of the
                           binary log and the last transaction is skipped,
@@ -1423,35 +1447,43 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                                 thd->EXIT_COND(&old_stage);
                                 GOTO_ERR;
                             }
-                            last_skip_group= false; /*A HB for this pos has been sent. */
+
+                            last_skip_group = false; /*A HB for this pos has been sent. */
                         }
 
-                        ret= mysql_bin_log.wait_for_update_bin_log(thd, heartbeat_ts);
+                        ret = mysql_bin_log.wait_for_update_bin_log(thd, heartbeat_ts);
                         DBUG_ASSERT(ret == 0 || (heartbeat_period != 0));
+
                         if (ret == ETIMEDOUT || ret == ETIME) {
 #ifndef DBUG_OFF
+
                             if (hb_info_counter < 3) {
                                 sql_print_information("master sends heartbeat message");
                                 hb_info_counter++;
+
                                 if (hb_info_counter == 3)
                                     sql_print_information("the rest of heartbeat info skipped ...");
                             }
+
 #endif
+
                             /* reset transmit packet for the heartbeat event */
                             if (reset_transmit_packet(thd, 0/*flags*/, &ev_offset, &errmsg)) {
                                 thd->EXIT_COND(&old_stage);
                                 GOTO_ERR;
                             }
+
                             if (send_heartbeat_event(net, packet, p_coord, current_checksum_alg)) {
                                 errmsg = "Failed on my_net_write()";
-                                my_errno= ER_UNKNOWN_ERROR;
+                                my_errno = ER_UNKNOWN_ERROR;
                                 thd->EXIT_COND(&old_stage);
                                 GOTO_ERR;
                             }
-                        } else {
-                            DBUG_PRINT("wait",("binary log received update or a broadcast signal caught"));
-                        }
+
+                        } else
+                            DBUG_PRINT("wait", ("binary log received update or a broadcast signal caught"));
                     } while (signal_cnt == mysql_bin_log.signal_cnt && !thd->killed);
+
                     thd->EXIT_COND(&old_stage);
                 }
                 break;
@@ -1467,49 +1499,56 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                     case ANONYMOUS_GTID_LOG_EVENT:
                         /* do nothing */
                         break;
+
                     case GTID_LOG_EVENT:
                         if (gtid_mode == 0) {
-                            my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                            errmsg= ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
+                            my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                            errmsg = ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
                             GOTO_ERR;
                         }
+
                         if (using_gtid_protocol) {
-                            ulonglong checksum_size=
+                            ulonglong checksum_size =
                                 ((p_fdle->checksum_alg != BINLOG_CHECKSUM_ALG_OFF &&
                                   p_fdle->checksum_alg != BINLOG_CHECKSUM_ALG_UNDEF) ?
                                  BINLOG_CHECKSUM_LEN + ev_offset : ev_offset);
                             Gtid_log_event gtid_ev(packet->ptr() + ev_offset,
                                                    packet->length() - checksum_size,
                                                    p_fdle);
-                            skip_group=
+                            skip_group =
                                 slave_gtid_executed->contains_gtid(gtid_ev.get_sidno(sid_map),
                                                                    gtid_ev.get_gno());
-                            searching_first_gtid= skip_group;
+                            searching_first_gtid = skip_group;
                             DBUG_PRINT("info", ("Dumping GTID sidno(%d) gno(%lld) "
                                                 "skip group(%d) searching gtid(%d).",
                                                 gtid_ev.get_sidno(sid_map), gtid_ev.get_gno(),
                                                 skip_group, searching_first_gtid));
                         }
+
                         break;
 
                     case STOP_EVENT:
-                        binlog_can_be_corrupted= false;
+                        binlog_can_be_corrupted = false;
+
                     /* FALLTHROUGH */
                     case INCIDENT_EVENT:
-                        skip_group= searching_first_gtid;
+                        skip_group = searching_first_gtid;
                         break;
 
                     case PREVIOUS_GTIDS_LOG_EVENT:
-                        binlog_has_previous_gtids_log_event= true;
+                        binlog_has_previous_gtids_log_event = true;
+
                         if (gtid_mode == 0) {
-                            my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
-                            errmsg= ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
+                            my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                            errmsg = ER(ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF);
                             GOTO_ERR;
                         }
+
                     /* FALLTHROUGH */
                     case ROTATE_EVENT:
-                        skip_group= false;
+                        skip_group = false;
                         break;
+
                     default:
                         if (!binlog_has_previous_gtids_log_event && using_gtid_protocol)
                             /*
@@ -1520,14 +1559,14 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                               protocol, that means we must skip the entire binary log
                               and jump to the next one.
                             */
-                            goto_next_binlog= true;
+                            goto_next_binlog = true;
 
                         break;
                     }
 
                     /* The present event was skipped in a GTID protocol, store the coordinates */
                     if (skip_group) {
-                        p_last_skip_coord->pos= p_coord->pos;
+                        p_last_skip_coord->pos = p_coord->pos;
                         strcpy(p_last_skip_coord->file_name, p_coord->file_name);
                     }
 
@@ -1536,28 +1575,28 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                         if (last_skip_group &&
                                 send_last_skip_group_heartbeat(thd, net, packet,
                                                                p_last_skip_coord, &ev_offset,
-                                                               current_checksum_alg, &errmsg)) {
+                                                               current_checksum_alg, &errmsg))
                             GOTO_ERR;
-                        }
 
                         pos = my_b_tell(&log);
+
                         if (RUN_HOOK(binlog_transmit, before_send_event,
                                      (thd, 0/*flags*/, packet, log_file_name, pos))) {
-                            my_errno= ER_UNKNOWN_ERROR;
-                            errmsg= "run 'before_send_event' hook failed";
+                            my_errno = ER_UNKNOWN_ERROR;
+                            errmsg = "run 'before_send_event' hook failed";
                             GOTO_ERR;
                         }
 
-                        if (my_net_write(net, (uchar*) packet->ptr(), packet->length()) ) {
+                        if (my_net_write(net, (uchar *) packet->ptr(), packet->length()) ) {
                             errmsg = "Failed on my_net_write()";
-                            my_errno= ER_UNKNOWN_ERROR;
+                            my_errno = ER_UNKNOWN_ERROR;
                             GOTO_ERR;
                         }
 
                         if (event_type == LOAD_EVENT) {
                             if (send_file(thd)) {
                                 errmsg = "failed in send_file()";
-                                my_errno= ER_UNKNOWN_ERROR;
+                                my_errno = ER_UNKNOWN_ERROR;
                                 GOTO_ERR;
                             }
                         }
@@ -1566,40 +1605,41 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
                     if(!goto_next_binlog) {
                         if (RUN_HOOK(binlog_transmit, after_send_event, (thd, 0/*flags*/, packet,
                                      log_file_name, skip_group ? pos : 0))) {
-                            my_errno= ER_UNKNOWN_ERROR;
-                            errmsg= "Failed to run hook 'after_send_event'";
+                            my_errno = ER_UNKNOWN_ERROR;
+                            errmsg = "Failed to run hook 'after_send_event'";
                             GOTO_ERR;
                         }
                     }
 
                     /* Save the skip group for next iteration */
-                    last_skip_group= skip_group;
-
+                    last_skip_group = skip_group;
                 }
 
-                log.error=0;
+                log.error = 0;
             }
+
         } else
-            goto_next_binlog= true;
+            goto_next_binlog = true;
 
         if (goto_next_binlog) {
             // need this to break out of the for loop from switch
             bool loop_breaker = 0;
-
             // clear flag because we open a new binlog
-            binlog_has_previous_gtids_log_event= false;
+            binlog_has_previous_gtids_log_event = false;
 
             switch (mysql_bin_log.find_next_log(&linfo, 1)) {
             case 0:
                 break;
+
             case LOG_INFO_EOF:
                 if (mysql_bin_log.is_active(log_file_name)) {
-                    loop_breaker= 0;
+                    loop_breaker = 0;
                     break;
                 }
+
             default:
                 errmsg = "could not find next log";
-                my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
                 GOTO_ERR;
             }
 
@@ -1629,14 +1669,14 @@ void mysql_binlog_send(THD* thd, char* log_ident, my_off_t pos,
               position.  If the binlog is 5.0 or later, the next event we
               are going to read and send is Format_description_log_event.
             */
-            if ((file=open_binlog_file(&log, log_file_name, &errmsg)) < 0 ||
+            if ((file = open_binlog_file(&log, log_file_name, &errmsg)) < 0 ||
                     fake_rotate_event(net, packet, log_file_name, BIN_LOG_HEADER_SIZE,
                                       &errmsg, current_checksum_alg)) {
-                my_errno= ER_MASTER_FATAL_ERROR_READING_BINLOG;
+                my_errno = ER_MASTER_FATAL_ERROR_READING_BINLOG;
                 GOTO_ERR;
             }
 
-            p_coord->file_name= log_file_name; // reset to the next
+            p_coord->file_name = log_file_name; // reset to the next
         }
     }
 
@@ -1644,16 +1684,15 @@ end:
     thd->set_stmt_da(saved_da);
     end_io_cache(&log);
     mysql_file_close(file, MYF(MY_WME));
-
     (void) RUN_HOOK(binlog_transmit, transmit_stop, (thd, 0/*flags*/));
     my_eof(thd);
     mysql_mutex_lock(&LOCK_thread_count);
     thd->current_linfo = 0;
     mysql_mutex_unlock(&LOCK_thread_count);
-    thd->variables.max_allowed_packet= old_max_allowed_packet;
+    thd->variables.max_allowed_packet = old_max_allowed_packet;
     DBUG_VOID_RETURN;
-
 err:
+
     if (my_errno == ER_MASTER_FATAL_ERROR_READING_BINLOG && my_b_inited(&log)) {
         /*
            detailing the fatal error message with coordinates
@@ -1667,10 +1706,12 @@ err:
                     p_start_coord->file_name, p_start_coord->pos,
                     p_coord->file_name, p_coord->pos,
                     log_file_name, my_b_tell(&log));
+
     } else {
         strncpy(error_text, errmsg, sizeof(error_text));
-        error_text[sizeof(error_text) - 1]= '\0';
+        error_text[sizeof(error_text) - 1] = '\0';
     }
+
     end_io_cache(&log);
     (void) RUN_HOOK(binlog_transmit, transmit_stop, (thd, 0/*flags*/));
     /*
@@ -1683,10 +1724,11 @@ err:
     mysql_mutex_lock(&LOCK_thread_count);
     thd->current_linfo = 0;
     mysql_mutex_unlock(&LOCK_thread_count);
+
     if (file >= 0)
         mysql_file_close(file, MYF(MY_WME));
-    thd->variables.max_allowed_packet= old_max_allowed_packet;
 
+    thd->variables.max_allowed_packet = old_max_allowed_packet;
     thd->set_stmt_da(saved_da);
     my_message(my_errno, error_text, MYF(0));
     DBUG_VOID_RETURN;
@@ -1703,15 +1745,18 @@ err:
 */
 String *get_slave_uuid(THD *thd, String *value)
 {
-    uchar name[]= "slave_uuid";
+    uchar name[] = "slave_uuid";
 
     if (value == NULL)
         return NULL;
-    user_var_entry *entry=
-        (user_var_entry*) my_hash_search(&thd->user_vars, name, sizeof(name)-1);
+
+    user_var_entry *entry =
+        (user_var_entry *) my_hash_search(&thd->user_vars, name, sizeof(name) - 1);
+
     if (entry && entry->length() > 0) {
         value->copy(entry->ptr(), entry->length(), NULL);
         return value;
+
     } else
         return NULL;
 }
@@ -1740,25 +1785,29 @@ void kill_zombie_dump_threads(String *slave_uuid)
 {
     if (slave_uuid->length() == 0)
         return;
-    DBUG_ASSERT(slave_uuid->length() == UUID_LENGTH);
 
+    DBUG_ASSERT(slave_uuid->length() == UUID_LENGTH);
     mysql_mutex_lock(&LOCK_thread_count);
-    THD *tmp= NULL;
-    Thread_iterator it= global_thread_list_begin();
-    Thread_iterator end= global_thread_list_end();
+    THD *tmp = NULL;
+    Thread_iterator it = global_thread_list_begin();
+    Thread_iterator end = global_thread_list_end();
+
     for (; it != end; ++it) {
         if ((*it) != current_thd && ((*it)->get_command() == COM_BINLOG_DUMP ||
                                      (*it)->get_command() == COM_BINLOG_DUMP_GTID)) {
             String tmp_uuid;
+
             if (get_slave_uuid((*it), &tmp_uuid) != NULL &&
                     !strncmp(slave_uuid->c_ptr(), tmp_uuid.c_ptr(), UUID_LENGTH)) {
-                tmp= *it;
+                tmp = *it;
                 mysql_mutex_lock(&tmp->LOCK_thd_data);	// Lock from delete
                 break;
             }
         }
     }
+
     mysql_mutex_unlock(&LOCK_thread_count);
+
     if (tmp) {
         /*
           Here we do not call kill_one_thread() as
@@ -1780,16 +1829,17 @@ void kill_zombie_dump_threads(String *slave_uuid)
   @retval 0 success
   @retval 1 error
 */
-int reset_master(THD* thd)
+int reset_master(THD *thd)
 {
     if (!mysql_bin_log.is_open()) {
         my_message(ER_FLUSH_MASTER_BINLOG_CLOSED,
-                   ER(ER_FLUSH_MASTER_BINLOG_CLOSED), MYF(ME_BELL+ME_WAITTANG));
+                   ER(ER_FLUSH_MASTER_BINLOG_CLOSED), MYF(ME_BELL + ME_WAITTANG));
         return 1;
     }
 
     if (mysql_bin_log.reset_logs(thd))
         return 1;
+
     (void) RUN_HOOK(binlog_transmit, after_reset_master, (thd, 0 /* flags */));
     return 0;
 }
@@ -1804,30 +1854,29 @@ int reset_master(THD* thd)
   @retval FALSE success
   @retval TRUE failure
 */
-bool show_master_status(THD* thd)
+bool show_master_status(THD *thd)
 {
-    Protocol *protocol= thd->protocol;
-    char* gtid_set_buffer= NULL;
-    int gtid_set_size= 0;
+    Protocol *protocol = thd->protocol;
+    char *gtid_set_buffer = NULL;
+    int gtid_set_size = 0;
     List<Item> field_list;
-
     DBUG_ENTER("show_binlog_info");
-
     global_sid_lock->wrlock();
-    const Gtid_set* gtid_set= gtid_state->get_logged_gtids();
-    if ((gtid_set_size= gtid_set->to_string(&gtid_set_buffer)) < 0) {
+    const Gtid_set *gtid_set = gtid_state->get_logged_gtids();
+
+    if ((gtid_set_size = gtid_set->to_string(&gtid_set_buffer)) < 0) {
         global_sid_lock->unlock();
         my_eof(thd);
         my_free(gtid_set_buffer);
         DBUG_RETURN(true);
     }
-    global_sid_lock->unlock();
 
+    global_sid_lock->unlock();
     field_list.push_back(new Item_empty_string("File", FN_REFLEN));
-    field_list.push_back(new Item_return_int("Position",20,
+    field_list.push_back(new Item_return_int("Position", 20,
                          MYSQL_TYPE_LONGLONG));
-    field_list.push_back(new Item_empty_string("Binlog_Do_DB",255));
-    field_list.push_back(new Item_empty_string("Binlog_Ignore_DB",255));
+    field_list.push_back(new Item_empty_string("Binlog_Do_DB", 255));
+    field_list.push_back(new Item_empty_string("Binlog_Ignore_DB", 255));
     field_list.push_back(new Item_empty_string("Executed_Gtid_Set",
                          gtid_set_size));
 
@@ -1836,6 +1885,7 @@ bool show_master_status(THD* thd)
         my_free(gtid_set_buffer);
         DBUG_RETURN(true);
     }
+
     protocol->prepare_for_resend();
 
     if (mysql_bin_log.is_open()) {
@@ -1847,11 +1897,13 @@ bool show_master_status(THD* thd)
         protocol->store(binlog_filter->get_do_db());
         protocol->store(binlog_filter->get_ignore_db());
         protocol->store(gtid_set_buffer, &my_charset_bin);
+
         if (protocol->write()) {
             my_free(gtid_set_buffer);
             DBUG_RETURN(true);
         }
     }
+
     my_eof(thd);
     my_free(gtid_set_buffer);
     DBUG_RETURN(false);
@@ -1867,7 +1919,7 @@ bool show_master_status(THD* thd)
   @retval FALSE success
   @retval TRUE failure
 */
-bool show_binlogs(THD* thd)
+bool show_binlogs(THD *thd)
 {
     IO_CACHE *index_file;
     LOG_INFO cur;
@@ -1876,7 +1928,7 @@ bool show_binlogs(THD* thd)
     List<Item> field_list;
     uint length;
     int cur_dir_len;
-    Protocol *protocol= thd->protocol;
+    Protocol *protocol = thd->protocol;
     DBUG_ENTER("show_binlogs");
 
     if (!mysql_bin_log.is_open()) {
@@ -1887,53 +1939,52 @@ bool show_binlogs(THD* thd)
     field_list.push_back(new Item_empty_string("Log_name", 255));
     field_list.push_back(new Item_return_int("File_size", 20,
                          MYSQL_TYPE_LONGLONG));
+
     if (protocol->send_result_set_metadata(&field_list,
                                            Protocol::SEND_NUM_ROWS | Protocol::SEND_EOF))
         DBUG_RETURN(TRUE);
 
     mysql_mutex_lock(mysql_bin_log.get_log_lock());
     mysql_bin_log.lock_index();
-    index_file=mysql_bin_log.get_index_file();
-
+    index_file = mysql_bin_log.get_index_file();
     mysql_bin_log.raw_get_current_log(&cur); // dont take mutex
     mysql_mutex_unlock(mysql_bin_log.get_log_lock()); // lockdep, OK
-
-    cur_dir_len= dirname_length(cur.log_file_name);
-
+    cur_dir_len = dirname_length(cur.log_file_name);
     reinit_io_cache(index_file, READ_CACHE, (my_off_t) 0, 0, 0);
 
     /* The file ends with EOF or empty line */
-    while ((length=my_b_gets(index_file, fname, sizeof(fname))) > 1) {
+    while ((length = my_b_gets(index_file, fname, sizeof(fname))) > 1) {
         int dir_len;
-        ulonglong file_length= 0;                   // Length if open fails
+        ulonglong file_length = 0;                  // Length if open fails
         fname[--length] = '\0';                     // remove the newline
-
         protocol->prepare_for_resend();
-        dir_len= dirname_length(fname);
-        length-= dir_len;
+        dir_len = dirname_length(fname);
+        length -= dir_len;
         protocol->store(fname + dir_len, length, &my_charset_bin);
 
-        if (!(strncmp(fname+dir_len, cur.log_file_name+cur_dir_len, length)))
-            file_length= cur.pos;  /* The active log, use the active position */
+        if (!(strncmp(fname + dir_len, cur.log_file_name + cur_dir_len, length)))
+            file_length = cur.pos; /* The active log, use the active position */
         else {
             /* this is an old log, open it and find the size */
-            if ((file= mysql_file_open(key_file_binlog,
-                                       fname, O_RDONLY | O_SHARE | O_BINARY,
-                                       MYF(0))) >= 0) {
-                file_length= (ulonglong) mysql_file_seek(file, 0L, MY_SEEK_END, MYF(0));
+            if ((file = mysql_file_open(key_file_binlog,
+                                        fname, O_RDONLY | O_SHARE | O_BINARY,
+                                        MYF(0))) >= 0) {
+                file_length = (ulonglong) mysql_file_seek(file, 0L, MY_SEEK_END, MYF(0));
                 mysql_file_close(file, MYF(0));
             }
         }
+
         protocol->store(file_length);
+
         if (protocol->write()) {
             DBUG_PRINT("info", ("stopping dump thread because protocol->write failed at line %d", __LINE__));
             goto err;
         }
     }
+
     mysql_bin_log.unlock_index();
     my_eof(thd);
     DBUG_RETURN(FALSE);
-
 err:
     mysql_bin_log.unlock_index();
     DBUG_RETURN(TRUE);

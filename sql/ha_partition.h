@@ -22,7 +22,7 @@
 
 enum partition_keywords
 {
-    PKW_HASH= 0, PKW_RANGE, PKW_LIST, PKW_KEY, PKW_MAXVALUE, PKW_LINEAR,
+    PKW_HASH = 0, PKW_RANGE, PKW_LIST, PKW_KEY, PKW_MAXVALUE, PKW_LINEAR,
     PKW_COLUMNS
 };
 
@@ -47,29 +47,33 @@ public:
     Handler_share **ha_shares;                   /**< Storage for each part */
     Parts_share_refs()
     {
-        num_parts= 0;
-        ha_shares= NULL;
+        num_parts = 0;
+        ha_shares = NULL;
     }
     ~Parts_share_refs()
     {
         uint i;
-        for (i= 0; i < num_parts; i++)
+
+        for (i = 0; i < num_parts; i++)
             if (ha_shares[i])
                 delete ha_shares[i];
+
         if (ha_shares)
             delete [] ha_shares;
     }
     bool init(uint arg_num_parts)
     {
         DBUG_ASSERT(!num_parts && !ha_shares);
-        num_parts= arg_num_parts;
+        num_parts = arg_num_parts;
         /* Allocate an array of Handler_share pointers */
-        ha_shares= new Handler_share *[num_parts];
+        ha_shares = new Handler_share *[num_parts];
+
         if (!ha_shares) {
-            num_parts= 0;
+            num_parts = 0;
             return true;
         }
-        memset(ha_shares, 0, sizeof(Handler_share*) * num_parts);
+
+        memset(ha_shares, 0, sizeof(Handler_share *) * num_parts);
         return false;
     }
 };
@@ -97,10 +101,13 @@ public:
     {
         DBUG_ENTER("Partition_share::~Partition_share");
         mysql_mutex_destroy(&auto_inc_mutex);
+
         if (partition_name_hash_initialized)
             my_hash_free(&partition_name_hash);
+
         if (partitions_share_refs)
             delete partitions_share_refs;
+
         DBUG_VOID_RETURN;
     }
     bool init(uint num_parts);
@@ -115,18 +122,18 @@ public:
 };
 
 
-class ha_partition :public handler
+class ha_partition : public handler
 {
 private:
     enum partition_index_scan_type
     {
-        partition_index_read= 0,
-        partition_index_first= 1,
-        partition_index_first_unordered= 2,
-        partition_index_last= 3,
-        partition_index_read_last= 4,
+        partition_index_read = 0,
+        partition_index_first = 1,
+        partition_index_first_unordered = 2,
+        partition_index_last = 3,
+        partition_index_read_last = 4,
         partition_read_range = 5,
-        partition_no_index_scan= 6
+        partition_no_index_scan = 6
     };
     /* Data for the partition handler */
     int  m_mode;                          // Open mode
@@ -162,7 +169,7 @@ private:
     ulong m_low_byte_first;
     enum enum_handler_status
     {
-        handler_not_initialized= 0,
+        handler_not_initialized = 0,
         handler_initialized,
         handler_opened,
         handler_closed
@@ -267,8 +274,8 @@ public:
     handler *clone(const char *name, MEM_ROOT *mem_root);
     virtual void set_part_info(partition_info *part_info, bool early)
     {
-        m_part_info= part_info;
-        m_is_sub_partitioned= part_info->is_sub_partitioned();
+        m_part_info = part_info;
+        m_is_sub_partitioned = part_info->is_sub_partitioned();
     }
     /*
       -------------------------------------------------------------------------
@@ -281,8 +288,8 @@ public:
       partition handler.
       -------------------------------------------------------------------------
     */
-    ha_partition(handlerton *hton, TABLE_SHARE * table);
-    ha_partition(handlerton *hton, partition_info * part_info);
+    ha_partition(handlerton *hton, TABLE_SHARE *table);
+    ha_partition(handlerton *hton, partition_info *part_info);
     ha_partition(handlerton *hton, TABLE_SHARE *share,
                  partition_info *part_info_arg,
                  ha_partition *clone_arg,
@@ -323,8 +330,8 @@ public:
     virtual char *update_table_comment(const char *comment);
     virtual int change_partitions(HA_CREATE_INFO *create_info,
                                   const char *path,
-                                  ulonglong * const copied,
-                                  ulonglong * const deleted,
+                                  ulonglong *const copied,
+                                  ulonglong *const deleted,
                                   const uchar *pack_frm_data,
                                   size_t pack_frm_len);
     virtual int drop_partitions(const char *path);
@@ -332,14 +339,14 @@ public:
     bool get_no_parts(const char *name, uint *num_parts)
     {
         DBUG_ENTER("ha_partition::get_no_parts");
-        *num_parts= m_tot_parts;
+        *num_parts = m_tot_parts;
         DBUG_RETURN(0);
     }
     virtual void change_table_ptr(TABLE *table_arg, TABLE_SHARE *share);
     virtual bool check_if_incompatible_data(HA_CREATE_INFO *create_info,
                                             uint table_changes);
 private:
-    int copy_partitions(ulonglong * const copied, ulonglong * const deleted);
+    int copy_partitions(ulonglong *const copied, ulonglong *const deleted);
     void cleanup_new_partition(uint part_count);
     int prepare_new_partition(TABLE *table, HA_CREATE_INFO *create_info,
                               handler *file, const char *part_name,
@@ -372,7 +379,7 @@ private:
     bool populate_partition_name_hash();
     Partition_share *get_share();
     bool set_ha_share_ref(Handler_share **ha_share);
-    void fix_data_dir(char* path);
+    void fix_data_dir(char *path);
     bool init_partition_bitmaps();
     void free_partition_bitmaps();
 
@@ -408,14 +415,14 @@ public:
       currently InnoDB, BDB and NDB).
       -------------------------------------------------------------------------
     */
-    virtual THR_LOCK_DATA **store_lock(THD * thd, THR_LOCK_DATA ** to,
+    virtual THR_LOCK_DATA **store_lock(THD *thd, THR_LOCK_DATA **to,
                                        enum thr_lock_type lock_type);
-    virtual int external_lock(THD * thd, int lock_type);
+    virtual int external_lock(THD *thd, int lock_type);
     /*
       When table is locked a statement is started by calling start_stmt
       instead of external_lock
     */
-    virtual int start_stmt(THD * thd, thr_lock_type lock_type);
+    virtual int start_stmt(THD *thd, thr_lock_type lock_type);
     /*
       Lock count is number of locked underlying handlers (I assume)
     */
@@ -465,9 +472,9 @@ public:
       start_bulk_insert and end_bulk_insert is called before and after a
       number of calls to write_row.
     */
-    virtual int write_row(uchar * buf);
-    virtual int update_row(const uchar * old_data, uchar * new_data);
-    virtual int delete_row(const uchar * buf);
+    virtual int write_row(uchar *buf);
+    virtual int update_row(const uchar *old_data, uchar *new_data);
+    virtual int delete_row(const uchar *buf);
     virtual int delete_all_rows(void);
     virtual int truncate();
     virtual void start_bulk_insert(ha_rows rows);
@@ -493,6 +500,7 @@ public:
                 error == HA_ERR_NO_PARTITION_FOUND ||
                 error == HA_ERR_NOT_IN_LOCK_PARTITIONS)
             return FALSE;
+
         return TRUE;
     }
 
@@ -524,10 +532,10 @@ public:
     */
     virtual int rnd_init(bool scan);
     virtual int rnd_end();
-    virtual int rnd_next(uchar * buf);
-    virtual int rnd_pos(uchar * buf, uchar * pos);
+    virtual int rnd_next(uchar *buf);
+    virtual int rnd_pos(uchar *buf, uchar *pos);
     virtual int rnd_pos_by_record(uchar *record);
-    virtual void position(const uchar * record);
+    virtual void position(const uchar *record);
 
     /*
       -------------------------------------------------------------------------
@@ -561,7 +569,7 @@ public:
       index_init initializes an index before using it and index_end does
       any end processing needed.
     */
-    virtual int index_read_map(uchar * buf, const uchar * key,
+    virtual int index_read_map(uchar *buf, const uchar *key,
                                key_part_map keypart_map,
                                enum ha_rkey_function find_flag);
     virtual int index_init(uint idx, bool sorted);
@@ -580,12 +588,12 @@ public:
       These methods are used to jump to next or previous entry in the index
       scan. There are also methods to jump to first and last entry.
     */
-    virtual int index_next(uchar * buf);
-    virtual int index_prev(uchar * buf);
-    virtual int index_first(uchar * buf);
-    virtual int index_last(uchar * buf);
-    virtual int index_next_same(uchar * buf, const uchar * key, uint keylen);
-    virtual int index_read_last_map(uchar * buf, const uchar * key,
+    virtual int index_next(uchar *buf);
+    virtual int index_prev(uchar *buf);
+    virtual int index_first(uchar *buf);
+    virtual int index_last(uchar *buf);
+    virtual int index_next_same(uchar *buf, const uchar *key, uint keylen);
+    virtual int index_read_last_map(uchar *buf, const uchar *key,
                                     key_part_map keypart_map);
 
     /*
@@ -605,24 +613,24 @@ public:
     */
 
 
-    virtual int read_range_first(const key_range * start_key,
-                                 const key_range * end_key,
+    virtual int read_range_first(const key_range *start_key,
+                                 const key_range *end_key,
                                  bool eq_range, bool sorted);
     virtual int read_range_next();
 
 private:
     bool init_record_priority_queue();
     void destroy_record_priority_queue();
-    int common_index_read(uchar * buf, bool have_start_key);
-    int common_first_last(uchar * buf);
-    int partition_scan_set_up(uchar * buf, bool idx_read_flag);
-    int handle_unordered_next(uchar * buf, bool next_same);
-    int handle_unordered_scan_next_partition(uchar * buf);
-    int handle_ordered_index_scan(uchar * buf, bool reverse_order);
+    int common_index_read(uchar *buf, bool have_start_key);
+    int common_first_last(uchar *buf);
+    int partition_scan_set_up(uchar *buf, bool idx_read_flag);
+    int handle_unordered_next(uchar *buf, bool next_same);
+    int handle_unordered_scan_next_partition(uchar *buf);
+    int handle_ordered_index_scan(uchar *buf, bool reverse_order);
     int handle_ordered_index_scan_key_not_found();
-    int handle_ordered_next(uchar * buf, bool next_same);
-    int handle_ordered_prev(uchar * buf);
-    void return_top_record(uchar * buf);
+    int handle_ordered_next(uchar *buf, bool next_same);
+    int handle_ordered_prev(uchar *buf);
+    void return_top_record(uchar *buf);
 public:
     /*
       -------------------------------------------------------------------------
@@ -649,8 +657,8 @@ public:
             *engine_callback,
             ulonglong *engine_data)
     {
-        *engine_callback= NULL;
-        *engine_data= 0;
+        *engine_callback = NULL;
+        *engine_data = 0;
         return FALSE;
     }
 
@@ -710,8 +718,8 @@ public:
       For the given range how many records are estimated to be in this range.
       Used by optimiser to calculate cost of using a particular index.
     */
-    virtual ha_rows records_in_range(uint inx, key_range * min_key,
-                                     key_range * max_key);
+    virtual ha_rows records_in_range(uint inx, key_range *min_key,
+                                     key_range *max_key);
 
     /*
       Upper bound of number records returned in scan is sum of all
@@ -754,7 +762,7 @@ public:
        Handler specific error messages
     */
     virtual void print_error(int error, myf errflag);
-    virtual bool get_error_message(int error, String * buf);
+    virtual bool get_error_message(int error, String *buf);
     /*
      -------------------------------------------------------------------------
       MODULE handler characteristics
@@ -1025,7 +1033,7 @@ public:
       to check whether the rest of the reference part is also the same.
       -------------------------------------------------------------------------
     */
-    virtual int cmp_ref(const uchar * ref1, const uchar * ref2);
+    virtual int cmp_ref(const uchar *ref1, const uchar *ref2);
     /*
       -------------------------------------------------------------------------
       MODULE auto increment
@@ -1051,9 +1059,11 @@ private:
         /* lock already taken */
         if (auto_increment_safe_stmt_log_lock)
             return;
+
         DBUG_ASSERT(!auto_increment_lock);
+
         if(table_share->tmp_table == NO_TMP_TABLE) {
-            auto_increment_lock= TRUE;
+            auto_increment_lock = TRUE;
             part_share->lock_auto_inc();
         }
     }
@@ -1066,18 +1076,20 @@ private:
         */
         if(auto_increment_lock && !auto_increment_safe_stmt_log_lock) {
             part_share->unlock_auto_inc();
-            auto_increment_lock= FALSE;
+            auto_increment_lock = FALSE;
         }
     }
     virtual void set_auto_increment_if_higher(Field *field)
     {
-        ulonglong nr= (((Field_num*) field)->unsigned_flag ||
-                       field->val_int() > 0) ? field->val_int() : 0;
+        ulonglong nr = (((Field_num *) field)->unsigned_flag ||
+                        field->val_int() > 0) ? field->val_int() : 0;
         lock_auto_increment();
         DBUG_ASSERT(part_share->auto_inc_initialized);
+
         /* must check when the mutex is taken */
         if (nr >= part_share->next_auto_inc_val)
-            part_share->next_auto_inc_val= nr + 1;
+            part_share->next_auto_inc_val = nr + 1;
+
         unlock_auto_increment();
     }
 
@@ -1183,10 +1195,10 @@ public:
         all partitions.
       -------------------------------------------------------------------------
     */
-    virtual int optimize(THD* thd, HA_CHECK_OPT *check_opt);
-    virtual int analyze(THD* thd, HA_CHECK_OPT *check_opt);
-    virtual int check(THD* thd, HA_CHECK_OPT *check_opt);
-    virtual int repair(THD* thd, HA_CHECK_OPT *check_opt);
+    virtual int optimize(THD *thd, HA_CHECK_OPT *check_opt);
+    virtual int analyze(THD *thd, HA_CHECK_OPT *check_opt);
+    virtual int check(THD *thd, HA_CHECK_OPT *check_opt);
+    virtual int repair(THD *thd, HA_CHECK_OPT *check_opt);
     virtual bool check_and_repair(THD *thd);
     virtual bool auto_repair() const;
     virtual bool is_crashed() const;
@@ -1207,8 +1219,8 @@ public:
     */
     virtual uint checksum() const;
     /* Enabled keycache for performance reasons, WL#4571 */
-    virtual int assign_to_keycache(THD* thd, HA_CHECK_OPT *check_opt);
-    virtual int preload_keys(THD* thd, HA_CHECK_OPT* check_opt);
+    virtual int assign_to_keycache(THD *thd, HA_CHECK_OPT *check_opt);
+    virtual int preload_keys(THD *thd, HA_CHECK_OPT *check_opt);
 
     /*
       -------------------------------------------------------------------------

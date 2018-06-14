@@ -24,7 +24,7 @@ typedef enum
 */
 #define MASTER_DELAY_MAX (0x7FFFFFFF)
 #if INT_MAX < 0x7FFFFFFF
-#error "don't support platforms where INT_MAX < 0x7FFFFFFF"
+    #error "don't support platforms where INT_MAX < 0x7FFFFFFF"
 #endif
 
 /**
@@ -270,21 +270,21 @@ extern const char *relay_log_basename;
 */
 #define SLAVE_FORCE_ALL 4
 
-int start_slave(THD* thd, Master_info* mi, bool net_report);
-int stop_slave(THD* thd, Master_info* mi, bool net_report);
-bool change_master(THD* thd, Master_info* mi);
-int reset_slave(THD *thd, Master_info* mi);
+int start_slave(THD *thd, Master_info *mi, bool net_report);
+int stop_slave(THD *thd, Master_info *mi, bool net_report);
+bool change_master(THD *thd, Master_info *mi);
+int reset_slave(THD *thd, Master_info *mi);
 int init_slave();
-int init_recovery(Master_info* mi, const char** errmsg);
-int global_init_info(Master_info* mi, bool ignore_if_no_info, int thread_mask);
-void end_info(Master_info* mi);
-int remove_info(Master_info* mi);
-int flush_master_info(Master_info* mi, bool force);
-void add_slave_skip_errors(const char* arg);
-void set_slave_skip_errors(char** slave_skip_errors_ptr);
-int register_slave_on_master(MYSQL* mysql);
-int terminate_slave_threads(Master_info* mi, int thread_mask,
-                            bool need_lock_term= true);
+int init_recovery(Master_info *mi, const char **errmsg);
+int global_init_info(Master_info *mi, bool ignore_if_no_info, int thread_mask);
+void end_info(Master_info *mi);
+int remove_info(Master_info *mi);
+int flush_master_info(Master_info *mi, bool force);
+void add_slave_skip_errors(const char *arg);
+void set_slave_skip_errors(char **slave_skip_errors_ptr);
+int register_slave_on_master(MYSQL *mysql);
+int terminate_slave_threads(Master_info *mi, int thread_mask,
+                            bool need_lock_term = true);
 /*
   cond_lock is usually same as start_lock. It is needed for the case when
   start_lock is 0 which happens if start_slave_thread() is called already
@@ -304,30 +304,30 @@ int start_slave_thread(
     Master_info *mi);
 
 /* retrieve table from master and copy to slave*/
-int fetch_master_table(THD* thd, const char* db_name, const char* table_name,
-                       Master_info* mi, MYSQL* mysql, bool overwrite);
+int fetch_master_table(THD *thd, const char *db_name, const char *table_name,
+                       Master_info *mi, MYSQL *mysql, bool overwrite);
 
-bool show_slave_status(THD* thd, Master_info* mi);
+bool show_slave_status(THD *thd, Master_info *mi);
 bool rpl_master_has_bug(const Relay_log_info *rli, uint bug_id, bool report,
                         bool (*pred)(const void *), const void *param);
 const char *print_slave_db_safe(const char *db);
-void skip_load_data_infile(NET* net);
+void skip_load_data_infile(NET *net);
 
 void end_slave(); /* release slave threads */
 void close_active_mi(); /* clean up slave threads data */
-void clear_until_condition(Relay_log_info* rli);
-void clear_slave_error(Relay_log_info* rli);
-void lock_slave_threads(Master_info* mi);
-void unlock_slave_threads(Master_info* mi);
-void init_thread_mask(int* mask,Master_info* mi,bool inverse);
-void set_slave_thread_options(THD* thd);
+void clear_until_condition(Relay_log_info *rli);
+void clear_slave_error(Relay_log_info *rli);
+void lock_slave_threads(Master_info *mi);
+void unlock_slave_threads(Master_info *mi);
+void init_thread_mask(int *mask, Master_info *mi, bool inverse);
+void set_slave_thread_options(THD *thd);
 void set_slave_thread_default_charset(THD *thd, Relay_log_info const *rli);
-int apply_event_and_update_pos(Log_event* ev, THD* thd, Relay_log_info* rli);
-int rotate_relay_log(Master_info* mi);
+int apply_event_and_update_pos(Log_event *ev, THD *thd, Relay_log_info *rli);
+int rotate_relay_log(Master_info *mi);
 
 pthread_handler_t handle_slave_io(void *arg);
 pthread_handler_t handle_slave_sql(void *arg);
-bool net_request_file(NET* net, const char* fname);
+bool net_request_file(NET *net, const char *fname);
 
 extern bool volatile abort_loop;
 extern Master_info *active_mi;      /* active_mi  for multi-master */
@@ -338,7 +338,7 @@ extern int disconnect_slave_event_count, abort_slave_event_count ;
 
 /* the master variables are defaults read from my.cnf or command line */
 extern uint master_port, master_connect_retry, report_port;
-extern char * master_user, *master_password, *master_host;
+extern char *master_user, *master_password, *master_host;
 extern char *master_info_file, *relay_log_info_file, *report_user;
 extern char *report_host, *report_password;
 

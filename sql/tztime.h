@@ -58,14 +58,14 @@ public:
     void gmt_sec_to_TIME(MYSQL_TIME *tmp, struct timeval tv)
     {
         gmt_sec_to_TIME(tmp, (my_time_t) tv.tv_sec);
-        tmp->second_part= tv.tv_usec;
+        tmp->second_part = tv.tv_usec;
     }
     /**
       Because of constness of String returned by get_name() time zone name
       have to be already zeroended to be able to use String::ptr() instead
       of c_ptr().
     */
-    virtual const String * get_name() const = 0;
+    virtual const String *get_name() const = 0;
 
     /**
       We need this only for surpressing warnings, objects of this type are
@@ -77,10 +77,10 @@ protected:
     static inline void adjust_leap_second(MYSQL_TIME *t);
 };
 
-extern Time_zone * my_tz_UTC;
-extern Time_zone * my_tz_SYSTEM;
-extern Time_zone * my_tz_OFFSET0;
-extern Time_zone * my_tz_find(THD *thd, const String *name);
+extern Time_zone *my_tz_UTC;
+extern Time_zone *my_tz_SYSTEM;
+extern Time_zone *my_tz_OFFSET0;
+extern Time_zone *my_tz_find(THD *thd, const String *name);
 extern my_bool     my_tz_init(THD *org_thd, const char *default_tzname, my_bool bootstrap);
 extern void        my_tz_free();
 extern my_time_t   sec_since_epoch_TIME(MYSQL_TIME *t);
@@ -92,7 +92,7 @@ extern my_time_t   sec_since_epoch_TIME(MYSQL_TIME *t);
   should not be used anywhere outside of tztime.h and tztime.cc.
 */
 
-static const int MY_TZ_TABLES_COUNT= 4;
+static const int MY_TZ_TABLES_COUNT = 4;
 
 
 #endif /* !defined(TESTTIME) && !defined(TZINFO2SQL) */

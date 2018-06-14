@@ -27,8 +27,7 @@
 */
 
 /* inline since it's called below */
-inline
-injector::transaction::transaction(MYSQL_BIN_LOG *log, THD *thd)
+inline injector::transaction::transaction(MYSQL_BIN_LOG *log, THD *thd)
     : m_state(START_STATE), m_thd(thd)
 {
     /*
@@ -38,20 +37,19 @@ injector::transaction::transaction(MYSQL_BIN_LOG *log, THD *thd)
     LOG_INFO log_info;
     log->get_current_log(&log_info);
     /* !!! binlog_pos does not follow RAII !!! */
-    m_start_pos.m_file_name= my_strdup(log_info.log_file_name, MYF(0));
-    m_start_pos.m_file_pos= log_info.pos;
+    m_start_pos.m_file_name = my_strdup(log_info.log_file_name, MYF(0));
+    m_start_pos.m_file_pos = log_info.pos;
 
     if (unlikely(m_start_pos.m_file_name == NULL)) {
-        m_thd= NULL;
+        m_thd = NULL;
         return;
     }
 
     /*
        Next pos is unknown until after commit of the Binlog transaction
     */
-    m_next_pos.m_file_name= 0;
-    m_next_pos.m_file_pos= 0;
-
+    m_next_pos.m_file_name = 0;
+    m_next_pos.m_file_pos = 0;
     /*
       Ensure we don't pick up this thd's last written Binlog pos in
       empty-transaction-commit cases.
@@ -61,7 +59,6 @@ injector::transaction::transaction(MYSQL_BIN_LOG *log, THD *thd)
       commit, and restore on error.
     */
     m_thd->clear_next_event_pos();
-
     trans_begin(m_thd);
 }
 
@@ -71,16 +68,15 @@ injector::transaction::~transaction()
         return;
 
     /* Needed since my_free expects a 'char*' (instead of 'void*'). */
-    char* const start_pos_memory= const_cast<char*>(m_start_pos.m_file_name);
+    char *const start_pos_memory = const_cast<char *>(m_start_pos.m_file_name);
 
-    if (start_pos_memory) {
+    if (start_pos_memory)
         my_free(start_pos_memory);
-    }
 
-    char* const next_pos_memory= const_cast<char*>(m_next_pos.m_file_name);
-    if (next_pos_memory) {
+    char *const next_pos_memory = const_cast<char *>(m_next_pos.m_file_name);
+
+    if (next_pos_memory)
         my_free(next_pos_memory);
-    }
 }
 
 /**
@@ -90,7 +86,7 @@ injector::transaction::~transaction()
 int injector::transaction::commit()
 {
     DBUG_ENTER("injector::transaction::commit()");
-    int error= m_thd->binlog_flush_pending_rows_event(true);
+    int error = m_thd->binlog_flush_pending_rows_event(true);
     /*
       Cluster replication does not preserve statement or
       transaction boundaries of the master.  Instead, a new
@@ -120,13 +116,14 @@ int injector::transaction::commit()
     /* Copy next position out into our next pos member */
     if ((error == 0) &&
             (m_thd->binlog_next_event_pos.file_name != NULL) &&
-            ((m_next_pos.m_file_name=
-                  my_strdup(m_thd->binlog_next_event_pos.file_name, MYF(0))) != NULL)) {
-        m_next_pos.m_file_pos= m_thd->binlog_next_event_pos.pos;
-    } else {
+            ((m_next_pos.m_file_name =
+                  my_strdup(m_thd->binlog_next_event_pos.file_name, MYF(0))) != NULL))
+        m_next_pos.m_file_pos = m_thd->binlog_next_event_pos.pos;
+
+    else {
         /* Error, problem copying etc. */
-        m_next_pos.m_file_name= NULL;
-        m_next_pos.m_file_pos= 0;
+        m_next_pos.m_file_name = NULL;
+        m_next_pos.m_file_pos = 0;
     }
 
     DBUG_RETURN(error);
@@ -150,44 +147,42 @@ int injector::transaction::rollback()
 int injector::transaction::use_table(server_id_type sid, table tbl)
 {
     DBUG_ENTER("injector::transaction::use_table");
-
     int error;
 
-    if ((error= check_state(TABLE_STATE)))
+    if ((error = check_state(TABLE_STATE)))
         DBUG_RETURN(error);
 
-    server_id_type save_id= m_thd->server_id;
+    server_id_type save_id = m_thd->server_id;
     m_thd->set_server_id(sid);
-    error= m_thd->binlog_write_table_map(tbl.get_table(),
-                                         tbl.is_transactional(), FALSE);
+    error = m_thd->binlog_write_table_map(tbl.get_table(),
+                                          tbl.is_transactional(), FALSE);
     m_thd->set_server_id(save_id);
     DBUG_RETURN(error);
 }
 
 
 int injector::transaction::write_row (server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type record,
-                                      const uchar* extra_row_info)
+                                      const uchar *extra_row_info)
 {
     DBUG_ENTER("injector::transaction::write_row(...)");
+    int error = check_state(ROW_STATE);
 
-    int error= check_state(ROW_STATE);
     if (error)
         DBUG_RETURN(error);
 
-    server_id_type save_id= m_thd->server_id;
+    server_id_type save_id = m_thd->server_id;
     m_thd->set_server_id(sid);
     table::save_sets saveset(tbl, cols, cols);
-
-    error= m_thd->binlog_write_row(tbl.get_table(), tbl.is_transactional(),
-                                   record, extra_row_info);
+    error = m_thd->binlog_write_row(tbl.get_table(), tbl.is_transactional(),
+                                    record, extra_row_info);
     m_thd->set_server_id(save_id);
     DBUG_RETURN(error);
 }
 
 int injector::transaction::write_row (server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type record)
 {
     return write_row(sid, tbl, cols, colcnt, record, NULL);
@@ -195,27 +190,27 @@ int injector::transaction::write_row (server_id_type sid, table tbl,
 
 
 int injector::transaction::delete_row(server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type record,
-                                      const uchar* extra_row_info)
+                                      const uchar *extra_row_info)
 {
     DBUG_ENTER("injector::transaction::delete_row(...)");
+    int error = check_state(ROW_STATE);
 
-    int error= check_state(ROW_STATE);
     if (error)
         DBUG_RETURN(error);
 
-    server_id_type save_id= m_thd->server_id;
+    server_id_type save_id = m_thd->server_id;
     m_thd->set_server_id(sid);
     table::save_sets saveset(tbl, cols, cols);
-    error= m_thd->binlog_delete_row(tbl.get_table(), tbl.is_transactional(),
-                                    record, extra_row_info);
+    error = m_thd->binlog_delete_row(tbl.get_table(), tbl.is_transactional(),
+                                     record, extra_row_info);
     m_thd->set_server_id(save_id);
     DBUG_RETURN(error);
 }
 
 int injector::transaction::delete_row(server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type record)
 {
     return delete_row(sid, tbl, cols, colcnt, record, NULL);
@@ -223,29 +218,28 @@ int injector::transaction::delete_row(server_id_type sid, table tbl,
 
 
 int injector::transaction::update_row(server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type before, record_type after,
-                                      const uchar* extra_row_info)
+                                      const uchar *extra_row_info)
 {
     DBUG_ENTER("injector::transaction::update_row(...)");
+    int error = check_state(ROW_STATE);
 
-    int error= check_state(ROW_STATE);
     if (error)
         DBUG_RETURN(error);
 
-    server_id_type save_id= m_thd->server_id;
+    server_id_type save_id = m_thd->server_id;
     m_thd->set_server_id(sid);
     // The read- and write sets with autorestore (in the destructor)
     table::save_sets saveset(tbl, cols, cols);
-
-    error= m_thd->binlog_update_row(tbl.get_table(), tbl.is_transactional(),
-                                    before, after, extra_row_info);
+    error = m_thd->binlog_update_row(tbl.get_table(), tbl.is_transactional(),
+                                     before, after, extra_row_info);
     m_thd->set_server_id(save_id);
     DBUG_RETURN(error);
 }
 
 int injector::transaction::update_row(server_id_type sid, table tbl,
-                                      MY_BITMAP const* cols, size_t colcnt,
+                                      MY_BITMAP const *cols, size_t colcnt,
                                       record_type before, record_type after)
 {
     return update_row(sid, tbl, cols, colcnt, before, after, NULL);
@@ -270,11 +264,12 @@ inline injector::injector()
 {
 }
 
-static injector *s_injector= 0;
+static injector *s_injector = 0;
 injector *injector::instance()
 {
     if (s_injector == 0)
-        s_injector= new injector;
+        s_injector = new injector;
+
     /* "There can be only one [instance]" */
     return s_injector;
 }
@@ -284,7 +279,7 @@ void injector::free_instance()
     injector *inj = s_injector;
 
     if (inj != 0) {
-        s_injector= 0;
+        s_injector = 0;
         delete inj;
     }
 }
@@ -298,7 +293,6 @@ void injector::new_trans(THD *thd, injector::transaction *ptr)
     */
     transaction trans(&mysql_bin_log, thd);
     ptr->swap(trans);
-
     DBUG_VOID_RETURN;
 }
 

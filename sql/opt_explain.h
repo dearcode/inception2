@@ -59,7 +59,7 @@ extern const char *join_type_str[];
 
 bool explain_no_table(THD *thd, JOIN *join, const char *message);
 bool explain_no_table(THD *thd, const char *message,
-                      ha_rows rows= HA_POS_ERROR);
+                      ha_rows rows = HA_POS_ERROR);
 bool explain_single_table_modification(THD *thd,
                                        TABLE *table,
                                        const SQL_SELECT *select,
@@ -68,7 +68,7 @@ bool explain_single_table_modification(THD *thd,
                                        bool need_tmp_table,
                                        bool need_sort,
                                        bool is_update,
-                                       bool used_key_is_modified= false);
+                                       bool used_key_is_modified = false);
 bool explain_query_specification(THD *thd, JOIN *join);
 bool explain_multi_table_modification(THD *thd,
                                       select_result_interceptor *result);

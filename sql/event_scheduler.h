@@ -39,10 +39,10 @@ class Events;
 class THD;
 
 void
-pre_init_event_thread(THD* thd);
+pre_init_event_thread(THD *thd);
 
 bool
-post_init_event_thread(THD* thd);
+post_init_event_thread(THD *thd);
 
 void
 deinit_event_thread(THD *thd);
@@ -51,10 +51,9 @@ deinit_event_thread(THD *thd);
 class Event_worker_thread
 {
 public:
-    static void
-    init(Event_db_repository *db_repository_arg)
+    static void init(Event_db_repository *db_repository_arg)
     {
-        db_repository= db_repository_arg;
+        db_repository = db_repository_arg;
     }
 
     void
@@ -137,8 +136,8 @@ private:
 
     uint mutex_last_locked_at_line;
     uint mutex_last_unlocked_at_line;
-    const char* mutex_last_locked_in_func;
-    const char* mutex_last_unlocked_in_func;
+    const char *mutex_last_locked_in_func;
+    const char *mutex_last_unlocked_in_func;
     bool mutex_scheduler_data_locked;
     bool waiting_on_cond;
 

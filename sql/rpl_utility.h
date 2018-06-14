@@ -17,13 +17,13 @@
 #define RPL_UTILITY_H
 
 #ifndef __cplusplus
-#error "Don't include this C++ header file from a non-C++ file!"
+    #error "Don't include this C++ header file from a non-C++ file!"
 #endif
 
 #include "sql_priv.h"
 #include "m_string.h"
 #ifdef MYSQL_SERVER
-#include "table.h"                              /* TABLE_LIST */
+    #include "table.h"                              /* TABLE_LIST */
 #endif
 #include "mysql_com.h"
 #include <hash.h>
@@ -110,7 +110,7 @@ public:
                        after image ends (if any).
        @returns NULL if a problem occured, a valid pointer otherwise.
      */
-    HASH_ROW_ENTRY* make_entry(const uchar *bi_start, const uchar *bi_ends,
+    HASH_ROW_ENTRY *make_entry(const uchar *bi_start, const uchar *bi_ends,
                                const uchar *ai_start, const uchar *ai_ends);
 
     /**
@@ -123,7 +123,7 @@ public:
 
        @returns true if something went wrong, false otherwise.
      */
-    bool put(TABLE* table, MY_BITMAP *cols, HASH_ROW_ENTRY* entry);
+    bool put(TABLE *table, MY_BITMAP *cols, HASH_ROW_ENTRY *entry);
 
     /**
        Gets the entry, from the hash table, that matches the data in
@@ -138,7 +138,7 @@ public:
                 found. If the entry is not found then NULL shall be
                 returned.
      */
-    HASH_ROW_ENTRY* get(TABLE *table, MY_BITMAP *cols);
+    HASH_ROW_ENTRY *get(TABLE *table, MY_BITMAP *cols);
 
     /**
        Gets the entry that stands next to the one pointed to by
@@ -156,7 +156,7 @@ public:
                 operation this member function returns true and does not
                 update the pointer.
      */
-    bool next(HASH_ROW_ENTRY** entry);
+    bool next(HASH_ROW_ENTRY **entry);
 
     /**
        Deletes the entry pointed by entry. It also frees memory used
@@ -167,7 +167,7 @@ public:
        @param entry  Pointer to the entry to be deleted.
        @returns true if something went wrong, false otherwise.
      */
-    bool del(HASH_ROW_ENTRY* entry);
+    bool del(HASH_ROW_ENTRY *entry);
 
     /**
        Initializes the hash table.
@@ -213,7 +213,7 @@ private:
 
        @retuns the hash key created.
      */
-    my_hash_value_type make_hash_key(TABLE *table, MY_BITMAP* cols);
+    my_hash_value_type make_hash_key(TABLE *table, MY_BITMAP *cols);
 };
 
 #endif
@@ -280,13 +280,16 @@ public:
           either MYSQL_TYPE_STRING, MYSQL_TYPE_ENUM, or MYSQL_TYPE_SET, so
           we might need to modify the type to get the real type.
         */
-        enum_field_types source_type= binlog_type(index);
-        uint16 source_metadata= m_field_metadata[index];
+        enum_field_types source_type = binlog_type(index);
+        uint16 source_metadata = m_field_metadata[index];
+
         switch (source_type) {
         case MYSQL_TYPE_STRING: {
-            int real_type= source_metadata >> 8;
+            int real_type = source_metadata >> 8;
+
             if (real_type == MYSQL_TYPE_ENUM || real_type == MYSQL_TYPE_SET)
-                source_type= static_cast<enum_field_types>(real_type);
+                source_type = static_cast<enum_field_types>(real_type);
+
             break;
         }
 
@@ -295,7 +298,7 @@ public:
           so we can safely assume that it really is MYSQL_TYPE_NEWDATE.
         */
         case MYSQL_TYPE_DATE:
-            source_type= MYSQL_TYPE_NEWDATE;
+            source_type = MYSQL_TYPE_NEWDATE;
             break;
 
         default:
@@ -322,6 +325,7 @@ public:
     uint16 field_metadata(uint index) const
     {
         DBUG_ASSERT(index < m_size);
+
         if (m_field_metadata_size)
             return m_field_metadata[index];
         else
@@ -336,7 +340,7 @@ public:
     {
         DBUG_ASSERT(index < m_size);
         return ((m_null_bits[(index / 8)] &
-                 (1 << (index % 8))) == (1 << (index %8)));
+                 (1 << (index % 8))) == (1 << (index % 8)));
     }
 
     /*
@@ -446,20 +450,21 @@ CPP_UNNAMED_NS_START
 template <class Obj>
 class auto_afree_ptr
 {
-    Obj* m_ptr;
+    Obj *m_ptr;
 public:
-    auto_afree_ptr(Obj* ptr) : m_ptr(ptr) { }
+    auto_afree_ptr(Obj *ptr) : m_ptr(ptr) { }
     ~auto_afree_ptr()
     {
-        if (m_ptr) my_afree(m_ptr);
+        if (m_ptr)
+            my_afree(m_ptr);
     }
-    void assign(Obj* ptr)
+    void assign(Obj *ptr)
     {
         /* Only to be called if it hasn't been given a value before. */
         DBUG_ASSERT(m_ptr == NULL);
-        m_ptr= ptr;
+        m_ptr = ptr;
     }
-    Obj* get()
+    Obj *get()
     {
         return m_ptr;
     }
@@ -491,14 +496,14 @@ public:
 
 // NB. number of printed bit values is limited to sizeof(buf) - 1
 #define DBUG_PRINT_BITSET(N,FRM,BS)                \
-  do {                                             \
-    char buf[256];                                 \
-    uint i;                                        \
-    for (i = 0 ; i < MY_MIN(sizeof(buf) - 1, (BS)->n_bits) ; i++) \
-      buf[i] = bitmap_is_set((BS), i) ? '1' : '0'; \
-    buf[i] = '\0';                                 \
-    DBUG_PRINT((N), ((FRM), buf));                 \
-  } while (0)
+    do {                                             \
+        char buf[256];                                 \
+        uint i;                                        \
+        for (i = 0 ; i < MY_MIN(sizeof(buf) - 1, (BS)->n_bits) ; i++) \
+            buf[i] = bitmap_is_set((BS), i) ? '1' : '0'; \
+        buf[i] = '\0';                                 \
+        DBUG_PRINT((N), ((FRM), buf));                 \
+    } while (0)
 
 #endif /* RPL_UTILITY_H */
 

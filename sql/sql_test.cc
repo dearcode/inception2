@@ -30,13 +30,13 @@
 #include <hash.h>
 #include <thr_alarm.h>
 #if defined(HAVE_MALLINFO) && defined(HAVE_MALLOC_H)
-#include <malloc.h>
+    #include <malloc.h>
 #elif defined(HAVE_MALLINFO) && defined(HAVE_SYS_MALLOC_H)
-#include <sys/malloc.h>
+    #include <sys/malloc.h>
 #endif
 
 #ifdef HAVE_EVENT_SCHEDULER
-#include "events.h"
+    #include "events.h"
 #endif
 
 #include "global_threads.h"
@@ -61,20 +61,20 @@ const char *lock_descriptions[TL_WRITE_ONLY + 1] = {
 
 #ifndef DBUG_OFF
 
-void
-print_where(Item *cond,const char *info, enum_query_type query_type)
+void print_where(Item *cond, const char *info, enum_query_type query_type)
 {
     char buff[256];
-    String str(buff,(uint32) sizeof(buff), system_charset_info);
+    String str(buff, (uint32) sizeof(buff), system_charset_info);
     str.length(0);
+
     if (cond)
         cond->print(&str, query_type);
-    str.append('\0');
 
+    str.append('\0');
     DBUG_LOCK_FILE;
-    (void) fprintf(DBUG_FILE,"\nWHERE:(%s) %p ", info, cond);
-    (void) fputs(str.ptr(),DBUG_FILE);
-    (void) fputc('\n',DBUG_FILE);
+    (void) fprintf(DBUG_FILE, "\nWHERE:(%s) %p ", info, cond);
+    (void) fputs(str.ptr(), DBUG_FILE);
+    (void) fputc('\n', DBUG_FILE);
     DBUG_UNLOCK_FILE;
 }
 /* This is for debugging purposes */
@@ -84,12 +84,12 @@ static void print_cached_tables(void)
 {
     /* purecov: begin tested */
     table_cache_manager.lock_all_and_tdc();
-
     table_cache_manager.print_tables();
+    printf("\nCurrent refresh version: %ld\n", refresh_version);
 
-    printf("\nCurrent refresh version: %ld\n",refresh_version);
     if (my_hash_check(&table_def_cache))
         printf("Error: Table definition hash table is corrupted\n");
+
     fflush(stdout);
     table_cache_manager.unlock_all_and_tdc();
     /* purecov: end */
@@ -97,42 +97,47 @@ static void print_cached_tables(void)
 }
 
 
-void
-TEST_join(JOIN *join)
+void TEST_join(JOIN *join)
 {
-    uint i,ref;
+    uint i, ref;
     DBUG_ENTER("TEST_join");
-
     /*
       Assemble results of all the calls to full_name() first,
       in order not to garble the tabular output below.
     */
     String ref_key_parts[MAX_TABLES];
-    for (i= 0; i < join->tables; i++) {
-        JOIN_TAB *tab= join->join_tab + i;
-        for (ref= 0; ref < tab->ref.key_parts; ref++) {
+
+    for (i = 0; i < join->tables; i++) {
+        JOIN_TAB *tab = join->join_tab + i;
+
+        for (ref = 0; ref < tab->ref.key_parts; ref++) {
             ref_key_parts[i].append(tab->ref.items[ref]->full_name());
             ref_key_parts[i].append("  ");
         }
     }
 
     DBUG_LOCK_FILE;
-    (void) fputs("\nInfo about JOIN\n",DBUG_FILE);
-    for (i=0 ; i < join->tables ; i++) {
-        JOIN_TAB *tab=join->join_tab+i;
-        TABLE *form=tab->table;
+    (void) fputs("\nInfo about JOIN\n", DBUG_FILE);
+
+    for (i = 0 ; i < join->tables ; i++) {
+        JOIN_TAB *tab = join->join_tab + i;
+        TABLE *form = tab->table;
+
         if (!form)
             continue;
+
         char key_map_buff[128];
-        fprintf(DBUG_FILE,"%-16.16s  type: %-7s  q_keys: %s  refs: %d  key: %d  len: %d\n",
+        fprintf(DBUG_FILE, "%-16.16s  type: %-7s  q_keys: %s  refs: %d  key: %d  len: %d\n",
                 form->alias,
                 join_type_str[tab->type],
                 tab->keys.print(key_map_buff),
                 tab->ref.key_parts,
                 tab->ref.key,
                 tab->ref.key_length);
+
         if (tab->select) {
-            char buf[MAX_KEY/8+1];
+            char buf[MAX_KEY / 8 + 1];
+
             if (tab->use_quick == QS_DYNAMIC_RANGE)
                 fprintf(DBUG_FILE,
                         "                  quick select checked for each record (keys: %s)\n",
@@ -140,14 +145,17 @@ TEST_join(JOIN *join)
             else if (tab->select->quick) {
                 fprintf(DBUG_FILE, "                  quick select used:\n");
                 tab->select->quick->dbug_dump(18, FALSE);
+
             } else
-                (void) fputs("                  select used\n",DBUG_FILE);
+                (void) fputs("                  select used\n", DBUG_FILE);
         }
+
         if (tab->ref.key_parts) {
             fprintf(DBUG_FILE,
                     "                  refs:  %s\n", ref_key_parts[i].ptr());
         }
     }
+
     DBUG_UNLOCK_FILE;
     DBUG_VOID_RETURN;
 }
@@ -158,13 +166,16 @@ void print_keyuse_array(Opt_trace_context *trace,
                         const Key_use_array *keyuse_array)
 {
 #if !defined(DBUG_OFF) || defined(OPTIMIZER_TRACE)
+
     if (unlikely(!trace->is_started()))
         return;
+
     Opt_trace_object wrapper(trace);
     Opt_trace_array  trace_key_uses(trace, "ref_optimizer_key_uses");
     DBUG_PRINT("opt", ("Key_use array (%zu elements)", keyuse_array->size()));
-    for (uint i= 0; i < keyuse_array->size(); i++) {
-        const Key_use &keyuse= keyuse_array->at(i);
+
+    for (uint i = 0; i < keyuse_array->size(); i++) {
+        const Key_use &keyuse = keyuse_array->at(i);
         // those are too obscure for opt trace
         DBUG_PRINT("opt", ("Key_use: optimize= %d used_tables=0x%llx "
                            "ref_table_rows= %lu keypart_map= %0lx",
@@ -178,6 +189,7 @@ void print_keyuse_array(Opt_trace_context *trace,
         add("equals", keyuse.val).
         add("null_rejecting", keyuse.null_rejecting);
     }
+
 #endif /* !DBUG_OFF || OPTIMIZER_TRACE */
 }
 
@@ -209,24 +221,25 @@ void print_keyuse_array(Opt_trace_context *trace,
     None
 */
 
-void
-print_plan(JOIN* join, uint idx, double record_count, double read_time,
-           double current_read_time, const char *info)
+void print_plan(JOIN *join, uint idx, double record_count, double read_time,
+                double current_read_time, const char *info)
 {
     uint i;
     POSITION pos;
     JOIN_TAB *join_table;
     JOIN_TAB **plan_nodes;
-    TABLE*   table;
+    TABLE   *table;
 
     if (info == 0)
-        info= "";
+        info = "";
 
     DBUG_LOCK_FILE;
+
     if (join->best_read == DBL_MAX) {
         fprintf(DBUG_FILE,
                 "%s; idx: %u  best: DBL_MAX  atime: %g  itime: %g  count: %g\n",
                 info, idx, current_read_time, read_time, record_count);
+
     } else {
         fprintf(DBUG_FILE,
                 "%s; idx :%u  best: %g  accumulated: %g  increment: %g  count: %g\n",
@@ -236,13 +249,17 @@ print_plan(JOIN* join, uint idx, double record_count, double read_time,
 
     /* Print the tables in JOIN->positions */
     fputs("     POSITIONS: ", DBUG_FILE);
-    for (i= 0; i < idx ; i++) {
+
+    for (i = 0; i < idx ; i++) {
         pos = join->positions[i];
-        table= pos.table->table;
+        table = pos.table->table;
+
         if (table)
             fputs(table->alias, DBUG_FILE);
+
         fputc(' ', DBUG_FILE);
     }
+
     fputc('\n', DBUG_FILE);
 
     /*
@@ -251,20 +268,24 @@ print_plan(JOIN* join, uint idx, double record_count, double read_time,
     */
     if (join->best_read < DBL_MAX) {
         fputs("BEST_POSITIONS: ", DBUG_FILE);
-        for (i= 0; i < idx ; i++) {
-            pos= join->best_positions[i];
-            table= pos.table->table;
+
+        for (i = 0; i < idx ; i++) {
+            pos = join->best_positions[i];
+            table = pos.table->table;
+
             if (table)
                 fputs(table->alias, DBUG_FILE);
+
             fputc(' ', DBUG_FILE);
         }
     }
-    fputc('\n', DBUG_FILE);
 
+    fputc('\n', DBUG_FILE);
     /* Print the tables in JOIN->best_ref */
     fputs("      BEST_REF: ", DBUG_FILE);
-    for (plan_nodes= join->best_ref ; *plan_nodes ; plan_nodes++) {
-        join_table= (*plan_nodes);
+
+    for (plan_nodes = join->best_ref ; *plan_nodes ; plan_nodes++) {
+        join_table = (*plan_nodes);
         fputs(join_table->table->s->table_name.str, DBUG_FILE);
         fprintf(DBUG_FILE, "(%lu,%lu,%lu)",
                 (ulong) join_table->found_records,
@@ -272,8 +293,8 @@ print_plan(JOIN* join, uint idx, double record_count, double read_time,
                 (ulong) join_table->read_time);
         fputc(' ', DBUG_FILE);
     }
-    fputc('\n', DBUG_FILE);
 
+    fputc('\n', DBUG_FILE);
     DBUG_UNLOCK_FILE;
 }
 
@@ -296,18 +317,20 @@ typedef struct st_debug_lock
 static int dl_compare(const void *p1, const void *p2)
 {
     TABLE_LOCK_INFO *a, *b;
-
-    a= (TABLE_LOCK_INFO *) p1;
-    b= (TABLE_LOCK_INFO *) p2;
+    a = (TABLE_LOCK_INFO *) p1;
+    b = (TABLE_LOCK_INFO *) p2;
 
     if (a->thread_id > b->thread_id)
         return 1;
+
     if (a->thread_id < b->thread_id)
         return -1;
+
     if (a->waiting == b->waiting)
         return 0;
     else if (a->waiting)
         return -1;
+
     return 1;
 }
 
@@ -316,18 +339,19 @@ static void push_locks_into_array(DYNAMIC_ARRAY *ar, THR_LOCK_DATA *data,
                                   bool wait, const char *text)
 {
     if (data) {
-        TABLE *table=(TABLE *)data->debug_print_param;
+        TABLE *table = (TABLE *)data->debug_print_param;
+
         if (table && table->s->tmp_table == NO_TMP_TABLE) {
             TABLE_LOCK_INFO table_lock_info;
-            table_lock_info.thread_id= table->in_use->thread_id;
+            table_lock_info.thread_id = table->in_use->thread_id;
             memcpy(table_lock_info.table_name, table->s->table_cache_key.str,
                    table->s->table_cache_key.length);
-            table_lock_info.table_name[strlen(table_lock_info.table_name)]='.';
-            table_lock_info.waiting=wait;
-            table_lock_info.lock_text=text;
+            table_lock_info.table_name[strlen(table_lock_info.table_name)] = '.';
+            table_lock_info.waiting = wait;
+            table_lock_info.lock_text = text;
             // lock_type is also obtainable from THR_LOCK_DATA
-            table_lock_info.type=table->reginfo.lock_type;
-            (void) push_dynamic(ar,(uchar*) &table_lock_info);
+            table_lock_info.type = table->reginfo.lock_type;
+            (void) push_dynamic(ar, (uchar *) &table_lock_info);
         }
     }
 }
@@ -352,13 +376,12 @@ static void display_table_locks(void)
     LIST *list;
     void *saved_base;
     DYNAMIC_ARRAY saved_table_locks;
-
-    (void) my_init_dynamic_array(&saved_table_locks,sizeof(TABLE_LOCK_INFO),
-                                 table_cache_manager.cached_tables() + 20,50);
+    (void) my_init_dynamic_array(&saved_table_locks, sizeof(TABLE_LOCK_INFO),
+                                 table_cache_manager.cached_tables() + 20, 50);
     mysql_mutex_lock(&THR_LOCK_lock);
-    for (list= thr_lock_thread_list; list; list= list_rest(list)) {
-        THR_LOCK *lock=(THR_LOCK*) list->data;
 
+    for (list = thr_lock_thread_list; list; list = list_rest(list)) {
+        THR_LOCK *lock = (THR_LOCK *) list->data;
         mysql_mutex_lock(&lock->mutex);
         push_locks_into_array(&saved_table_locks, lock->write.data, FALSE,
                               "Locked - write");
@@ -370,24 +393,25 @@ static void display_table_locks(void)
                               "Waiting - read");
         mysql_mutex_unlock(&lock->mutex);
     }
+
     mysql_mutex_unlock(&THR_LOCK_lock);
 
     if (!saved_table_locks.elements)
         goto end;
 
-    saved_base= dynamic_element(&saved_table_locks, 0, TABLE_LOCK_INFO *);
+    saved_base = dynamic_element(&saved_table_locks, 0, TABLE_LOCK_INFO *);
     my_qsort(saved_base, saved_table_locks.elements, sizeof(TABLE_LOCK_INFO),
              dl_compare);
     freeze_size(&saved_table_locks);
-
     puts("\nThread database.table_name          Locked/Waiting        Lock_type\n");
-
     unsigned int i;
-    for (i=0 ; i < saved_table_locks.elements ; i++) {
-        TABLE_LOCK_INFO *dl_ptr=dynamic_element(&saved_table_locks,i,TABLE_LOCK_INFO*);
+
+    for (i = 0 ; i < saved_table_locks.elements ; i++) {
+        TABLE_LOCK_INFO *dl_ptr = dynamic_element(&saved_table_locks, i, TABLE_LOCK_INFO *);
         printf("%-8ld%-28.28s%-22s%s\n",
-               dl_ptr->thread_id,dl_ptr->table_name,dl_ptr->lock_text,lock_descriptions[(int)dl_ptr->type]);
+               dl_ptr->thread_id, dl_ptr->table_name, dl_ptr->lock_text, lock_descriptions[(int)dl_ptr->type]);
     }
+
     puts("\n\n");
 end:
     delete_dynamic(&saved_table_locks);
@@ -401,9 +425,10 @@ static int print_key_cache_status(const char *name, KEY_CACHE *key_cache)
     char llbuff3[22];
     char llbuff4[22];
 
-    if (!key_cache->key_cache_inited) {
+    if (!key_cache->key_cache_inited)
         printf("%s: Not in use\n", name);
-    } else {
+
+    else {
         printf("%s\n\
 Buffer_size:    %10lu\n\
 Block_size:     %10lu\n\
@@ -420,12 +445,13 @@ reads:          %10s\n\n",
                (ulong)key_cache->param_block_size,
                (ulong)key_cache->param_division_limit,
                (ulong)key_cache->param_age_threshold,
-               key_cache->blocks_used,key_cache->global_blocks_changed,
-               llstr(key_cache->global_cache_w_requests,llbuff1),
-               llstr(key_cache->global_cache_write,llbuff2),
-               llstr(key_cache->global_cache_r_requests,llbuff3),
-               llstr(key_cache->global_cache_read,llbuff4));
+               key_cache->blocks_used, key_cache->global_blocks_changed,
+               llstr(key_cache->global_cache_w_requests, llbuff1),
+               llstr(key_cache->global_cache_write, llbuff2),
+               llstr(key_cache->global_cache_r_requests, llbuff3),
+               llstr(key_cache->global_cache_read, llbuff4));
     }
+
     return 0;
 }
 
@@ -434,10 +460,9 @@ void mysql_print_status()
 {
     char current_dir[FN_REFLEN];
     STATUS_VAR tmp;
-
     calc_sum_of_all_status(&tmp);
     printf("\nStatus information:\n\n");
-    (void) my_getwd(current_dir, sizeof(current_dir),MYF(0));
+    (void) my_getwd(current_dir, sizeof(current_dir), MYF(0));
     printf("Current dir: %s\n", current_dir);
     printf("Running threads: %u  Stack size: %ld\n", get_thread_count(),
            (long) my_thread_stack_size);
@@ -474,7 +499,6 @@ Open streams:  %10lu\n",
            (ulong) table_cache_manager.cached_tables(),
            (ulong) my_file_opened,
            (ulong) my_stream_opened);
-
     ALARM_INFO alarm_info;
 #ifndef DONT_USE_THR_ALARM
     thr_alarm_info(&alarm_info);
@@ -488,7 +512,7 @@ Next alarm time: %lu\n",
 #endif
     display_table_locks();
 #ifdef HAVE_MALLINFO
-    struct mallinfo info= mallinfo();
+    struct mallinfo info = mallinfo();
     printf("\nMemory status:\n\
 Non-mmapped space allocated from system: %d\n\
 Number of free chunks:			 %d\n\
@@ -514,7 +538,6 @@ Estimated memory (with thread stack):    %ld\n",
            (long) (get_thread_count() * my_thread_stack_size +
                    info.hblkhd + info.arena));
 #endif
-
 #ifdef HAVE_EVENT_SCHEDULER
     Events::dump_internal_status();
 #endif
@@ -543,29 +566,32 @@ public:
     {
         if (!tbl)
             return;
+
         // check if we've already scheduled and/or dumped the element
-        for (int i= 0; i < last; i++) {
+        for (int i = 0; i < last; i++) {
             if (elems[i] == tbl)
                 return;
         }
-        elems[last++]=  tbl;
+
+        elems[last++] =  tbl;
     }
 
     bool pop_first(T **elem)
     {
         if (first < last) {
-            *elem= elems[first++];
+            *elem = elems[first++];
             return TRUE;
         }
+
         return FALSE;
     }
 
     void reset()
     {
-        first= last= 0;
+        first = last = 0;
     }
     enum
-    { MAX_ELEMS=1000};
+    { MAX_ELEMS = 1000};
     T *elems[MAX_ELEMS];
     int first; // First undumped table
     int last;  // Last undumped element
@@ -583,7 +609,7 @@ public:
 };
 
 
-void dump_TABLE_LIST_graph(SELECT_LEX *select_lex, TABLE_LIST* tl)
+void dump_TABLE_LIST_graph(SELECT_LEX *select_lex, TABLE_LIST *tl)
 {
     Dbug_table_list_dumper dumper;
     dumper.dump_graph(select_lex, tl);
@@ -599,7 +625,7 @@ void Dbug_table_list_dumper::dump_one_struct(TABLE_LIST *tbl)
 {
     fprintf(out, "\"%p\" [\n", tbl);
     fprintf(out, "  label = \"%p|", tbl);
-    fprintf(out, "alias=%s|", tbl->alias? tbl->alias : "NULL");
+    fprintf(out, "alias=%s|", tbl->alias ? tbl->alias : "NULL");
     fprintf(out, "<next_leaf>next_leaf=%p|", tbl->next_leaf);
     fprintf(out, "<next_local>next_local=%p|", tbl->next_local);
     fprintf(out, "<next_global>next_global=%p|", tbl->next_global);
@@ -607,10 +633,13 @@ void Dbug_table_list_dumper::dump_one_struct(TABLE_LIST *tbl)
 
     if (tbl->nested_join)
         fprintf(out, "|<nested_j>nested_j=%p", tbl->nested_join);
+
     if (tbl->join_list)
         fprintf(out, "|<join_list>join_list=%p", tbl->join_list);
+
     if (tbl->on_expr)
         fprintf(out, "|<on_expr>on_expr=%p", tbl->on_expr);
+
     fprintf(out, "\"\n");
     fprintf(out, "  shape = \"record\"\n];\n\n");
 
@@ -619,11 +648,13 @@ void Dbug_table_list_dumper::dump_one_struct(TABLE_LIST *tbl)
                 tbl, tbl->next_leaf);
         tables_fifo.push_back(tbl->next_leaf);
     }
+
     if (tbl->next_local) {
         fprintf(out, "\n\"%p\":next_local -> \"%p\"[ color = \"#404040\" ];\n",
                 tbl, tbl->next_local);
         tables_fifo.push_back(tbl->next_local);
     }
+
     if (tbl->next_global) {
         fprintf(out, "\n\"%p\":next_global -> \"%p\"[ color = \"#808080\" ];\n",
                 tbl, tbl->next_global);
@@ -650,37 +681,39 @@ int Dbug_table_list_dumper::dump_graph(st_select_lex *select_lex,
     DBUG_ENTER("Dbug_table_list_dumper::dump_graph");
     char filename[500];
     int no = 0;
+
     do {
         sprintf(filename, "tlist_tree%.3d.g", no);
-        if ((out= fopen(filename, "rt"))) {
+
+        if ((out = fopen(filename, "rt"))) {
             /* File exists, try next name */
             fclose(out);
         }
+
         no++;
     } while (out);
 
     /* Ok, found an unoccupied name, create the file */
-    if (!(out= fopen(filename, "wt"))) {
+    if (!(out = fopen(filename, "wt"))) {
         DBUG_PRINT("tree_dump", ("Failed to create output file"));
         DBUG_RETURN(1);
     }
 
     DBUG_PRINT("tree_dump", ("dumping tree to %s", filename));
-
     fputs("digraph g {\n", out);
     fputs("graph [", out);
     fputs("  rankdir = \"LR\"", out);
     fputs("];", out);
-
     TABLE_LIST *tbl;
     tables_fifo.reset();
     dump_one_struct(first_leaf);
-    while (tables_fifo.pop_first(&tbl)) {
+
+    while (tables_fifo.pop_first(&tbl))
         dump_one_struct(tbl);
-    }
 
     List<TABLE_LIST> *plist;
     tbl_lists.push_back(&select_lex->top_join_list);
+
     while (tbl_lists.pop_first(&plist)) {
         fprintf(out, "\"%p\" [\n", plist);
         fprintf(out, "  bgcolor = \"\"");
@@ -689,21 +722,23 @@ int Dbug_table_list_dumper::dump_graph(st_select_lex *select_lex,
     }
 
     fprintf(out, " { rank = same; ");
-    for (TABLE_LIST *tl=first_leaf; tl; tl= tl->next_leaf)
+
+    for (TABLE_LIST *tl = first_leaf; tl; tl = tl->next_leaf)
         fprintf(out, " \"%p\"; ", tl);
+
     fprintf(out, "};\n");
     fputs("}", out);
     fclose(out);
-
     char filename2[500];
-    filename[strlen(filename) - 1]= 0;
-    filename[strlen(filename) - 1]= 0;
+    filename[strlen(filename) - 1] = 0;
+    filename[strlen(filename) - 1] = 0;
     sprintf(filename2, "%s.query", filename);
 
-    if ((out= fopen(filename2, "wt"))) {
+    if ((out = fopen(filename2, "wt"))) {
 //    fprintf(out, "%s", current_thd->query);
         fclose(out);
     }
+
     DBUG_RETURN(0);
 }
 

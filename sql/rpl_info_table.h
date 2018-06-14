@@ -89,9 +89,9 @@ private:
       @retval false Success
       @retval true  Error
     */
-    static bool do_count_info(uint nparam, const char* param_schema,
-                              const char* param_table,  uint* counter);
-    static int do_reset_info(uint nparam, const char* param_schema,
+    static bool do_count_info(uint nparam, const char *param_schema,
+                              const char *param_table,  uint *counter);
+    static int do_reset_info(uint nparam, const char *param_schema,
                              const char *param_table);
     int do_prepare_info_for_read();
     int do_prepare_info_for_write();
@@ -115,17 +115,17 @@ private:
                      const float default_value);
     bool do_get_info(const int pos, Dynamic_ids *value,
                      const Dynamic_ids *default_value);
-    char* do_get_description_info();
+    char *do_get_description_info();
 
     bool do_is_transactional();
     bool do_update_is_transactional();
     uint do_get_rpl_info_type();
 
     Rpl_info_table(uint nparam,
-                   const char* param_schema,
+                   const char *param_schema,
                    const char *param_table);
 
-    Rpl_info_table(const Rpl_info_table& info);
-    Rpl_info_table& operator=(const Rpl_info_table& info);
+    Rpl_info_table(const Rpl_info_table &info);
+    Rpl_info_table &operator=(const Rpl_info_table &info);
 };
 #endif /* RPL_INFO_TABLE_H */

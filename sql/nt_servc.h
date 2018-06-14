@@ -51,19 +51,19 @@ public:
         return bOsNT;
     }
     //init service entry point
-    long Init(LPCSTR szInternName,void *ServiceThread);
+    long Init(LPCSTR szInternName, void *ServiceThread);
 
     //application shutdown event
     void SetShutdownEvent(HANDLE hEvent)
     {
-        hShutdownEvent=hEvent;
+        hShutdownEvent = hEvent;
     }
 
 
     //service install / un-install
-    BOOL Install(int startType,LPCSTR szInternName,LPCSTR szDisplayName,
-                 LPCSTR szFullPath, LPCSTR szAccountName=NULL,
-                 LPCSTR szPassword=NULL);
+    BOOL Install(int startType, LPCSTR szInternName, LPCSTR szDisplayName,
+                 LPCSTR szFullPath, LPCSTR szAccountName = NULL,
+                 LPCSTR szPassword = NULL);
     BOOL SeekStatus(LPCSTR szInternName, int OperationType);
     BOOL Remove(LPCSTR szInternName);
     BOOL IsService(LPCSTR ServiceName);
@@ -111,9 +111,9 @@ protected:
     static void ServiceCtrlHandler (DWORD ctrlCode);
 
     void Exit(DWORD error);
-    BOOL SetStatus (DWORD dwCurrentState,DWORD dwWin32ExitCode,
+    BOOL SetStatus (DWORD dwCurrentState, DWORD dwWin32ExitCode,
                     DWORD dwServiceSpecificExitCode,
-                    DWORD dwCheckPoint,DWORD dwWaitHint);
+                    DWORD dwCheckPoint, DWORD dwWaitHint);
 
 };
 /* ------------------------- the end -------------------------------------- */

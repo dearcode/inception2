@@ -26,9 +26,9 @@
 */
 
 #ifdef HAVE_PSI_INTERFACE
-extern PSI_mutex_key key_event_scheduler_LOCK_scheduler_state;
-extern PSI_cond_key key_event_scheduler_COND_state;
-extern PSI_thread_key key_thread_event_scheduler, key_thread_event_worker;
+    extern PSI_mutex_key key_event_scheduler_LOCK_scheduler_state;
+    extern PSI_cond_key key_event_scheduler_COND_state;
+    extern PSI_thread_key key_thread_event_scheduler, key_thread_event_worker;
 #endif /* HAVE_PSI_INTERFACE */
 
 /* Always defined, for SHOW PROCESSLIST. */
@@ -89,8 +89,7 @@ public:
 
 public:
     /* A hack needed for Event_queue_element */
-    static Event_db_repository *
-    get_db_repository()
+    static Event_db_repository *get_db_repository()
     {
         return db_repository;
     }

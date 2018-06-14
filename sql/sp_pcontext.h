@@ -61,12 +61,12 @@ public:
 public:
     sp_variable(LEX_STRING _name, enum_field_types _type, enum_mode _mode,
                 uint _offset)
-        :Sql_alloc(),
-         name(_name),
-         type(_type),
-         mode(_mode),
-         offset(_offset),
-         default_value(NULL)
+        : Sql_alloc(),
+          name(_name),
+          type(_type),
+          mode(_mode),
+          offset(_offset),
+          default_value(NULL)
     { }
 };
 
@@ -108,11 +108,11 @@ public:
 
 public:
     sp_label(LEX_STRING _name, uint _ip, enum_type _type, sp_pcontext *_ctx)
-        :Sql_alloc(),
-         name(_name),
-         ip(_ip),
-         type(_type),
-         ctx(_ctx)
+        : Sql_alloc(),
+          name(_name),
+          ip(_ip),
+          type(_type),
+          ctx(_ctx)
     { }
 };
 
@@ -141,29 +141,29 @@ public:
     enum_type type;
 
     /// SQLSTATE of the condition value.
-    char sql_state[SQLSTATE_LENGTH+1];
+    char sql_state[SQLSTATE_LENGTH + 1];
 
     /// MySQL error code of the condition value.
     uint mysqlerr;
 
 public:
     sp_condition_value(uint _mysqlerr)
-        :Sql_alloc(),
-         type(ERROR_CODE),
-         mysqlerr(_mysqlerr)
+        : Sql_alloc(),
+          type(ERROR_CODE),
+          mysqlerr(_mysqlerr)
     { }
 
     sp_condition_value(const char *_sql_state)
-        :Sql_alloc(),
-         type(SQLSTATE)
+        : Sql_alloc(),
+          type(SQLSTATE)
     {
         memcpy(sql_state, _sql_state, SQLSTATE_LENGTH);
-        sql_state[SQLSTATE_LENGTH]= 0;
+        sql_state[SQLSTATE_LENGTH] = 0;
     }
 
     sp_condition_value(enum_type _type)
-        :Sql_alloc(),
-         type(_type)
+        : Sql_alloc(),
+          type(_type)
     {
         DBUG_ASSERT(type != ERROR_CODE && type != SQLSTATE);
     }
@@ -192,9 +192,9 @@ public:
 
 public:
     sp_condition(LEX_STRING _name, sp_condition_value *_value)
-        :Sql_alloc(),
-         name(_name),
-         value(_value)
+        : Sql_alloc(),
+          name(_name),
+          value(_value)
     { }
 };
 
@@ -228,9 +228,9 @@ public:
     /// @param _type    SQL-handler type.
     /// @param _scope   Handler scope.
     sp_handler(enum_type _type, sp_pcontext *_scope)
-        :Sql_alloc(),
-         type(_type),
-         scope(_scope)
+        : Sql_alloc(),
+          type(_type),
+          scope(_scope)
     { }
 };
 
@@ -401,7 +401,7 @@ public:
     /// @param n The number of variables to skip.
     void declare_var_boundary(uint n)
     {
-        m_pboundary= n;
+        m_pboundary = n;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -441,10 +441,10 @@ public:
 
     sp_label *last_label()
     {
-        sp_label *label= m_labels.head();
+        sp_label *label = m_labels.head();
 
         if (!label && m_parent)
-            label= m_parent->last_label();
+            label = m_parent->last_label();
 
         return label;
     }
@@ -468,7 +468,7 @@ public:
     // Handlers.
     /////////////////////////////////////////////////////////////////////////
 
-    sp_handler *add_handler(THD* thd, sp_handler::enum_type type);
+    sp_handler *add_handler(THD *thd, sp_handler::enum_type type);
 
     /// This is an auxilary parsing-time function to check if an SQL-handler
     /// exists in the current parsing context (current scope) for the given

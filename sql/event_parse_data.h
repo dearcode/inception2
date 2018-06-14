@@ -71,9 +71,9 @@ public:
     LEX_STRING definer;// combination of user and host
     LEX_STRING comment;
 
-    Item* item_starts;
-    Item* item_ends;
-    Item* item_execute_at;
+    Item *item_starts;
+    Item *item_ends;
+    Item *item_execute_at;
 
     my_time_t starts;
     my_time_t ends;
@@ -83,7 +83,7 @@ public:
     my_bool execute_at_null;
 
     sp_name *identifier;
-    Item* item_expression;
+    Item *item_expression;
     longlong expression;
     interval_type interval;
 

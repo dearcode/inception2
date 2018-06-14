@@ -61,7 +61,7 @@ typedef struct st_sort_addon_field    /* Sort addon packed field */
 typedef struct st_buffpek  		/* Struktur om sorteringsbuffrarna */
 {
     my_off_t file_pos;			/* Where we are in the sort file */
-    uchar *base,*key;			/* key pointers */
+    uchar *base, *key;			/* key pointers */
     ha_rows count;			/* Number of rows in table */
     ulong mem_count;			/* numbers of keys in memory */
     ulong max_keys;			/* Max keys in buffert */
@@ -90,7 +90,7 @@ public:
     SORT_ADDON_FIELD *addon_field; // Descriptors for companion fields.
     uchar *unique_buff;
     bool not_killable;
-    char* tmp_buffer;
+    char *tmp_buffer;
     // The fields below are used only by Unique class.
     qsort2_cmp compare;
     BUFFPEK_COMPARE_CONTEXT cmp_context;
@@ -108,12 +108,12 @@ public:
 int merge_many_buff(Sort_param *param, uchar *sort_buffer,
                     BUFFPEK *buffpek,
                     uint *maxbuffer, IO_CACHE *t_file);
-uint read_to_buffer(IO_CACHE *fromfile,BUFFPEK *buffpek,
+uint read_to_buffer(IO_CACHE *fromfile, BUFFPEK *buffpek,
                     uint sort_length);
-int merge_buffers(Sort_param *param,IO_CACHE *from_file,
+int merge_buffers(Sort_param *param, IO_CACHE *from_file,
                   IO_CACHE *to_file, uchar *sort_buffer,
-                  BUFFPEK *lastbuff,BUFFPEK *Fb,
-                  BUFFPEK *Tb,int flag);
+                  BUFFPEK *lastbuff, BUFFPEK *Fb,
+                  BUFFPEK *Tb, int flag);
 void reuse_freed_buff(QUEUE *queue, BUFFPEK *reuse, uint key_length);
 
 #endif /* SQL_SORT_INCLUDED */

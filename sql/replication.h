@@ -497,7 +497,7 @@ void thd_enter_cond(MYSQL_THD thd, mysql_cond_t *cond, mysql_mutex_t *mutex,
                     int src_line);
 
 #define THD_ENTER_COND(P1, P2, P3, P4, P5) \
-  thd_enter_cond(P1, P2, P3, P4, P5, __func__, __FILE__, __LINE__)
+    thd_enter_cond(P1, P2, P3, P4, P5, __func__, __FILE__, __LINE__)
 
 /**
    Set thread leaving a condition
@@ -517,7 +517,7 @@ void thd_exit_cond(MYSQL_THD thd, const PSI_stage_info *stage,
                    int src_line);
 
 #define THD_EXIT_COND(P1, P2) \
-  thd_exit_cond(P1, P2, __func__, __FILE__, __LINE__)
+    thd_exit_cond(P1, P2, __func__, __FILE__, __LINE__)
 
 /**
    Get the value of user variable as an integer.

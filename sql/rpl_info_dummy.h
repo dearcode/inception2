@@ -65,14 +65,14 @@ private:
                      const float default_value);
     bool do_get_info(const int pos, Dynamic_ids *value,
                      const Dynamic_ids *default_value);
-    char* do_get_description_info();
+    char *do_get_description_info();
     bool do_is_transactional();
     bool do_update_is_transactional();
     uint do_get_rpl_info_type();
 
-    static const bool abort= FALSE;
+    static const bool abort = FALSE;
 
-    Rpl_info_dummy& operator=(const Rpl_info_dummy& info);
-    Rpl_info_dummy(const Rpl_info_dummy& info);
+    Rpl_info_dummy &operator=(const Rpl_info_dummy &info);
+    Rpl_info_dummy(const Rpl_info_dummy &info);
 };
 #endif /* RPL_INFO_DUMMY_H */

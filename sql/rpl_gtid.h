@@ -24,7 +24,7 @@
 #include <mysqld_error.h>
 #include <my_global.h>
 #ifdef MYSQL_SERVER
-#include <mysqld.h>
+    #include <mysqld.h>
 #endif
 /**
   Report an error from code that can be linked into either the server
@@ -38,9 +38,9 @@
   call parentheses.
 */
 #ifdef MYSQL_CLIENT
-#define BINLOG_ERROR(MYSQLBINLOG_ERROR, SERVER_ERROR) error MYSQLBINLOG_ERROR
+    #define BINLOG_ERROR(MYSQLBINLOG_ERROR, SERVER_ERROR) error MYSQLBINLOG_ERROR
 #else
-#define BINLOG_ERROR(MYSQLBINLOG_ERROR, SERVER_ERROR) my_error SERVER_ERROR
+    #define BINLOG_ERROR(MYSQLBINLOG_ERROR, SERVER_ERROR) my_error SERVER_ERROR
 #endif
 
 
@@ -70,8 +70,8 @@
 #undef NON_ERROR_GTID
 
 #ifndef MYSQL_CLIENT
-class String;
-class THD;
+    class String;
+    class THD;
 #endif // ifndef MYSQL_CLIENT
 
 
@@ -102,11 +102,11 @@ typedef int64 rpl_binlog_pos;
 enum enum_return_status
 {
     /// The function completed successfully.
-    RETURN_STATUS_OK= 0,
+    RETURN_STATUS_OK = 0,
     /// The function completed with error but did not report it.
-    RETURN_STATUS_UNREPORTED_ERROR= 1,
+    RETURN_STATUS_UNREPORTED_ERROR = 1,
     /// The function completed with error and has called my_error.
-    RETURN_STATUS_REPORTED_ERROR= 2
+    RETURN_STATUS_REPORTED_ERROR = 2
 };
 
 /**
@@ -133,7 +133,7 @@ extern void check_return_status(enum_return_status status,
                                 const char *action, const char *status_name,
                                 int allow_unreported);
 #define __CHECK_RETURN_STATUS(STATUS, ACTION, STATUS_NAME, ALLOW_UNREPORTED) \
-  check_return_status(STATUS, ACTION, STATUS_NAME, ALLOW_UNREPORTED);
+    check_return_status(STATUS, ACTION, STATUS_NAME, ALLOW_UNREPORTED);
 #endif
 /**
   Low-level macro that checks if STATUS is RETURN_STATUS_OK; if it is
@@ -141,44 +141,44 @@ extern void check_return_status(enum_return_status status,
   @see __DO_RETURN_STATUS
 */
 #define __PROPAGATE_ERROR(STATUS, RETURN_VALUE, ALLOW_UNREPORTED)       \
-  do                                                                    \
-  {                                                                     \
-    enum_return_status __propagate_error_status= STATUS;                \
-    if (__propagate_error_status != RETURN_STATUS_OK) {                 \
-      __CHECK_RETURN_STATUS(__propagate_error_status, "Propagating",    \
-                            #STATUS, ALLOW_UNREPORTED);                 \
-      DBUG_RETURN(RETURN_VALUE);                                        \
-    }                                                                   \
-  } while (0)
+    do                                                                    \
+    {                                                                     \
+        enum_return_status __propagate_error_status= STATUS;                \
+        if (__propagate_error_status != RETURN_STATUS_OK) {                 \
+            __CHECK_RETURN_STATUS(__propagate_error_status, "Propagating",    \
+                                  #STATUS, ALLOW_UNREPORTED);                 \
+            DBUG_RETURN(RETURN_VALUE);                                        \
+        }                                                                   \
+    } while (0)
 /// Low-level macro that returns STATUS. @see __DO_RETURN_STATUS
 #define __RETURN_STATUS(STATUS, ALLOW_UNREPORTED)                       \
-  do                                                                    \
-  {                                                                     \
-    enum_return_status __return_status_status= STATUS;                  \
-    __CHECK_RETURN_STATUS(__return_status_status, "Returning",          \
-                          #STATUS, ALLOW_UNREPORTED);                   \
-    DBUG_RETURN(__return_status_status);                                \
-  } while (0)
+    do                                                                    \
+    {                                                                     \
+        enum_return_status __return_status_status= STATUS;                  \
+        __CHECK_RETURN_STATUS(__return_status_status, "Returning",          \
+                              #STATUS, ALLOW_UNREPORTED);                   \
+        DBUG_RETURN(__return_status_status);                                \
+    } while (0)
 /**
   If STATUS (of type enum_return_status) returns RETURN_STATUS_OK,
   does nothing; otherwise, does a DBUG_PRINT and returns STATUS.
 */
 #define PROPAGATE_ERROR(STATUS)                                 \
-  __PROPAGATE_ERROR(STATUS, __propagate_error_status, true)
+    __PROPAGATE_ERROR(STATUS, __propagate_error_status, true)
 /**
   If STATUS (of type enum_return_status) returns RETURN_STATUS_OK,
   does nothing; otherwise asserts that STATUS ==
   RETURN_STATUS_REPORTED_ERROR, does a DBUG_PRINT, and returns STATUS.
 */
 #define PROPAGATE_REPORTED_ERROR(STATUS)                        \
-  __PROPAGATE_ERROR(STATUS, __propagate_error_status, false)
+    __PROPAGATE_ERROR(STATUS, __propagate_error_status, false)
 /**
   If STATUS (of type enum_return_status) returns RETURN_STATUS_OK,
   does nothing; otherwise asserts that STATUS ==
   RETURN_STATUS_REPORTED_ERROR, does a DBUG_PRINT, and returns 1.
 */
 #define PROPAGATE_REPORTED_ERROR_INT(STATUS)    \
-  __PROPAGATE_ERROR(STATUS, 1, false)
+    __PROPAGATE_ERROR(STATUS, 1, false)
 /**
   If STATUS returns something else than RETURN_STATUS_OK, does a
   DBUG_PRINT.  Then, returns STATUS.
@@ -199,11 +199,11 @@ extern void check_return_status(enum_return_status status,
 
 
 /// The maximum value of GNO
-const rpl_gno MAX_GNO= LONGLONG_MAX;
+const rpl_gno MAX_GNO = LONGLONG_MAX;
 /// The length of MAX_GNO when printed in decimal.
-const int MAX_GNO_TEXT_LENGTH= 19;
+const int MAX_GNO_TEXT_LENGTH = 19;
 /// The maximal possible length of thread_id when printed in decimal.
-const int MAX_THREAD_ID_TEXT_LENGTH= 19;
+const int MAX_THREAD_ID_TEXT_LENGTH = 19;
 
 
 /**
@@ -272,7 +272,7 @@ struct Uuid
     */
     size_t to_string(char *buf) const;
     /// Convert the given binary buffer to a UUID
-    static size_t to_string(const uchar* bytes_arg, char *buf);
+    static size_t to_string(const uchar *bytes_arg, char *buf);
 #ifndef DBUG_OFF
     /// Debugging only: Print this Uuid to stdout.
     void print() const
@@ -283,7 +283,7 @@ struct Uuid
     }
 #endif
     /// Print this Uuid to the trace file if debug is enabled; no-op otherwise.
-    void dbug_print(const char *text= "") const
+    void dbug_print(const char *text = "") const
     {
 #ifndef DBUG_OFF
         char buf[TEXT_LENGTH + 1];
@@ -297,15 +297,15 @@ struct Uuid
     */
     static bool is_valid(const char *string);
     /// The number of bytes in the textual representation of a Uuid.
-    static const size_t TEXT_LENGTH= 36;
+    static const size_t TEXT_LENGTH = 36;
     /// The number of bytes in the data of a Uuid.
-    static const size_t BYTE_LENGTH= 16;
+    static const size_t BYTE_LENGTH = 16;
     /// The number of bits in the data of a Uuid.
-    static const size_t BIT_LENGTH= 128;
+    static const size_t BIT_LENGTH = 128;
     /// The data for this Uuid.
     uchar bytes[BYTE_LENGTH];
 private:
-    static const int NUMBER_OF_SECTIONS= 5;
+    static const int NUMBER_OF_SECTIONS = 5;
     static const int bytes_per_section[NUMBER_OF_SECTIONS];
     static const int hex_to_byte[256];
 };
@@ -336,9 +336,9 @@ public:
     {
 #ifndef DBUG_OFF
         my_atomic_rwlock_init(&atomic_lock);
-        lock_state= 0;
+        lock_state = 0;
 #else
-        is_write_lock= false;
+        is_write_lock = false;
 #endif
 #ifdef MYSQL_SERVER
         mysql_rwlock_init(key_rwlock_global_sid_lock, &rwlock);
@@ -376,7 +376,7 @@ public:
         my_atomic_store32(&lock_state, -1);
         my_atomic_rwlock_wrunlock(&atomic_lock);
 #else
-        is_write_lock= true;
+        is_write_lock = true;
 #endif
     }
     /// Release the lock (whether it is a write or read lock).
@@ -385,16 +385,18 @@ public:
         assert_some_lock();
 #ifndef DBUG_OFF
         my_atomic_rwlock_wrlock(&atomic_lock);
-        int val= my_atomic_load32(&lock_state);
+        int val = my_atomic_load32(&lock_state);
+
         if (val > 0)
             my_atomic_add32(&lock_state, -1);
         else if (val == -1)
             my_atomic_store32(&lock_state, 0);
         else
             DBUG_ASSERT(0);
+
         my_atomic_rwlock_wrunlock(&atomic_lock);
 #else
-        is_write_lock= false;
+        is_write_lock = false;
 #endif
         mysql_rwlock_unlock(&rwlock);
     }
@@ -459,7 +461,7 @@ private:
     {
         int32 ret;
         my_atomic_rwlock_rdlock(&atomic_lock);
-        ret= my_atomic_load32(const_cast<volatile int32*>(&lock_state));
+        ret = my_atomic_load32(const_cast<volatile int32 *>(&lock_state));
         my_atomic_rwlock_rdunlock(&atomic_lock);
         return ret;
     }
@@ -538,10 +540,13 @@ public:
     {
         if (sid_lock != NULL)
             sid_lock->assert_some_lock();
-        Node *node= (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
-                                           rpl_sid::BYTE_LENGTH);
+
+        Node *node = (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
+                                            rpl_sid::BYTE_LENGTH);
+
         if (node == NULL)
             return 0;
+
         return node->sidno;
     }
     /**
@@ -561,6 +566,7 @@ public:
     {
         if (sid_lock != NULL)
             sid_lock->assert_some_lock();
+
         DBUG_ASSERT(sidno >= 1 && sidno <= get_max_sidno());
         return (*dynamic_element(&_sidno_to_sid, sidno - 1, Node **))->sid;
     }
@@ -576,7 +582,8 @@ public:
     {
         if (sid_lock != NULL)
             sid_lock->assert_some_lock();
-        rpl_sidno ret= *dynamic_element(&_sorted, n, rpl_sidno *);
+
+        rpl_sidno ret = *dynamic_element(&_sorted, n, rpl_sidno *);
         return ret;
     }
     /**
@@ -589,6 +596,7 @@ public:
     {
         if (sid_lock != NULL)
             sid_lock->assert_some_lock();
+
         return _sidno_to_sid.elements;
     }
 
@@ -719,7 +727,7 @@ public:
     inline void wait(int n) const
     {
         DBUG_ENTER("Mutex_cond_array::wait");
-        Mutex_cond *mutex_cond= get_mutex_cond(n);
+        Mutex_cond *mutex_cond = get_mutex_cond(n);
         global_lock->unlock();
         mysql_mutex_assert_owner(&mutex_cond->mutex);
         mysql_cond_wait(&mutex_cond->cond, &mutex_cond->mutex);
@@ -760,7 +768,7 @@ private:
     {
         global_lock->assert_some_lock();
         DBUG_ASSERT(n <= get_max_index());
-        Mutex_cond *ret= *dynamic_element(&array, n, Mutex_cond **);
+        Mutex_cond *ret = *dynamic_element(&array, n, Mutex_cond **);
         DBUG_ASSERT(ret);
         return ret;
     }
@@ -787,14 +795,14 @@ struct Gtid
     /// Set both components to 0.
     void clear()
     {
-        sidno= 0;
-        gno= 0;
+        sidno = 0;
+        gno = 0;
     }
     /**
       The maximal length of the textual representation of a SID, not
       including the terminating '\0'.
     */
-    static const int MAX_TEXT_LENGTH= Uuid::TEXT_LENGTH + 1 + MAX_GNO_TEXT_LENGTH;
+    static const int MAX_TEXT_LENGTH = Uuid::TEXT_LENGTH + 1 + MAX_GNO_TEXT_LENGTH;
     /**
       Return true if parse() would succeed, but don't store the
       result anywhere.
@@ -839,7 +847,7 @@ struct Gtid
     }
 #endif
     /// Print this Gtid to the trace file if debug is enabled; no-op otherwise.
-    void dbug_print(const Sid_map *sid_map, const char *text= "") const
+    void dbug_print(const Sid_map *sid_map, const char *text = "") const
     {
 #ifndef DBUG_OFF
         char buf[MAX_TEXT_LENGTH + 1];
@@ -883,7 +891,7 @@ public:
       number of SIDs. This may be NULL if such changes do not need to be
       protected.
     */
-    Gtid_set(Sid_map *sid_map, Checkable_rwlock *sid_lock= NULL);
+    Gtid_set(Sid_map *sid_map, Checkable_rwlock *sid_lock = NULL);
     /**
       Constructs a new Gtid_set that contains the groups in the given string, in the same format as add_gtid_text(char *).
 
@@ -901,7 +909,7 @@ public:
       there will be a short period when the lock is not held at all.
     */
     Gtid_set(Sid_map *sid_map, const char *text, enum_return_status *status,
-             Checkable_rwlock *sid_lock= NULL);
+             Checkable_rwlock *sid_lock = NULL);
 private:
     /// Worker for the constructor.
     void init();
@@ -929,7 +937,7 @@ public:
         DBUG_ENTER("Gtid_set::_add_gtid(sidno, gno)");
         Interval_iterator ivit(this, sidno);
         Free_intervals_lock lock(this);
-        enum_return_status ret= add_gno_interval(&ivit, gno, gno + 1, &lock);
+        enum_return_status ret = add_gno_interval(&ivit, gno, gno + 1, &lock);
         DBUG_RETURN(ret);
     }
     /**
@@ -942,12 +950,14 @@ public:
     enum_return_status _remove_gtid(rpl_sidno sidno, rpl_gno gno)
     {
         DBUG_ENTER("Gtid_set::_remove_gtid(rpl_sidno, rpl_gno)");
+
         if (sidno <= get_max_sidno()) {
             Interval_iterator ivit(this, sidno);
             Free_intervals_lock lock(this);
-            enum_return_status ret= remove_gno_interval(&ivit, gno, gno + 1, &lock);
+            enum_return_status ret = remove_gno_interval(&ivit, gno, gno + 1, &lock);
             DBUG_RETURN(ret);
         }
+
         RETURN_OK;
     }
     /**
@@ -1010,7 +1020,7 @@ public:
       anonymous group was found; false otherwise.
       @return RETURN_STATUS_OK or RETURN_STATUS_REPORTED_ERROR.
     */
-    enum_return_status add_gtid_text(const char *text, bool *anonymous= NULL);
+    enum_return_status add_gtid_text(const char *text, bool *anonymous = NULL);
     /**
       Decodes a Gtid_set from the given string.
 
@@ -1031,6 +1041,7 @@ public:
     {
         if (sid_lock)
             sid_lock->assert_some_lock();
+
         return intervals.elements;
     }
     /**
@@ -1078,8 +1089,10 @@ public:
     bool contains_sidno(rpl_sidno sidno) const
     {
         DBUG_ASSERT(sidno >= 1);
+
         if (sidno > get_max_sidno())
             return false;
+
         Const_interval_iterator ivit(this, sidno);
         return ivit.get() != NULL;
     }
@@ -1094,16 +1107,18 @@ public:
     */
     char *to_string() const
     {
-        char *str= (char *)my_malloc(get_string_length() + 1, MYF(MY_WME));
+        char *str = (char *)my_malloc(get_string_length() + 1, MYF(MY_WME));
+
         if (str != NULL)
             to_string(str);
+
         return str;
     }
 #ifndef DBUG_OFF
     /// Debug only: Print this Gtid_set to stdout.
     void print() const
     {
-        char *str= to_string();
+        char *str = to_string();
         printf("%s\n", str);
         my_free(str);
     }
@@ -1112,10 +1127,10 @@ public:
       Print this Gtid_set to the trace file if debug is enabled; no-op
       otherwise.
     */
-    void dbug_print(const char *text= "") const
+    void dbug_print(const char *text = "") const
     {
 #ifndef DBUG_OFF
-        char *str= to_string();
+        char *str = to_string();
         DBUG_PRINT("info", ("%s%s'%s'", text, *text ? ": " : "", str));
         my_free(str);
 #endif
@@ -1160,7 +1175,7 @@ public:
       separators in the resulting text.
       @return The length.
     */
-    int get_string_length(const String_format *string_format= NULL) const;
+    int get_string_length(const String_format *string_format = NULL) const;
     /**
       Formats this Gtid_set as a string and saves in a given buffer.
 
@@ -1170,7 +1185,7 @@ public:
       separators in the resulting text.
       @return Length of the generated string.
     */
-    int to_string(char *buf, const String_format *string_format= NULL) const;
+    int to_string(char *buf, const String_format *string_format = NULL) const;
 
     /**
       Formats a Gtid_set as a string and saves in a newly allocated buffer.
@@ -1179,7 +1194,7 @@ public:
       @param string_format Specifies how to format the string.
       @retval Length of the generated string, or -1 on out of memory.
     */
-    int to_string(char **buf, const String_format *string_format= NULL) const;
+    int to_string(char **buf, const String_format *string_format = NULL) const;
 
     /**
       The default String_format: the format understood by
@@ -1236,7 +1251,9 @@ public:
     {
         if (sid_lock != NULL)
             mysql_mutex_lock(&free_intervals_mutex);
+
         add_interval_memory_lock_taken(n_intervals, intervals_param);
+
         if (sid_lock != NULL)
             mysql_mutex_unlock(&free_intervals_mutex);
     }
@@ -1269,18 +1286,18 @@ public:
         /// Construct a new iterator over the free intervals of a Gtid_set.
         Interval_iterator_base(Gtid_set_p gtid_set)
         {
-            p= const_cast<Interval_p *>(&gtid_set->free_intervals);
+            p = const_cast<Interval_p *>(&gtid_set->free_intervals);
         }
         /// Reset this iterator.
         inline void init(Gtid_set_p gtid_set, rpl_sidno sidno)
         {
-            p= dynamic_element(&gtid_set->intervals, sidno - 1, Interval_p *);
+            p = dynamic_element(&gtid_set->intervals, sidno - 1, Interval_p *);
         }
         /// Advance current_elem one step.
         inline void next()
         {
             DBUG_ASSERT(*p != NULL);
-            p= const_cast<Interval_p *>(&(*p)->next);
+            p = const_cast<Interval_p *>(&(*p)->next);
         }
         /// Return current_elem.
         inline Interval_p get() const
@@ -1332,19 +1349,19 @@ public:
         */
         inline void set(Interval *iv)
         {
-            *p= iv;
+            *p = iv;
         }
         /// Insert the given element before current_elem.
         inline void insert(Interval *iv)
         {
-            iv->next= *p;
+            iv->next = *p;
             set(iv);
         }
         /// Remove current_elem.
         inline void remove(Gtid_set *gtid_set)
         {
             DBUG_ASSERT(get() != NULL);
-            Interval *next= (*p)->next;
+            Interval *next = (*p)->next;
             gtid_set->put_free_interval(*p);
             set(next);
         }
@@ -1371,6 +1388,7 @@ public:
         {
             if (gs->sid_lock != NULL)
                 gs->sid_lock->assert_some_wrlock();
+
             next_sidno();
         }
         /// Advance to next group.
@@ -1379,25 +1397,30 @@ public:
             DBUG_ASSERT(gno > 0 && sidno > 0);
             // go to next group in current interval
             gno++;
+
             // end of interval? then go to next interval for this sidno
             if (gno == ivit.get()->end) {
                 ivit.next();
-                const Interval *iv= ivit.get();
+                const Interval *iv = ivit.get();
+
                 // last interval for this sidno? then go to next sidno
                 if (iv == NULL) {
                     next_sidno();
+
                     // last sidno? then don't try more
                     if (sidno == 0)
                         return;
-                    iv= ivit.get();
+
+                    iv = ivit.get();
                 }
-                gno= iv->start;
+
+                gno = iv->start;
             }
         }
         /// Return next group, or {0,0} if we reached the end.
         inline Gtid get() const
         {
-            Gtid ret= { sidno, gno };
+            Gtid ret = { sidno, gno };
             return ret;
         }
     private:
@@ -1405,17 +1428,21 @@ public:
         inline void next_sidno()
         {
             const Interval *iv;
+
             do {
                 sidno++;
+
                 if (sidno > gtid_set->get_max_sidno()) {
-                    sidno= 0;
-                    gno= 0;
+                    sidno = 0;
+                    gno = 0;
                     return;
                 }
+
                 ivit.init(gtid_set, sidno);
-                iv= ivit.get();
+                iv = ivit.get();
             } while (iv == NULL);
-            gno= iv->start;
+
+            gno = iv->start;
         }
         /// The Gtid_set we iterate over.
         const Gtid_set *gtid_set;
@@ -1458,7 +1485,7 @@ private:
         Interval intervals[1];
     };
     /// The default number of intervals in an Interval_chunk.
-    static const int CHUNK_GROW_SIZE= 8;
+    static const int CHUNK_GROW_SIZE = 8;
 
     /*
       Functions sidno_equals() and equals() are only used by unitests
@@ -1483,11 +1510,13 @@ private:
     int get_n_intervals(rpl_sidno sidno) const
     {
         Const_interval_iterator ivit(this, sidno);
-        int ret= 0;
+        int ret = 0;
+
         while (ivit.get() != NULL) {
             ret++;
             ivit.next();
         }
+
         return ret;
     }
     /// Return the number of intervals in this Gtid_set.
@@ -1495,10 +1524,13 @@ private:
     {
         if (sid_lock != NULL)
             sid_lock->assert_some_wrlock();
-        rpl_sidno max_sidno= get_max_sidno();
-        int ret= 0;
-        for (rpl_sidno sidno= 1; sidno < max_sidno; sidno++)
-            ret+= get_n_intervals(sidno);
+
+        rpl_sidno max_sidno = get_max_sidno();
+        int ret = 0;
+
+        for (rpl_sidno sidno = 1; sidno < max_sidno; sidno++)
+            ret += get_n_intervals(sidno);
+
         return ret;
     }
     /**
@@ -1563,7 +1595,7 @@ private:
         {
             if (gtid_set->sid_lock && !locked) {
                 mysql_mutex_lock(&gtid_set->free_intervals_mutex);
-                locked= true;
+                locked = true;
             }
         }
         /// Lock the lock if it is locked.
@@ -1571,7 +1603,7 @@ private:
         {
             if (gtid_set->sid_lock && locked) {
                 mysql_mutex_unlock(&gtid_set->free_intervals_mutex);
-                locked= false;
+                locked = false;
             }
         }
         /// Destroy this object and unlock the lock if it is locked.
@@ -1756,17 +1788,18 @@ struct Gtid_set_or_null
     {
         if (!is_non_null) {
             if (gtid_set == NULL)
-                gtid_set= new Gtid_set(sm);
+                gtid_set = new Gtid_set(sm);
             else
                 gtid_set->clear();
         }
-        is_non_null= (gtid_set != NULL);
+
+        is_non_null = (gtid_set != NULL);
         return gtid_set;
     }
     /// Set this Gtid_set to NULL.
     inline void set_null()
     {
-        is_non_null= false;
+        is_non_null = false;
     }
 };
 
@@ -1860,26 +1893,33 @@ public:
     */
     int to_string(char *out) const
     {
-        char *p= out;
-        rpl_sidno max_sidno= get_max_sidno();
-        rpl_sidno sid_map_max_sidno= global_sid_map->get_max_sidno();
-        for (rpl_sidno sid_i= 0; sid_i < sid_map_max_sidno; sid_i++) {
-            rpl_sidno sidno= global_sid_map->get_sorted_sidno(sid_i);
+        char *p = out;
+        rpl_sidno max_sidno = get_max_sidno();
+        rpl_sidno sid_map_max_sidno = global_sid_map->get_max_sidno();
+
+        for (rpl_sidno sid_i = 0; sid_i < sid_map_max_sidno; sid_i++) {
+            rpl_sidno sidno = global_sid_map->get_sorted_sidno(sid_i);
+
             if (sidno > max_sidno)
                 continue;
-            HASH *hash= get_hash(sidno);
-            bool printed_sid= false;
-            for (uint i= 0; i < hash->records; i++) {
-                Node *node= (Node *)my_hash_element(hash, i);
+
+            HASH *hash = get_hash(sidno);
+            bool printed_sid = false;
+
+            for (uint i = 0; i < hash->records; i++) {
+                Node *node = (Node *)my_hash_element(hash, i);
                 DBUG_ASSERT(node != NULL);
+
                 if (!printed_sid) {
-                    p+= global_sid_map->sidno_to_sid(sidno).to_string(p);
-                    printed_sid= true;
+                    p += global_sid_map->sidno_to_sid(sidno).to_string(p);
+                    printed_sid = true;
                 }
-                p+= sprintf(p, ":%lld#%lu", node->gno, node->owner);
+
+                p += sprintf(p, ":%lld#%lu", node->gno, node->owner);
             }
         }
-        *p= 0;
+
+        *p = 0;
         return (int)(p - out);
     }
 
@@ -1890,15 +1930,18 @@ public:
     */
     size_t get_max_string_length() const
     {
-        rpl_sidno max_sidno= get_max_sidno();
-        size_t ret= 0;
-        for (rpl_sidno sidno= 1; sidno <= max_sidno; sidno++) {
-            HASH *hash= get_hash(sidno);
+        rpl_sidno max_sidno = get_max_sidno();
+        size_t ret = 0;
+
+        for (rpl_sidno sidno = 1; sidno <= max_sidno; sidno++) {
+            HASH *hash = get_hash(sidno);
+
             if (hash->records > 0)
-                ret+= rpl_sid::TEXT_LENGTH +
-                      hash->records * (1 + MAX_GNO_TEXT_LENGTH +
-                                       1 + MAX_THREAD_ID_TEXT_LENGTH);
+                ret += rpl_sid::TEXT_LENGTH +
+                       hash->records * (1 + MAX_GNO_TEXT_LENGTH +
+                                        1 + MAX_THREAD_ID_TEXT_LENGTH);
         }
+
         return 1 + ret;
     }
 
@@ -1908,13 +1951,16 @@ public:
     bool thread_owns_anything(my_thread_id thd_id) const
     {
         Gtid_iterator git(this);
-        Node *node= git.get_node();
+        Node *node = git.get_node();
+
         while (node != NULL) {
             if (node->owner == thd_id)
                 return true;
+
             git.next();
-            node= git.get_node();
+            node = git.get_node();
         }
+
         return false;
     }
 
@@ -1925,7 +1971,7 @@ public:
     */
     char *to_string() const
     {
-        char *str= (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
+        char *str = (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
         DBUG_ASSERT(str != NULL);
         to_string(str);
         return str;
@@ -1933,7 +1979,7 @@ public:
     /// Debug only: print this Owned_gtids to stdout.
     void print() const
     {
-        char *str= to_string();
+        char *str = to_string();
         printf("%s\n", str);
         my_free(str);
     }
@@ -1942,10 +1988,10 @@ public:
       Print this Owned_gtids to the trace file if debug is enabled; no-op
       otherwise.
     */
-    void dbug_print(const char *text= "") const
+    void dbug_print(const char *text = "") const
     {
 #ifndef DBUG_OFF
-        char *str= to_string();
+        char *str = to_string();
         DBUG_PRINT("info", ("%s%s%s", text, *text ? ": " : "", str));
         my_free(str);
 #endif
@@ -2001,53 +2047,62 @@ public:
     class Gtid_iterator
     {
     public:
-        Gtid_iterator(const Owned_gtids* og)
+        Gtid_iterator(const Owned_gtids *og)
             : owned_gtids(og), sidno(1), hash(NULL), node_index(0), node(NULL)
         {
-            max_sidno= owned_gtids->get_max_sidno();
+            max_sidno = owned_gtids->get_max_sidno();
+
             if (sidno <= max_sidno)
-                hash= owned_gtids->get_hash(sidno);
+                hash = owned_gtids->get_hash(sidno);
+
             next();
         }
         /// Advance to next group.
         inline void next()
         {
 #ifndef DBUG_OFF
+
             if (owned_gtids->sid_lock)
                 owned_gtids->sid_lock->assert_some_wrlock();
+
 #endif
 
             while (sidno <= max_sidno) {
                 DBUG_ASSERT(hash != NULL);
+
                 if (node_index < hash->records) {
-                    node= (Node *)my_hash_element(hash, node_index);
+                    node = (Node *)my_hash_element(hash, node_index);
                     DBUG_ASSERT(node != NULL);
                     // Jump to next node on next iteration.
                     node_index++;
                     return;
                 }
 
-                node_index= 0;
+                node_index = 0;
                 // hash is initialized on constructor or in previous iteration
                 // for current SIDNO, so we must increment for next iteration.
                 sidno++;
+
                 if (sidno <= max_sidno)
-                    hash= owned_gtids->get_hash(sidno);
+                    hash = owned_gtids->get_hash(sidno);
             }
-            node= NULL;
+
+            node = NULL;
         }
         /// Return next group, or {0,0} if we reached the end.
         inline Gtid get() const
         {
-            Gtid ret= { 0, 0 };
+            Gtid ret = { 0, 0 };
+
             if (node) {
-                ret.sidno= sidno;
-                ret.gno= node->gno;
+                ret.sidno = sidno;
+                ret.gno = node->gno;
             }
+
             return ret;
         }
         /// Return next group Node, or NULL if we reached the end.
-        inline Node* get_node() const
+        inline Node *get_node() const
         {
             return node;
         }
@@ -2147,7 +2202,7 @@ public:
     bool is_logged(const Gtid &gtid) const
     {
         DBUG_ENTER("Gtid_state::is_logged");
-        bool ret= logged_gtids.contains_gtid(gtid);
+        bool ret = logged_gtids.contains_gtid(gtid);
         DBUG_RETURN(ret);
     }
     /**
@@ -2332,26 +2387,26 @@ public:
     /// Debug only: Generate a string in the given buffer and return the length.
     int to_string(char *buf) const
     {
-        char *p= buf;
-        p+= sprintf(p, "Logged GTIDs:\n");
-        p+= logged_gtids.to_string(p);
-        p+= sprintf(p, "\nOwned GTIDs:\n");
-        p+= owned_gtids.to_string(p);
-        p+= sprintf(p, "\nLost GTIDs:\n");
-        p+= lost_gtids.to_string(p);
+        char *p = buf;
+        p += sprintf(p, "Logged GTIDs:\n");
+        p += logged_gtids.to_string(p);
+        p += sprintf(p, "\nOwned GTIDs:\n");
+        p += owned_gtids.to_string(p);
+        p += sprintf(p, "\nLost GTIDs:\n");
+        p += lost_gtids.to_string(p);
         return (int)(p - buf);
     }
     /// Debug only: return a newly allocated string, or NULL on out-of-memory.
     char *to_string() const
     {
-        char *str= (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
+        char *str = (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
         to_string(str);
         return str;
     }
     /// Debug only: print this Gtid_state to stdout.
     void print() const
     {
-        char *str= to_string();
+        char *str = to_string();
         printf("%s", str);
         my_free(str);
     }
@@ -2360,11 +2415,11 @@ public:
       Print this Gtid_state to the trace file if debug is enabled; no-op
       otherwise.
     */
-    void dbug_print(const char *text= "") const
+    void dbug_print(const char *text = "") const
     {
 #ifndef DBUG_OFF
         sid_lock->assert_some_wrlock();
-        char *str= to_string();
+        char *str = to_string();
         DBUG_PRINT("info", ("%s%s%s", text, *text ? ": " : "", str));
         my_free(str);
 #endif
@@ -2426,7 +2481,7 @@ enum enum_group_type
       It is important that AUTOMATIC_GROUP==0 so that the default value
       for thd->variables->gtid_next.type is AUTOMATIC_GROUP.
     */
-    AUTOMATIC_GROUP= 0, GTID_GROUP, ANONYMOUS_GROUP, INVALID_GROUP, UNDEFINED_GROUP
+    AUTOMATIC_GROUP = 0, GTID_GROUP, ANONYMOUS_GROUP, INVALID_GROUP, UNDEFINED_GROUP
 };
 
 
@@ -2449,9 +2504,9 @@ struct Gtid_specification
     /// Set the type to GTID_GROUP and SID, GNO to the given values.
     void set(rpl_sidno sidno, rpl_gno gno)
     {
-        type= GTID_GROUP;
-        gtid.sidno= sidno;
-        gtid.gno= gno;
+        type = GTID_GROUP;
+        gtid.sidno = sidno;
+        gtid.gno = gno;
     }
     /// Set the type to GTID_GROUP and SID, GNO to the given Gtid.
     void set(const Gtid &gtid_param)
@@ -2461,13 +2516,13 @@ struct Gtid_specification
     /// Set the type to AUTOMATIC_GROUP.
     void set_automatic()
     {
-        type= AUTOMATIC_GROUP;
+        type = AUTOMATIC_GROUP;
     }
     /// Set to undefined if the current type is GTID_GROUP.
     void set_undefined()
     {
         if (type == GTID_GROUP)
-            type= UNDEFINED_GROUP;
+            type = UNDEFINED_GROUP;
     }
     /// Set the type to GTID_GROUP and SID, GNO to 0, 0.
     void clear()
@@ -2506,7 +2561,7 @@ struct Gtid_specification
         return Gtid_specification::get_type(text) != INVALID_GROUP;
     }
 #endif
-    static const int MAX_TEXT_LENGTH= Uuid::TEXT_LENGTH + 1 + MAX_GNO_TEXT_LENGTH;
+    static const int MAX_TEXT_LENGTH = Uuid::TEXT_LENGTH + 1 + MAX_GNO_TEXT_LENGTH;
     /**
       Writes this Gtid_specification to the given string buffer.
 
@@ -2540,7 +2595,7 @@ struct Gtid_specification
       Print this Gtid_specificatoin to the trace file if debug is
       enabled; no-op otherwise.
     */
-    void dbug_print(const char *text= "") const
+    void dbug_print(const char *text = "") const
     {
 #ifndef DBUG_OFF
         char buf[MAX_TEXT_LENGTH + 1];
@@ -2667,15 +2722,17 @@ public:
     */
     size_t to_string(const Sid_map *sm, char *buf) const
     {
-        int n_groups= get_n_groups();
-        char *s= buf;
-
+        int n_groups = get_n_groups();
+        char *s = buf;
         s += sprintf(s, "%d groups = {\n", n_groups);
-        for (int i= 0; i < n_groups; i++) {
-            Cached_group *group= get_unsafe_pointer(i);
-            char uuid[Uuid::TEXT_LENGTH + 1]= "[]";
+
+        for (int i = 0; i < n_groups; i++) {
+            Cached_group *group = get_unsafe_pointer(i);
+            char uuid[Uuid::TEXT_LENGTH + 1] = "[]";
+
             if (group->spec.gtid.sidno)
                 sm->sidno_to_sid(group->spec.gtid.sidno).to_string(uuid);
+
             s += sprintf(s, "  %s:%lld [offset %lld] %s\n",
                          uuid, group->spec.gtid.gno, group->binlog_offset,
                          group->spec.type == GTID_GROUP ? "GTID" :
@@ -2683,6 +2740,7 @@ public:
                          group->spec.type == AUTOMATIC_GROUP ? "AUTOMATIC" :
                          "INVALID-GROUP-TYPE");
         }
+
         sprintf(s, "}\n");
         return s - buf;
     }
@@ -2702,15 +2760,17 @@ public:
     */
     char *to_string(const Sid_map *sm) const
     {
-        char *str= (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
+        char *str = (char *)my_malloc(get_max_string_length(), MYF(MY_WME));
+
         if (str)
             to_string(sm, str);
+
         return str;
     }
     /// Debug only: print this Group_cache to stdout.
     void print(const Sid_map *sm) const
     {
-        char *str= to_string(sm);
+        char *str = to_string(sm);
         printf("%s\n", str);
         my_free(str);
     }
@@ -2719,10 +2779,10 @@ public:
       Print this Gtid_cache to the trace file if debug is enabled; no-op
       otherwise.
     */
-    void dbug_print(const Sid_map *sid_map, const char *text= "") const
+    void dbug_print(const Sid_map *sid_map, const char *text = "") const
     {
 #ifndef DBUG_OFF
-        char *str= to_string(sid_map);
+        char *str = to_string(sid_map);
         DBUG_PRINT("info", ("%s%s%s", text, *text ? ": " : "", str));
         my_free(str);
 #endif
@@ -2750,7 +2810,7 @@ private:
     */
     Cached_group *get_last_group()
     {
-        int n_groups= get_n_groups();
+        int n_groups = get_n_groups();
         return n_groups == 0 ? NULL : get_unsafe_pointer(n_groups - 1);
     }
 
@@ -2760,9 +2820,11 @@ private:
     */
     Cached_group *allocate_group()
     {
-        Cached_group *ret= (Cached_group *)alloc_dynamic(&groups);
+        Cached_group *ret = (Cached_group *)alloc_dynamic(&groups);
+
         if (ret == NULL)
             BINLOG_ERROR(("Out of memory."), (ER_OUT_OF_RESOURCES, MYF(0)));
+
         return ret;
     }
 
@@ -2812,40 +2874,40 @@ enum enum_gtid_statement_status
 
 
 #ifndef MYSQL_CLIENT
-/**
-  Before a loggable statement begins, this function:
+    /**
+    Before a loggable statement begins, this function:
 
-   - checks that the various @@session.gtid_* variables are consistent
-     with each other
+    - checks that the various @@session.gtid_* variables are consistent
+    with each other
 
-   - starts the super-group (if no super-group is active) and acquires
-     ownership of all groups in the super-group
+    - starts the super-group (if no super-group is active) and acquires
+    ownership of all groups in the super-group
 
-   - starts the group (if no group is active)
-*/
-enum_gtid_statement_status
-gtid_before_statement(THD *thd, Group_cache *gsc, Group_cache *gtc);
+    - starts the group (if no group is active)
+    */
+    enum_gtid_statement_status
+    gtid_before_statement(THD *thd, Group_cache *gsc, Group_cache *gtc);
 
-/**
-  Check that the current statement does not contradict
-  enforce_gtid_consistency, that there is no implicit commit in
-  a transaction when GTID_NEXT!=AUTOMATIC, and whether the statement
-  should be cancelled.
+    /**
+    Check that the current statement does not contradict
+    enforce_gtid_consistency, that there is no implicit commit in
+    a transaction when GTID_NEXT!=AUTOMATIC, and whether the statement
+    should be cancelled.
 
-  @param thd THD object for the session.
-*/
-enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd);
+    @param thd THD object for the session.
+    */
+    enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd);
 
-/**
-  When a transaction is rolled back, this function releases ownership
-  of any GTIDs that the transaction owns.
-*/
-int gtid_rollback(THD *thd);
+    /**
+    When a transaction is rolled back, this function releases ownership
+    of any GTIDs that the transaction owns.
+    */
+    int gtid_rollback(THD *thd);
 
-int gtid_acquire_ownership_single(THD *thd);
-#ifdef HAVE_NDB_BINLOG
-int gtid_acquire_ownership_multiple(THD *thd);
-#endif
+    int gtid_acquire_ownership_single(THD *thd);
+    #ifdef HAVE_NDB_BINLOG
+        int gtid_acquire_ownership_multiple(THD *thd);
+    #endif
 
 #endif // ifndef MYSQL_CLIENT
 

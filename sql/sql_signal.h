@@ -29,7 +29,7 @@ protected:
       @param set collection of signal condition item assignments.
     */
     Sql_cmd_common_signal(const sp_condition_value *cond,
-                          const Set_signal_information& set)
+                          const Set_signal_information &set)
         : Sql_cmd(),
           m_cond(cond),
           m_set_signal_information(set)
@@ -100,7 +100,7 @@ public:
       @param set the collection of signal informations to signal.
     */
     Sql_cmd_signal(const sp_condition_value *cond,
-                   const Set_signal_information& set)
+                   const Set_signal_information &set)
         : Sql_cmd_common_signal(cond, set)
     {}
 
@@ -127,7 +127,7 @@ public:
       @param set the collection of signal informations to resignal.
     */
     Sql_cmd_resignal(const sp_condition_value *cond,
-                     const Set_signal_information& set)
+                     const Set_signal_information &set)
         : Sql_cmd_common_signal(cond, set)
     {}
 

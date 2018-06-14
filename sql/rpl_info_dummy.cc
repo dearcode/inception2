@@ -17,7 +17,7 @@
 #include "rpl_info_dummy.h"
 
 Rpl_info_dummy::Rpl_info_dummy(const int nparam)
-    :Rpl_info_handler(nparam)
+    : Rpl_info_handler(nparam)
 {
 }
 
@@ -34,14 +34,14 @@ int Rpl_info_dummy::do_init_info()
 int Rpl_info_dummy::do_prepare_info_for_read()
 {
     DBUG_ASSERT(!abort);
-    cursor= 0;
+    cursor = 0;
     return 0;
 }
 
 int Rpl_info_dummy::do_prepare_info_for_write()
 {
     DBUG_ASSERT(!abort);
-    cursor= 0;
+    cursor = 0;
     return 0;
 }
 
@@ -89,7 +89,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const char *value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -98,7 +97,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const size_t size __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -106,7 +104,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const ulong value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -114,7 +111,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const int value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -122,7 +118,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const float value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -130,7 +125,6 @@ bool Rpl_info_dummy::do_set_info(const int pos __attribute__((unused)),
                                  const Dynamic_ids *value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -140,7 +134,6 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const char *default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -150,7 +143,6 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const uchar *default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -159,7 +151,6 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const ulong default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -168,7 +159,6 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const int default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -177,7 +167,6 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const float default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
@@ -186,27 +175,23 @@ bool Rpl_info_dummy::do_get_info(const int pos __attribute__((unused)),
                                  const Dynamic_ids *default_value __attribute__((unused)))
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
-char* Rpl_info_dummy::do_get_description_info()
+char *Rpl_info_dummy::do_get_description_info()
 {
     DBUG_ASSERT(!abort);
-
     return NULL;
 }
 
 bool Rpl_info_dummy::do_is_transactional()
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }
 
 bool Rpl_info_dummy::do_update_is_transactional()
 {
     DBUG_ASSERT(!abort);
-
     return FALSE;
 }

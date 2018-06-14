@@ -29,7 +29,7 @@
 #define my_decimal_h
 
 #if defined(MYSQL_SERVER) || defined(EMBEDDED_LIBRARY)
-#include "sql_string.h"                         /* String */
+    #include "sql_string.h"                         /* String */
 #endif
 
 C_MODE_START
@@ -96,7 +96,7 @@ inline int my_decimal_int_part(uint precision, uint decimals)
   when he moves my_decimal objects in memory.
 */
 
-class my_decimal :public decimal_t
+class my_decimal : public decimal_t
 {
     /*
       Several of the routines in strings/decimal.c have had buffer
@@ -112,7 +112,7 @@ class my_decimal :public decimal_t
 
 #if !defined(DBUG_OFF)
     int foo2;
-    static const int test_value= 123;
+    static const int test_value = 123;
 #endif
 
 public:
@@ -120,25 +120,31 @@ public:
     my_decimal(const my_decimal &rhs) : decimal_t(rhs)
     {
 #if !defined(DBUG_OFF)
-        foo1= test_value;
-        foo2= test_value;
+        foo1 = test_value;
+        foo2 = test_value;
 #endif
-        for (uint i= 0; i < DECIMAL_BUFF_LENGTH; i++)
-            buffer[i]= rhs.buffer[i];
+
+        for (uint i = 0; i < DECIMAL_BUFF_LENGTH; i++)
+            buffer[i] = rhs.buffer[i];
+
         fix_buffer_pointer();
     }
 
-    my_decimal& operator=(const my_decimal &rhs)
+    my_decimal &operator=(const my_decimal &rhs)
     {
 #if !defined(DBUG_OFF)
-        foo1= test_value;
-        foo2= test_value;
+        foo1 = test_value;
+        foo2 = test_value;
 #endif
+
         if (this == &rhs)
             return *this;
+
         decimal_t::operator=(rhs);
-        for (uint i= 0; i < DECIMAL_BUFF_LENGTH; i++)
-            buffer[i]= rhs.buffer[i];
+
+        for (uint i = 0; i < DECIMAL_BUFF_LENGTH; i++)
+            buffer[i] = rhs.buffer[i];
+
         fix_buffer_pointer();
         return *this;
     }
@@ -146,11 +152,11 @@ public:
     void init()
     {
 #if !defined(DBUG_OFF)
-        foo1= test_value;
-        foo2= test_value;
+        foo1 = test_value;
+        foo2 = test_value;
 #endif
-        len= DECIMAL_BUFF_LENGTH;
-        buf= buffer;
+        len = DECIMAL_BUFF_LENGTH;
+        buf = buffer;
     }
 
     my_decimal()
@@ -170,7 +176,7 @@ public:
 
     void fix_buffer_pointer()
     {
-        buf= buffer;
+        buf = buffer;
     }
 
     bool sign() const
@@ -179,7 +185,7 @@ public:
     }
     void sign(bool s)
     {
-        decimal_t::sign= s;
+        decimal_t::sign = s;
     }
     uint precision() const
     {
@@ -195,11 +201,11 @@ public:
 
 
 #ifndef DBUG_OFF
-void print_decimal(const my_decimal *dec);
-void print_decimal_buff(const my_decimal *dec, const uchar* ptr, int length);
-const char *dbug_decimal_as_string(char *buff, const my_decimal *val);
+    void print_decimal(const my_decimal *dec);
+    void print_decimal_buff(const my_decimal *dec, const uchar *ptr, int length);
+    const char *dbug_decimal_as_string(char *buff, const my_decimal *val);
 #else
-#define dbug_decimal_as_string(A) NULL
+    #define dbug_decimal_as_string(A) NULL
 #endif
 
 bool str_set_decimal(uint mask, const my_decimal *val, uint fixed_prec,
@@ -220,7 +226,7 @@ inline int decimal_operation_results(int result)
 inline
 void max_my_decimal(my_decimal *to, int precision, int frac)
 {
-    DBUG_ASSERT((precision <= DECIMAL_MAX_PRECISION)&&
+    DBUG_ASSERT((precision <= DECIMAL_MAX_PRECISION) &&
                 (frac <= DECIMAL_MAX_SCALE));
     max_decimal(precision, frac, to);
 }
@@ -234,17 +240,19 @@ inline int check_result(uint mask, int result)
 {
     if (result & mask)
         decimal_operation_results(result);
+
     return result;
 }
 
 inline int check_result_and_overflow(uint mask, int result, my_decimal *val)
 {
     if (check_result(mask, result) & E_DEC_OVERFLOW) {
-        bool sign= val->sign();
+        bool sign = val->sign();
         val->fix_buffer_pointer();
         max_internal_decimal(val);
         val->sign(sign);
     }
+
     return result;
 }
 
@@ -253,8 +261,8 @@ inline uint my_decimal_length_to_precision(uint length, uint scale,
 {
     /* Precision can't be negative thus ignore unsigned_flag when length is 0. */
     DBUG_ASSERT(length || !scale);
-    return (uint) (length - (scale>0 ? 1:0) -
-                   (unsigned_flag || !length ? 0:1));
+    return (uint) (length - (scale > 0 ? 1 : 0) -
+                   (unsigned_flag || !length ? 0 : 1));
 }
 
 inline uint32 my_decimal_precision_to_length_no_truncation(uint precision,
@@ -309,7 +317,7 @@ int my_decimal_get_binary_size(uint precision, uint scale)
 inline
 void my_decimal2decimal(const my_decimal *from, my_decimal *to)
 {
-    *to= *from;
+    *to = *from;
 }
 
 
@@ -333,7 +341,7 @@ int my_decimal_set_zero(my_decimal *d)
       which conflicts with decimal_t::size
       (and decimal_make_zero is a macro, rather than a funcion).
     */
-    decimal_make_zero(static_cast<decimal_t*>(d));
+    decimal_make_zero(static_cast<decimal_t *>(d));
     return 0;
 }
 
@@ -451,9 +459,10 @@ inline
 void my_decimal_neg(decimal_t *arg)
 {
     if (decimal_is_zero(arg)) {
-        arg->sign= 0;
+        arg->sign = 0;
         return;
     }
+
     decimal_neg(arg);
 }
 

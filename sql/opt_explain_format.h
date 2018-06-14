@@ -32,7 +32,7 @@ struct st_join_table;
 
 enum Explain_context_enum
 {
-    CTX_NONE= 0, ///< Empty value
+    CTX_NONE = 0, ///< Empty value
     CTX_MESSAGE, ///< "No tables used" messages etc.
     CTX_TABLE, ///< for single-table UPDATE/DELETE
     CTX_SELECT_LIST, ///< SELECT (subquery), (subquery)...
@@ -120,7 +120,7 @@ public:
       @retval false       Success
       @retval true        Failure (OOM)
     */
-    virtual bool eval(String *ret)= 0;
+    virtual bool eval(String *ret) = 0;
 };
 
 /**
@@ -188,12 +188,12 @@ public:
         }
         void cleanup()
         {
-            nil= true;
+            nil = true;
         }
         void set(T value_arg)
         {
-            value= value_arg;
-            nil= false;
+            value = value_arg;
+            nil = false;
         }
         T get() const
         {
@@ -226,20 +226,23 @@ public:
         }
         void cleanup()
         {
-            str= NULL;
-            length= 0;
-            deferred= NULL;
+            str = NULL;
+            length = 0;
+            deferred = NULL;
         }
         bool is_empty()
         {
             if (deferred) {
                 StringBuffer<128> buff(system_charset_info);
+
                 if (deferred->eval(&buff) || set(buff)) {
                     DBUG_ASSERT(!"OOM!");
                     return true; // ignore OOM
                 }
-                deferred= NULL; // prevent double evaluation, if any
+
+                deferred = NULL; // prevent double evaluation, if any
             }
+
             return str == NULL;
         }
         bool set(const char *str_arg)
@@ -260,10 +263,12 @@ public:
         */
         bool set(const char *str_arg, size_t length_arg)
         {
-            deferred= NULL;
-            if (!(str= strndup_root(current_thd->mem_root, str_arg, length_arg)))
+            deferred = NULL;
+
+            if (!(str = strndup_root(current_thd->mem_root, str_arg, length_arg)))
                 return true; /* purecov: inspected */
-            length= length_arg;
+
+            length = length_arg;
             return false;
         }
         /**
@@ -273,9 +278,9 @@ public:
         */
         void set(Lazy *x)
         {
-            deferred= x;
-            str= NULL;
-            length= 0;
+            deferred = x;
+            str = NULL;
+            length = 0;
         }
         /**
           Make a copy of string constant
@@ -289,23 +294,26 @@ public:
         }
         void set_const(const char *str_arg, size_t length_arg)
         {
-            deferred= NULL;
-            str= str_arg;
-            length= length_arg;
+            deferred = NULL;
+            str = str_arg;
+            length = length_arg;
         }
 
         static char *strndup_root(MEM_ROOT *root, const char *str, size_t len)
         {
             if (len == 0 || str == NULL)
                 return const_cast<char *>("");
+
             if (str[len - 1] == 0)
                 return static_cast<char *>(memdup_root(root, str, len));
 
-            char *ret= static_cast<char*>(alloc_root(root, len + 1));
+            char *ret = static_cast<char *>(alloc_root(root, len + 1));
+
             if (ret != NULL) {
                 memcpy(ret, str, len);
-                ret[len]= 0;
+                ret[len] = 0;
             }
+
             return ret;
         }
     };
@@ -327,7 +335,7 @@ public:
         */
         const char *const data;
 
-        explicit extra(Extra_tag tag_arg, const char *data_arg= NULL)
+        explicit extra(Extra_tag tag_arg, const char *data_arg = NULL)
             : tag(tag_arg), data(data_arg)
         {}
     };
@@ -400,19 +408,18 @@ public:
         col_message.cleanup();
         col_attached_condition.cleanup();
         col_key_parts.empty();
-
         /*
           Not needed (we call cleanup() for structured EXPLAIN only,
           just for the consistency).
         */
-        query_block_id= 0;
+        query_block_id = 0;
         derived_from.empty();
-        is_dependent= false;
-        is_cacheable= true;
-        using_temporary= false;
-        is_materialized_from_subquery= false;
-        is_update= false;
-        is_delete= false;
+        is_dependent = false;
+        is_cacheable = true;
+        using_temporary = false;
+        is_materialized_from_subquery = false;
+        is_update = false;
+        is_delete = false;
     }
 
     /**
@@ -501,7 +508,7 @@ public:
     */
     void set(Explain_sort_clause clause, Explain_sort_property property)
     {
-        sorts[clause]|= property | ESP_EXISTS;
+        sorts[clause] |= property | ESP_EXISTS;
     }
 
     void set(Explain_format_flags &flags)
@@ -514,7 +521,7 @@ public:
     */
     void reset(Explain_sort_clause clause, Explain_sort_property property)
     {
-        sorts[clause]&= ~property;
+        sorts[clause] &= ~property;
     }
 
     /**
@@ -530,10 +537,11 @@ public:
     */
     bool any(Explain_sort_property property) const
     {
-        for (size_t i= ESC_none + 1; i <= ESC_MAX - 1; i++) {
+        for (size_t i = ESC_none + 1; i <= ESC_MAX - 1; i++) {
             if (sorts[i] & property || sorts[i] & ESP_CHECKED)
                 return true;
         }
+
         return false;
     }
 };
@@ -564,7 +572,7 @@ public:
       @retval true        Formatter produces hierarchical text
       @retval false       Traditional explain
     */
-    virtual bool is_hierarchical() const= 0;
+    virtual bool is_hierarchical() const = 0;
 
     /**
       Send EXPLAIN header item(s) to output stream
@@ -578,7 +586,7 @@ public:
     */
     virtual bool send_headers(select_result *result)
     {
-        output= result;
+        output = result;
         return false;
     }
 
@@ -590,26 +598,26 @@ public:
     */
     virtual bool begin_context(Explain_context_enum context,
                                SELECT_LEX_UNIT *subquery = 0,
-                               const Explain_format_flags *flags= NULL)= 0;
+                               const Explain_format_flags *flags = NULL) = 0;
 
     /**
       Leave the current context
 
       @param context      current context type (for validation/debugging)
     */
-    virtual bool end_context(Explain_context_enum context)= 0;
+    virtual bool end_context(Explain_context_enum context) = 0;
 
     /**
       Flush TABLE/JOIN_TAB property set
 
       For traditional EXPLAIN: output a single EXPLAIN row.
     */
-    virtual bool flush_entry()= 0;
+    virtual bool flush_entry() = 0;
 
     /**
       Get a pointer to the current TABLE/JOIN_TAB property set
     */
-    virtual qep_row *entry()= 0;
+    virtual qep_row *entry() = 0;
 };
 
 #endif//OPT_EXPLAIN_FORMAT_INCLUDED

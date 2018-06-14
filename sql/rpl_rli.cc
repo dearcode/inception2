@@ -40,7 +40,7 @@ using std::max;
   what follows. For now, this is just used to get the number of
   fields.
 */
-const char* info_rli_fields[]= {
+const char *info_rli_fields[] = {
     "number_of_lines",
     "group_relay_log_name",
     "group_relay_log_pos",
@@ -53,55 +53,54 @@ const char* info_rli_fields[]= {
 
 Relay_log_info::Relay_log_info(bool is_slave_recovery
 #ifdef HAVE_PSI_INTERFACE
-                               ,PSI_mutex_key *param_key_info_run_lock,
-                               PSI_mutex_key *param_key_info_data_lock,
-                               PSI_mutex_key *param_key_info_sleep_lock,
-                               PSI_mutex_key *param_key_info_data_cond,
-                               PSI_mutex_key *param_key_info_start_cond,
-                               PSI_mutex_key *param_key_info_stop_cond,
-                               PSI_mutex_key *param_key_info_sleep_cond
+    , PSI_mutex_key *param_key_info_run_lock,
+    PSI_mutex_key *param_key_info_data_lock,
+    PSI_mutex_key *param_key_info_sleep_lock,
+    PSI_mutex_key *param_key_info_data_cond,
+    PSI_mutex_key *param_key_info_start_cond,
+    PSI_mutex_key *param_key_info_stop_cond,
+    PSI_mutex_key *param_key_info_sleep_cond
 #endif
                                , uint param_id
                               )
-    :Rpl_info("SQL"
+    : Rpl_info("SQL"
 #ifdef HAVE_PSI_INTERFACE
-              ,param_key_info_run_lock, param_key_info_data_lock,
-              param_key_info_sleep_lock,
-              param_key_info_data_cond, param_key_info_start_cond,
-              param_key_info_stop_cond, param_key_info_sleep_cond
+               , param_key_info_run_lock, param_key_info_data_lock,
+               param_key_info_sleep_lock,
+               param_key_info_data_cond, param_key_info_start_cond,
+               param_key_info_stop_cond, param_key_info_sleep_cond
 #endif
-              , param_id
-             ),
-     replicate_same_server_id(::replicate_same_server_id),
-     cur_log_fd(-1), relay_log(&sync_relaylog_period),
-     is_relay_log_recovery(is_slave_recovery),
-     save_temporary_tables(0),
-     cur_log_old_open_count(0), group_relay_log_pos(0), event_relay_log_pos(0),
-     group_master_log_pos(0),
-     gtid_set(global_sid_map, global_sid_lock),
-     log_space_total(0), ignore_log_space_limit(0),
-     sql_force_rotate_relay(false),
-     last_master_timestamp(0), slave_skip_counter(0),
-     abort_pos_wait(0), until_condition(UNTIL_NONE),
-     until_log_pos(0),
-     until_sql_gtids(global_sid_map),
-     until_sql_gtids_seen(global_sid_map),
-     until_sql_gtids_first_event(true),
-     retried_trans(0),
-     tables_to_lock(0), tables_to_lock_count(0),
-     rows_query_ev(NULL), last_event_start_time(0), deferred_events(NULL),
-     slave_parallel_workers(0),
-     recovery_parallel_workers(0), checkpoint_seqno(0),
-     checkpoint_group(opt_mts_checkpoint_group),
-     recovery_groups_inited(false), mts_recovery_group_cnt(0),
-     mts_recovery_index(0), mts_recovery_group_seen_begin(0),
-     mts_group_status(MTS_NOT_IN_GROUP), reported_unsafe_warning(false),
-     rli_description_event(NULL),
-     sql_delay(0), sql_delay_end(0), m_flags(0), row_stmt_start_timestamp(0),
-     long_find_row_note_printed(false), error_on_rli_init_info(false)
+               , param_id
+              ),
+      replicate_same_server_id(::replicate_same_server_id),
+      cur_log_fd(-1), relay_log(&sync_relaylog_period),
+      is_relay_log_recovery(is_slave_recovery),
+      save_temporary_tables(0),
+      cur_log_old_open_count(0), group_relay_log_pos(0), event_relay_log_pos(0),
+      group_master_log_pos(0),
+      gtid_set(global_sid_map, global_sid_lock),
+      log_space_total(0), ignore_log_space_limit(0),
+      sql_force_rotate_relay(false),
+      last_master_timestamp(0), slave_skip_counter(0),
+      abort_pos_wait(0), until_condition(UNTIL_NONE),
+      until_log_pos(0),
+      until_sql_gtids(global_sid_map),
+      until_sql_gtids_seen(global_sid_map),
+      until_sql_gtids_first_event(true),
+      retried_trans(0),
+      tables_to_lock(0), tables_to_lock_count(0),
+      rows_query_ev(NULL), last_event_start_time(0), deferred_events(NULL),
+      slave_parallel_workers(0),
+      recovery_parallel_workers(0), checkpoint_seqno(0),
+      checkpoint_group(opt_mts_checkpoint_group),
+      recovery_groups_inited(false), mts_recovery_group_cnt(0),
+      mts_recovery_index(0), mts_recovery_group_seen_begin(0),
+      mts_group_status(MTS_NOT_IN_GROUP), reported_unsafe_warning(false),
+      rli_description_event(NULL),
+      sql_delay(0), sql_delay_end(0), m_flags(0), row_stmt_start_timestamp(0),
+      long_find_row_note_printed(false), error_on_rli_init_info(false)
 {
     DBUG_ENTER("Relay_log_info::Relay_log_info");
-
 #ifdef HAVE_PSI_INTERFACE
     relay_log.set_psi_keys(key_RELAYLOG_LOCK_index,
                            key_RELAYLOG_LOCK_log,
@@ -117,14 +116,12 @@ Relay_log_info::Relay_log_info(bool is_slave_recovery
                            key_file_relaylog,
                            key_file_relaylog_index);
 #endif
-
-    group_relay_log_name[0]= event_relay_log_name[0]=
-                                 group_master_log_name[0]= 0;
-    until_log_name[0]= ign_master_log_name_end[0]= 0;
+    group_relay_log_name[0] = event_relay_log_name[0] =
+                                  group_master_log_name[0] = 0;
+    until_log_name[0] = ign_master_log_name_end[0] = 0;
     set_timespec_nsec(last_clock, 0);
     memset(&cache_buf, 0, sizeof(cache_buf));
     cached_charset_invalidate();
-
     mysql_mutex_init(key_relay_log_info_log_space_lock,
                      &log_space_lock, MY_MUTEX_INIT_FAST);
     mysql_cond_init(key_relay_log_info_log_space_cond, &log_space_cond, NULL);
@@ -132,10 +129,8 @@ Relay_log_info::Relay_log_info(bool is_slave_recovery
                      MY_MUTEX_INIT_FAST);
     mysql_cond_init(key_cond_slave_parallel_pend_jobs, &pending_jobs_cond, NULL);
     my_atomic_rwlock_init(&slave_open_temp_tables_lock);
-
     relay_log.init_pthread_objects();
     do_server_version_split(::server_version, slave_version_split);
-
     DBUG_VOID_RETURN;
 }
 
@@ -148,9 +143,9 @@ void Relay_log_info::init_workers(ulong n_workers)
       Parallel slave parameters initialization is done regardless
       whether the feature is or going to be active or not.
     */
-    mts_groups_assigned= mts_events_assigned= pending_jobs= wq_size_waits_cnt= 0;
-    mts_wq_excess_cnt= mts_wq_no_underrun_cnt= mts_wq_overfill_cnt= 0;
-    mts_last_online_stat= 0;
+    mts_groups_assigned = mts_events_assigned = pending_jobs = wq_size_waits_cnt = 0;
+    mts_wq_excess_cnt = mts_wq_no_underrun_cnt = mts_wq_overfill_cnt = 0;
+    mts_last_online_stat = 0;
     my_init_dynamic_array(&workers, sizeof(Slave_worker *), n_workers, 4);
 }
 
@@ -168,6 +163,7 @@ Relay_log_info::~Relay_log_info()
 
     if (recovery_groups_inited)
         bitmap_free(&recovery_groups);
+
     mysql_mutex_destroy(&log_space_lock);
     mysql_cond_destroy(&log_space_cond);
     mysql_mutex_destroy(&pending_jobs_lock);
@@ -175,7 +171,6 @@ Relay_log_info::~Relay_log_info()
     my_atomic_rwlock_destroy(&slave_open_temp_tables_lock);
     relay_log.cleanup();
     set_rli_description_event(NULL);
-
     DBUG_VOID_RETURN;
 }
 
@@ -192,9 +187,10 @@ void Relay_log_info::reset_notified_relay_log_change()
 {
     if (!is_parallel_exec())
         return;
-    for (uint i= 0; i < workers.elements; i++) {
-        Slave_worker *w= *(Slave_worker **) dynamic_array_ptr(&workers, i);
-        w->relay_log_change_notified= FALSE;
+
+    for (uint i = 0; i < workers.elements; i++) {
+        Slave_worker *w = *(Slave_worker **) dynamic_array_ptr(&workers, i);
+        w->relay_log_change_notified = FALSE;
     }
 }
 
@@ -224,8 +220,8 @@ void Relay_log_info::reset_notified_checkpoint(ulong shift, time_t new_ts,
     if (!is_parallel_exec())
         return;
 
-    for (uint i= 0; i < workers.elements; i++) {
-        Slave_worker *w= *(Slave_worker **) dynamic_array_ptr(&workers, i);
+    for (uint i = 0; i < workers.elements; i++) {
+        Slave_worker *w = *(Slave_worker **) dynamic_array_ptr(&workers, i);
         /*
           Reseting the notification information in order to force workers to
           assign jobs with the new updated information.
@@ -235,13 +231,13 @@ void Relay_log_info::reset_notified_checkpoint(ulong shift, time_t new_ts,
           The worker when assigning a new job will set the value back to
           zero.
         */
-        w->checkpoint_notified= FALSE;
-        w->bitmap_shifted= w->bitmap_shifted + shift;
-
+        w->checkpoint_notified = FALSE;
+        w->bitmap_shifted = w->bitmap_shifted + shift;
         DBUG_PRINT("mts", ("reset_notified_checkpoint shift --> %lu, "
                            "worker->bitmap_shifted --> %lu, worker --> %u.",
                            shift, w->bitmap_shifted, i));
     }
+
     /*
       There should not be a call where (shift == 0 && checkpoint_seqno != 0).
 
@@ -249,7 +245,7 @@ void Relay_log_info::reset_notified_checkpoint(ulong shift, time_t new_ts,
       of consecutive jobs that were successfully processed.
     */
     DBUG_ASSERT(!(shift == 0 && checkpoint_seqno != 0));
-    checkpoint_seqno= checkpoint_seqno - shift;
+    checkpoint_seqno = checkpoint_seqno - shift;
     DBUG_PRINT("mts", ("reset_notified_checkpoint shift --> %lu, "
                        "checkpoint_seqno --> %u.", shift, checkpoint_seqno));
 
@@ -258,7 +254,9 @@ void Relay_log_info::reset_notified_checkpoint(ulong shift, time_t new_ts,
             mysql_mutex_lock(&data_lock);
         else
             mysql_mutex_assert_owner(&data_lock);
-        last_master_timestamp= new_ts;
+
+        last_master_timestamp = new_ts;
+
         if (need_data_lock)
             mysql_mutex_unlock(&data_lock);
     }
@@ -272,48 +270,50 @@ void Relay_log_info::reset_notified_checkpoint(ulong shift, time_t new_ts,
 */
 bool Relay_log_info::mts_finalize_recovery()
 {
-    bool ret= false;
+    bool ret = false;
     uint i;
-    uint repo_type= get_rpl_info_handler()->get_rpl_info_type();
-
+    uint repo_type = get_rpl_info_handler()->get_rpl_info_type();
     DBUG_ENTER("Relay_log_info::mts_finalize_recovery");
 
-    for (i= 0; !ret && i < workers.elements; i++) {
-        Slave_worker *w= *(Slave_worker **) dynamic_array_ptr(&workers, i);
-        ret= w->reset_recovery_info();
-        DBUG_EXECUTE_IF("mts_debug_recovery_reset_fails", ret= true;);
+    for (i = 0; !ret && i < workers.elements; i++) {
+        Slave_worker *w = *(Slave_worker **) dynamic_array_ptr(&workers, i);
+        ret = w->reset_recovery_info();
+        DBUG_EXECUTE_IF("mts_debug_recovery_reset_fails", ret = true;);
     }
+
     /*
       The loop is traversed in the worker index descending order due
       to specifics of the Worker table repository that does not like
       even temporary holes. Therefore stale records are deleted
       from the tail.
     */
-    for (i= recovery_parallel_workers; i > workers.elements && !ret; i--) {
-        Slave_worker *w=
+    for (i = recovery_parallel_workers; i > workers.elements && !ret; i--) {
+        Slave_worker *w =
             Rpl_info_factory::create_worker(repo_type, i - 1, this, true);
-        ret= w->remove_info();
+        ret = w->remove_info();
         delete w;
     }
-    recovery_parallel_workers= slave_parallel_workers;
 
+    recovery_parallel_workers = slave_parallel_workers;
     DBUG_RETURN(ret);
 }
 
-static inline int add_relay_log(Relay_log_info* rli,LOG_INFO* linfo)
+static inline int add_relay_log(Relay_log_info *rli, LOG_INFO *linfo)
 {
     MY_STAT s;
     DBUG_ENTER("add_relay_log");
+
     if (!mysql_file_stat(key_file_relaylog,
                          linfo->log_file_name, &s, MYF(0))) {
         sql_print_error("log %s listed in the index, but failed to stat.",
                         linfo->log_file_name);
         DBUG_RETURN(1);
     }
+
     rli->log_space_total += s.st_size;
 #ifndef DBUG_OFF
     char buf[22];
-    DBUG_PRINT("info",("log_space_total: %s", llstr(rli->log_space_total,buf)));
+    DBUG_PRINT("info", ("log_space_total: %s", llstr(rli->log_space_total, buf)));
 #endif
     DBUG_RETURN(0);
 }
@@ -322,15 +322,18 @@ int Relay_log_info::count_relay_log_space()
 {
     LOG_INFO flinfo;
     DBUG_ENTER("Relay_log_info::count_relay_log_space");
-    log_space_total= 0;
+    log_space_total = 0;
+
     if (relay_log.find_log_pos(&flinfo, NullS, 1)) {
         sql_print_error("Could not find first log while counting relay log space.");
         DBUG_RETURN(1);
     }
+
     do {
         if (add_relay_log(this, &flinfo))
             DBUG_RETURN(1);
     } while (!relay_log.find_next_log(&flinfo, 1));
+
     /*
        As we have counted everything, including what may have written in a
        preceding write, we must reset bytes_written, or we may count some space
@@ -347,13 +350,12 @@ int Relay_log_info::count_relay_log_space()
 void Relay_log_info::clear_until_condition()
 {
     DBUG_ENTER("clear_until_condition");
-
-    until_condition= Relay_log_info::UNTIL_NONE;
-    until_log_name[0]= 0;
-    until_log_pos= 0;
+    until_condition = Relay_log_info::UNTIL_NONE;
+    until_log_name[0] = 0;
+    until_log_pos = 0;
     until_sql_gtids.clear();
     until_sql_gtids_seen.clear();
-    until_sql_gtids_first_event= true;
+    until_sql_gtids_first_event = true;
     DBUG_VOID_RETURN;
 }
 
@@ -388,18 +390,17 @@ void Relay_log_info::clear_until_condition()
   message.
 */
 
-int Relay_log_info::init_relay_log_pos(const char* log,
+int Relay_log_info::init_relay_log_pos(const char *log,
                                        ulonglong pos, bool need_data_lock,
-                                       const char** errmsg,
+                                       const char **errmsg,
                                        bool look_for_description_event)
 {
     DBUG_ENTER("Relay_log_info::init_relay_log_pos");
     DBUG_PRINT("info", ("pos: %lu", (ulong) pos));
-
-    *errmsg=0;
-    const char* errmsg_fmt= 0;
+    *errmsg = 0;
+    const char *errmsg_fmt = 0;
     static char errmsg_buff[MYSQL_ERRMSG_SIZE + FN_REFLEN];
-    mysql_mutex_t *log_lock= relay_log.get_log_lock();
+    mysql_mutex_t *log_lock = relay_log.get_log_lock();
 
     if (need_data_lock)
         mysql_mutex_lock(&data_lock);
@@ -413,7 +414,6 @@ int Relay_log_info::init_relay_log_pos(const char* log,
       3; format 3 is a prefix of format 4).
     */
     set_rli_description_event(new Format_description_log_event(3));
-
     mysql_mutex_lock(log_lock);
 
     /* Close log file and free buffers if it's already open */
@@ -423,23 +423,23 @@ int Relay_log_info::init_relay_log_pos(const char* log,
         cur_log_fd = -1;
     }
 
-    group_relay_log_pos= event_relay_log_pos= pos;
+    group_relay_log_pos = event_relay_log_pos = pos;
 
     /*
       Test to see if the previous run was with the skip of purging
       If yes, we do not purge when we restart
     */
     if (relay_log.find_log_pos(&linfo, NullS, 1)) {
-        *errmsg="Could not find first log during relay log initialization";
+        *errmsg = "Could not find first log during relay log initialization";
         goto err;
     }
 
     if (log && relay_log.find_log_pos(&linfo, log, 1)) {
-        errmsg_fmt= "Could not find target log file mentioned in "
-                    "relay log info in the index file '%s' during "
-                    "relay log initialization";
+        errmsg_fmt = "Could not find target log file mentioned in "
+                     "relay log info in the index file '%s' during "
+                     "relay log initialization";
         sprintf(errmsg_buff, errmsg_fmt, relay_log.get_index_fname());
-        *errmsg= errmsg_buff;
+        *errmsg = errmsg_buff;
         goto err;
     }
 
@@ -454,31 +454,37 @@ int Relay_log_info::init_relay_log_pos(const char* log,
           In this case, we will use the same IO_CACHE pointer to
           read data as the IO thread is using to write data.
         */
-        my_b_seek((cur_log=relay_log.get_log_file()), (off_t)0);
+        my_b_seek((cur_log = relay_log.get_log_file()), (off_t)0);
+
         if (check_binlog_magic(cur_log, errmsg))
             goto err;
-        cur_log_old_open_count=relay_log.get_open_count();
+
+        cur_log_old_open_count = relay_log.get_open_count();
+
     } else {
         /*
           Open the relay log and set cur_log to point at this one
         */
-        if ((cur_log_fd=open_binlog_file(&cache_buf,
-                                         linfo.log_file_name,errmsg)) < 0)
+        if ((cur_log_fd = open_binlog_file(&cache_buf,
+                                           linfo.log_file_name, errmsg)) < 0)
             goto err;
+
         cur_log = &cache_buf;
     }
+
     /*
       In all cases, check_binlog_magic() has been called so we're at offset 4 for
       sure.
     */
     if (pos > BIN_LOG_HEADER_SIZE) { /* If pos<=4, we stay at 4 */
-        Log_event* ev;
+        Log_event *ev;
+
         while (look_for_description_event) {
             /*
               Read the possible Format_description_log_event; if position
               was 4, no need, it will be read naturally.
             */
-            DBUG_PRINT("info",("looking for a Format_description_log_event"));
+            DBUG_PRINT("info", ("looking for a Format_description_log_event"));
 
             if (my_b_tell(cur_log) >= pos)
                 break;
@@ -487,18 +493,21 @@ int Relay_log_info::init_relay_log_pos(const char* log,
               Because of we have data_lock and log_lock, we can safely read an
               event
             */
-            if (!(ev= Log_event::read_log_event(cur_log, 0,
-                                                rli_description_event,
-                                                opt_slave_sql_verify_checksum))) {
-                DBUG_PRINT("info",("could not read event, cur_log->error=%d",
-                                   cur_log->error));
+            if (!(ev = Log_event::read_log_event(cur_log, 0,
+                                                 rli_description_event,
+                                                 opt_slave_sql_verify_checksum))) {
+                DBUG_PRINT("info", ("could not read event, cur_log->error=%d",
+                                    cur_log->error));
+
                 if (cur_log->error) { /* not EOF */
-                    *errmsg= "I/O error reading event at position 4";
+                    *errmsg = "I/O error reading event at position 4";
                     goto err;
                 }
+
                 break;
+
             } else if (ev->get_type_code() == FORMAT_DESCRIPTION_EVENT) {
-                DBUG_PRINT("info",("found Format_description_log_event"));
+                DBUG_PRINT("info", ("found Format_description_log_event"));
                 set_rli_description_event((Format_description_log_event *)ev);
                 /*
                   As ev was returned by read_log_event, it has passed is_valid(), so
@@ -520,41 +529,44 @@ int Relay_log_info::init_relay_log_pos(const char* log,
                   position (argument 'pos') or until you find another event than Rotate
                   or Format_desc.
                 */
+
             } else {
-                DBUG_PRINT("info",("found event of another type=%d",
-                                   ev->get_type_code()));
-                look_for_description_event= (ev->get_type_code() == ROTATE_EVENT);
+                DBUG_PRINT("info", ("found event of another type=%d",
+                                    ev->get_type_code()));
+                look_for_description_event = (ev->get_type_code() == ROTATE_EVENT);
                 delete ev;
             }
         }
-        my_b_seek(cur_log,(off_t)pos);
+
+        my_b_seek(cur_log, (off_t)pos);
 #ifndef DBUG_OFF
         {
             char llbuf1[22], llbuf2[22];
             DBUG_PRINT("info", ("my_b_tell(cur_log)=%s >event_relay_log_pos=%s",
-                                llstr(my_b_tell(cur_log),llbuf1),
-                                llstr(get_event_relay_log_pos(),llbuf2)));
+                                llstr(my_b_tell(cur_log), llbuf1),
+                                llstr(get_event_relay_log_pos(), llbuf2)));
         }
 #endif
-
     }
 
 err:
+
     /*
       If we don't purge, we can't honour relay_log_space_limit ;
       silently discard it
     */
     if (!relay_log_purge) {
-        log_space_limit= 0; // todo: consider to throw a warning at least
+        log_space_limit = 0; // todo: consider to throw a warning at least
     }
-    mysql_cond_broadcast(&data_cond);
 
+    mysql_cond_broadcast(&data_cond);
     mysql_mutex_unlock(log_lock);
 
     if (need_data_lock)
         mysql_mutex_unlock(&data_lock);
+
     if (!rli_description_event->is_valid() && !*errmsg)
-        *errmsg= "Invalid Format_description log event; could be out of memory";
+        *errmsg = "Invalid Format_description log event; could be out of memory";
 
     DBUG_RETURN ((*errmsg) ? 1 : 0);
 }
@@ -580,13 +592,13 @@ err:
                 before reaching the desired log/position
  */
 
-int Relay_log_info::wait_for_pos(THD* thd, String* log_name,
+int Relay_log_info::wait_for_pos(THD *thd, String *log_name,
                                  longlong log_pos,
                                  longlong timeout)
 {
     int event_count = 0;
     ulong init_abort_pos_wait;
-    int error=0;
+    int error = 0;
     struct timespec abstime; // for timeout checking
     PSI_stage_info old_stage;
     DBUG_ENTER("Relay_log_info::wait_for_pos");
@@ -594,192 +606,8 @@ int Relay_log_info::wait_for_pos(THD* thd, String* log_name,
     if (!inited)
         DBUG_RETURN(-2);
 
-    DBUG_PRINT("enter",("log_name: '%s'  log_pos: %lu  timeout: %lu",
-                        log_name->c_ptr_safe(), (ulong) log_pos, (ulong) timeout));
-
-    set_timespec(abstime,timeout);
-    mysql_mutex_lock(&data_lock);
-    /*
-       This function will abort when it notices that some CHANGE MASTER or
-       RESET MASTER has changed the master info.
-       To catch this, these commands modify abort_pos_wait ; We just monitor
-       abort_pos_wait and see if it has changed.
-       Why do we have this mechanism instead of simply monitoring slave_running
-       in the loop (we do this too), as CHANGE MASTER/RESET SLAVE require that
-       the SQL thread be stopped?
-       This is becasue if someones does:
-       STOP SLAVE;CHANGE MASTER/RESET SLAVE; START SLAVE;
-       the change may happen very quickly and we may not notice that
-       slave_running briefly switches between 1/0/1.
-    */
-    init_abort_pos_wait= abort_pos_wait;
-
-    /*
-      We'll need to
-      handle all possible log names comparisons (e.g. 999 vs 1000).
-      We use ulong for string->number conversion ; this is no
-      stronger limitation than in find_uniq_filename in sql/log.cc
-    */
-    ulong log_name_extension;
-    char log_name_tmp[FN_REFLEN]; //make a char[] from String
-
-    strmake(log_name_tmp, log_name->ptr(), min<uint32>(log_name->length(), FN_REFLEN-1));
-
-    char *p= fn_ext(log_name_tmp);
-    char *p_end;
-    if (!*p || log_pos<0) {
-        error= -2; //means improper arguments
-        goto err;
-    }
-    // Convert 0-3 to 4
-    log_pos= max<ulong>(log_pos, BIN_LOG_HEADER_SIZE);
-    /* p points to '.' */
-    log_name_extension= strtoul(++p, &p_end, 10);
-    /*
-      p_end points to the first invalid character.
-      If it equals to p, no digits were found, error.
-      If it contains '\0' it means conversion went ok.
-    */
-    if (p_end==p || *p_end) {
-        error= -2;
-        goto err;
-    }
-
-    /* The "compare and wait" main loop */
-    while (!thd->killed &&
-            init_abort_pos_wait == abort_pos_wait &&
-            slave_running) {
-        bool pos_reached;
-        int cmp_result= 0;
-
-        DBUG_PRINT("info",
-                   ("init_abort_pos_wait: %ld  abort_pos_wait: %ld",
-                    init_abort_pos_wait, abort_pos_wait));
-        DBUG_PRINT("info",("group_master_log_name: '%s'  pos: %lu",
-                           group_master_log_name, (ulong) group_master_log_pos));
-
-        /*
-          group_master_log_name can be "", if we are just after a fresh
-          replication start or after a CHANGE MASTER TO MASTER_HOST/PORT
-          (before we have executed one Rotate event from the master) or
-          (rare) if the user is doing a weird slave setup (see next
-          paragraph).  If group_master_log_name is "", we assume we don't
-          have enough info to do the comparison yet, so we just wait until
-          more data. In this case master_log_pos is always 0 except if
-          somebody (wrongly) sets this slave to be a slave of itself
-          without using --replicate-same-server-id (an unsupported
-          configuration which does nothing), then group_master_log_pos
-          will grow and group_master_log_name will stay "".
-        */
-        if (*group_master_log_name) {
-            char *basename= (group_master_log_name +
-                             dirname_length(group_master_log_name));
-            /*
-              First compare the parts before the extension.
-              Find the dot in the master's log basename,
-              and protect against user's input error :
-              if the names do not match up to '.' included, return error
-            */
-            char *q= (char*)(fn_ext(basename)+1);
-            if (strncmp(basename, log_name_tmp, (int)(q-basename))) {
-                error= -2;
-                break;
-            }
-            // Now compare extensions.
-            char *q_end;
-            ulong group_master_log_name_extension= strtoul(q, &q_end, 10);
-            if (group_master_log_name_extension < log_name_extension)
-                cmp_result= -1 ;
-            else
-                cmp_result= (group_master_log_name_extension > log_name_extension) ? 1 : 0 ;
-
-            pos_reached= ((!cmp_result && group_master_log_pos >= (ulonglong)log_pos) ||
-                          cmp_result > 0);
-            if (pos_reached || thd->killed)
-                break;
-        }
-
-        //wait for master update, with optional timeout.
-
-        DBUG_PRINT("info",("Waiting for master update"));
-        /*
-          We are going to mysql_cond_(timed)wait(); if the SQL thread stops it
-          will wake us up.
-        */
-        thd_wait_begin(thd, THD_WAIT_BINLOG);
-        if (timeout > 0) {
-            /*
-              Note that mysql_cond_timedwait checks for the timeout
-              before for the condition ; i.e. it returns ETIMEDOUT
-              if the system time equals or exceeds the time specified by abstime
-              before the condition variable is signaled or broadcast, _or_ if
-              the absolute time specified by abstime has already passed at the time
-              of the call.
-              For that reason, mysql_cond_timedwait will do the "timeoutting" job
-              even if its condition is always immediately signaled (case of a loaded
-              master).
-            */
-            error= mysql_cond_timedwait(&data_cond, &data_lock, &abstime);
-        } else
-            mysql_cond_wait(&data_cond, &data_lock);
-        thd_wait_end(thd);
-        DBUG_PRINT("info",("Got signal of master update or timed out"));
-        if (error == ETIMEDOUT || error == ETIME) {
-#ifndef DBUG_OFF
-            /*
-              Doing this to generate a stack trace and make debugging
-              easier.
-            */
-            if (DBUG_EVALUATE_IF("debug_crash_slave_time_out", 1, 0))
-                DBUG_ASSERT(0);
-#endif
-            error= -1;
-            break;
-        }
-        error=0;
-        event_count++;
-        DBUG_PRINT("info",("Testing if killed or SQL thread not running"));
-    }
-
-err:
-    thd->EXIT_COND(&old_stage);
-    DBUG_PRINT("exit",("killed: %d  abort: %d  slave_running: %d \
-improper_arguments: %d  timed_out: %d",
-                       thd->killed_errno(),
-                       (int) (init_abort_pos_wait != abort_pos_wait),
-                       (int) slave_running,
-                       (int) (error == -2),
-                       (int) (error == -1)));
-    if (thd->killed || init_abort_pos_wait != abort_pos_wait ||
-            !slave_running) {
-        error= -2;
-    }
-    DBUG_RETURN( error ? error : event_count );
-}
-
-/*
-  TODO: This is a duplicated code that needs to be simplified.
-  This will be done while developing all possible sync options.
-  See WL#3584's specification.
-
-  /Alfranio
-*/
-int Relay_log_info::wait_for_gtid_set(THD* thd, String* gtid,
-                                      longlong timeout)
-{
-    int event_count = 0;
-    ulong init_abort_pos_wait;
-    int error=0;
-    struct timespec abstime; // for timeout checking
-    PSI_stage_info old_stage;
-    DBUG_ENTER("Relay_log_info::wait_for_gtid_set");
-
-    if (!inited)
-        DBUG_RETURN(-2);
-
-    DBUG_PRINT("info", ("Waiting for %s timeout %lld", gtid->c_ptr_safe(),
-                        timeout));
-
+    DBUG_PRINT("enter", ("log_name: '%s'  log_pos: %lu  timeout: %lu",
+                         log_name->c_ptr_safe(), (ulong) log_pos, (ulong) timeout));
     set_timespec(abstime, timeout);
     mysql_mutex_lock(&data_lock);
     /*
@@ -795,13 +623,207 @@ int Relay_log_info::wait_for_gtid_set(THD* thd, String* gtid,
        the change may happen very quickly and we may not notice that
        slave_running briefly switches between 1/0/1.
     */
-    init_abort_pos_wait= abort_pos_wait;
+    init_abort_pos_wait = abort_pos_wait;
+    /*
+      We'll need to
+      handle all possible log names comparisons (e.g. 999 vs 1000).
+      We use ulong for string->number conversion ; this is no
+      stronger limitation than in find_uniq_filename in sql/log.cc
+    */
+    ulong log_name_extension;
+    char log_name_tmp[FN_REFLEN]; //make a char[] from String
+    strmake(log_name_tmp, log_name->ptr(), min<uint32>(log_name->length(), FN_REFLEN - 1));
+    char *p = fn_ext(log_name_tmp);
+    char *p_end;
+
+    if (!*p || log_pos < 0) {
+        error = -2; //means improper arguments
+        goto err;
+    }
+
+    // Convert 0-3 to 4
+    log_pos = max<ulong>(log_pos, BIN_LOG_HEADER_SIZE);
+    /* p points to '.' */
+    log_name_extension = strtoul(++p, &p_end, 10);
+
+    /*
+      p_end points to the first invalid character.
+      If it equals to p, no digits were found, error.
+      If it contains '\0' it means conversion went ok.
+    */
+    if (p_end == p || *p_end) {
+        error = -2;
+        goto err;
+    }
+
+    /* The "compare and wait" main loop */
+    while (!thd->killed &&
+            init_abort_pos_wait == abort_pos_wait &&
+            slave_running) {
+        bool pos_reached;
+        int cmp_result = 0;
+        DBUG_PRINT("info",
+                   ("init_abort_pos_wait: %ld  abort_pos_wait: %ld",
+                    init_abort_pos_wait, abort_pos_wait));
+        DBUG_PRINT("info", ("group_master_log_name: '%s'  pos: %lu",
+                            group_master_log_name, (ulong) group_master_log_pos));
+
+        /*
+          group_master_log_name can be "", if we are just after a fresh
+          replication start or after a CHANGE MASTER TO MASTER_HOST/PORT
+          (before we have executed one Rotate event from the master) or
+          (rare) if the user is doing a weird slave setup (see next
+          paragraph).  If group_master_log_name is "", we assume we don't
+          have enough info to do the comparison yet, so we just wait until
+          more data. In this case master_log_pos is always 0 except if
+          somebody (wrongly) sets this slave to be a slave of itself
+          without using --replicate-same-server-id (an unsupported
+          configuration which does nothing), then group_master_log_pos
+          will grow and group_master_log_name will stay "".
+        */
+        if (*group_master_log_name) {
+            char *basename = (group_master_log_name +
+                              dirname_length(group_master_log_name));
+            /*
+              First compare the parts before the extension.
+              Find the dot in the master's log basename,
+              and protect against user's input error :
+              if the names do not match up to '.' included, return error
+            */
+            char *q = (char *)(fn_ext(basename) + 1);
+
+            if (strncmp(basename, log_name_tmp, (int)(q - basename))) {
+                error = -2;
+                break;
+            }
+
+            // Now compare extensions.
+            char *q_end;
+            ulong group_master_log_name_extension = strtoul(q, &q_end, 10);
+
+            if (group_master_log_name_extension < log_name_extension)
+                cmp_result = -1 ;
+            else
+                cmp_result = (group_master_log_name_extension > log_name_extension) ? 1 : 0 ;
+
+            pos_reached = ((!cmp_result && group_master_log_pos >= (ulonglong)log_pos) ||
+                           cmp_result > 0);
+
+            if (pos_reached || thd->killed)
+                break;
+        }
+
+        //wait for master update, with optional timeout.
+        DBUG_PRINT("info", ("Waiting for master update"));
+        /*
+          We are going to mysql_cond_(timed)wait(); if the SQL thread stops it
+          will wake us up.
+        */
+        thd_wait_begin(thd, THD_WAIT_BINLOG);
+
+        if (timeout > 0) {
+            /*
+              Note that mysql_cond_timedwait checks for the timeout
+              before for the condition ; i.e. it returns ETIMEDOUT
+              if the system time equals or exceeds the time specified by abstime
+              before the condition variable is signaled or broadcast, _or_ if
+              the absolute time specified by abstime has already passed at the time
+              of the call.
+              For that reason, mysql_cond_timedwait will do the "timeoutting" job
+              even if its condition is always immediately signaled (case of a loaded
+              master).
+            */
+            error = mysql_cond_timedwait(&data_cond, &data_lock, &abstime);
+
+        } else
+            mysql_cond_wait(&data_cond, &data_lock);
+
+        thd_wait_end(thd);
+        DBUG_PRINT("info", ("Got signal of master update or timed out"));
+
+        if (error == ETIMEDOUT || error == ETIME) {
+#ifndef DBUG_OFF
+
+            /*
+              Doing this to generate a stack trace and make debugging
+              easier.
+            */
+            if (DBUG_EVALUATE_IF("debug_crash_slave_time_out", 1, 0))
+                DBUG_ASSERT(0);
+
+#endif
+            error = -1;
+            break;
+        }
+
+        error = 0;
+        event_count++;
+        DBUG_PRINT("info", ("Testing if killed or SQL thread not running"));
+    }
+
+err:
+    thd->EXIT_COND(&old_stage);
+    DBUG_PRINT("exit", ("killed: %d  abort: %d  slave_running: %d \
+improper_arguments: %d  timed_out: %d",
+                        thd->killed_errno(),
+                        (int) (init_abort_pos_wait != abort_pos_wait),
+                        (int) slave_running,
+                        (int) (error == -2),
+                        (int) (error == -1)));
+
+    if (thd->killed || init_abort_pos_wait != abort_pos_wait ||
+            !slave_running)
+        error = -2;
+
+    DBUG_RETURN( error ? error : event_count );
+}
+
+/*
+  TODO: This is a duplicated code that needs to be simplified.
+  This will be done while developing all possible sync options.
+  See WL#3584's specification.
+
+  /Alfranio
+*/
+int Relay_log_info::wait_for_gtid_set(THD *thd, String *gtid,
+                                      longlong timeout)
+{
+    int event_count = 0;
+    ulong init_abort_pos_wait;
+    int error = 0;
+    struct timespec abstime; // for timeout checking
+    PSI_stage_info old_stage;
+    DBUG_ENTER("Relay_log_info::wait_for_gtid_set");
+
+    if (!inited)
+        DBUG_RETURN(-2);
+
+    DBUG_PRINT("info", ("Waiting for %s timeout %lld", gtid->c_ptr_safe(),
+                        timeout));
+    set_timespec(abstime, timeout);
+    mysql_mutex_lock(&data_lock);
+    /*
+       This function will abort when it notices that some CHANGE MASTER or
+       RESET MASTER has changed the master info.
+       To catch this, these commands modify abort_pos_wait ; We just monitor
+       abort_pos_wait and see if it has changed.
+       Why do we have this mechanism instead of simply monitoring slave_running
+       in the loop (we do this too), as CHANGE MASTER/RESET SLAVE require that
+       the SQL thread be stopped?
+       This is becasue if someones does:
+       STOP SLAVE;CHANGE MASTER/RESET SLAVE; START SLAVE;
+       the change may happen very quickly and we may not notice that
+       slave_running briefly switches between 1/0/1.
+    */
+    init_abort_pos_wait = abort_pos_wait;
     Gtid_set wait_gtid_set(global_sid_map);
     global_sid_lock->rdlock();
+
     if (wait_gtid_set.add_gtid_text(gtid->c_ptr_safe()) != RETURN_STATUS_OK) {
         global_sid_lock->unlock();
         goto err;
     }
+
     global_sid_lock->unlock();
 
     /* The "compare and wait" main loop */
@@ -811,13 +833,10 @@ int Relay_log_info::wait_for_gtid_set(THD* thd, String* gtid,
         DBUG_PRINT("info",
                    ("init_abort_pos_wait: %ld  abort_pos_wait: %ld",
                     init_abort_pos_wait, abort_pos_wait));
-
         //wait for master update, with optional timeout.
-
         global_sid_lock->wrlock();
-        const Gtid_set* logged_gtids= gtid_state->get_logged_gtids();
-        const Owned_gtids* owned_gtids= gtid_state->get_owned_gtids();
-
+        const Gtid_set *logged_gtids = gtid_state->get_logged_gtids();
+        const Owned_gtids *owned_gtids = gtid_state->get_owned_gtids();
         DBUG_PRINT("info", ("Waiting for '%s'. is_subset: %d and "
                             "!is_intersection_nonempty: %d",
                             gtid->c_ptr_safe(), wait_gtid_set.is_subset(logged_gtids),
@@ -834,15 +853,15 @@ int Relay_log_info::wait_for_gtid_set(THD* thd, String* gtid,
             global_sid_lock->unlock();
             break;
         }
+
         global_sid_lock->unlock();
-
-        DBUG_PRINT("info",("Waiting for master update"));
-
+        DBUG_PRINT("info", ("Waiting for master update"));
         /*
           We are going to mysql_cond_(timed)wait(); if the SQL thread stops it
           will wake us up.
         */
         thd_wait_begin(thd, THD_WAIT_BINLOG);
+
         if (timeout > 0) {
             /*
               Note that mysql_cond_timedwait checks for the timeout
@@ -855,48 +874,55 @@ int Relay_log_info::wait_for_gtid_set(THD* thd, String* gtid,
               even if its condition is always immediately signaled (case of a loaded
               master).
             */
-            error= mysql_cond_timedwait(&data_cond, &data_lock, &abstime);
+            error = mysql_cond_timedwait(&data_cond, &data_lock, &abstime);
+
         } else
             mysql_cond_wait(&data_cond, &data_lock);
+
         thd_wait_end(thd);
-        DBUG_PRINT("info",("Got signal of master update or timed out"));
+        DBUG_PRINT("info", ("Got signal of master update or timed out"));
+
         if (error == ETIMEDOUT || error == ETIME) {
 #ifndef DBUG_OFF
+
             /*
               Doing this to generate a stack trace and make debugging
               easier.
             */
             if (DBUG_EVALUATE_IF("debug_crash_slave_time_out", 1, 0))
                 DBUG_ASSERT(0);
+
 #endif
-            error= -1;
+            error = -1;
             break;
         }
-        error=0;
+
+        error = 0;
         event_count++;
-        DBUG_PRINT("info",("Testing if killed or SQL thread not running"));
+        DBUG_PRINT("info", ("Testing if killed or SQL thread not running"));
     }
 
 err:
     thd->EXIT_COND(&old_stage);
-    DBUG_PRINT("exit",("killed: %d  abort: %d  slave_running: %d \
+    DBUG_PRINT("exit", ("killed: %d  abort: %d  slave_running: %d \
 improper_arguments: %d  timed_out: %d",
-                       thd->killed_errno(),
-                       (int) (init_abort_pos_wait != abort_pos_wait),
-                       (int) slave_running,
-                       (int) (error == -2),
-                       (int) (error == -1)));
+                        thd->killed_errno(),
+                        (int) (init_abort_pos_wait != abort_pos_wait),
+                        (int) slave_running,
+                        (int) (error == -2),
+                        (int) (error == -1)));
+
     if (thd->killed || init_abort_pos_wait != abort_pos_wait ||
-            !slave_running) {
-        error= -2;
-    }
+            !slave_running)
+        error = -2;
+
     DBUG_RETURN( error ? error : event_count );
 }
 
 int Relay_log_info::inc_group_relay_log_pos(ulonglong log_pos,
         bool need_data_lock)
 {
-    int error= 0;
+    int error = 0;
     DBUG_ENTER("Relay_log_info::inc_group_relay_log_pos");
 
     if (need_data_lock)
@@ -905,12 +931,10 @@ int Relay_log_info::inc_group_relay_log_pos(ulonglong log_pos,
         mysql_mutex_assert_owner(&data_lock);
 
     inc_event_relay_log_pos();
-    group_relay_log_pos= event_relay_log_pos;
-    strmake(group_relay_log_name,event_relay_log_name,
-            sizeof(group_relay_log_name)-1);
-
+    group_relay_log_pos = event_relay_log_pos;
+    strmake(group_relay_log_name, event_relay_log_name,
+            sizeof(group_relay_log_name) - 1);
     notify_group_relay_log_name_update();
-
     /*
       In 4.x we used the event's len to compute the positions here. This is
       wrong if the event was 3.23/4.0 and has been converted to 5.0, because
@@ -935,7 +959,7 @@ int Relay_log_info::inc_group_relay_log_pos(ulonglong log_pos,
                         (long) log_pos, (long) group_master_log_pos));
 
     if (log_pos > 0)  // 3.23 binlogs don't have log_posx
-        group_master_log_pos= log_pos;
+        group_master_log_pos = log_pos;
 
     /*
       In MTS mode FD or Rotate event commit their solitary group to
@@ -956,22 +980,23 @@ int Relay_log_info::inc_group_relay_log_pos(ulonglong log_pos,
 
       See sql/rpl_rli.h for further information on this behavior.
     */
-    error= flush_info(FALSE);
-
+    error = flush_info(FALSE);
     mysql_cond_broadcast(&data_cond);
+
     if (need_data_lock)
         mysql_mutex_unlock(&data_lock);
+
     DBUG_RETURN(error);
 }
 
 
 void Relay_log_info::close_temporary_tables()
 {
-    TABLE *table,*next;
+    TABLE *table, *next;
     DBUG_ENTER("Relay_log_info::close_temporary_tables");
 
-    for (table=save_temporary_tables ; table ; table=next) {
-        next=table->next;
+    for (table = save_temporary_tables ; table ; table = next) {
+        next = table->next;
         /*
           Don't ask for disk deletion. For now, anyway they will be deleted when
           slave restarts, but it is a better intention to not delete them.
@@ -979,8 +1004,9 @@ void Relay_log_info::close_temporary_tables()
         DBUG_PRINT("info", ("table: 0x%lx", (long) table));
         close_temporary(table, 1, 0);
     }
-    save_temporary_tables= 0;
-    slave_open_temp_tables= 0;
+
+    save_temporary_tables = 0;
+    slave_open_temp_tables = 0;
     DBUG_VOID_RETURN;
 }
 
@@ -998,11 +1024,10 @@ void Relay_log_info::close_temporary_tables()
 */
 
 int Relay_log_info::purge_relay_logs(THD *thd, bool just_reset,
-                                     const char** errmsg)
+                                     const char **errmsg)
 {
-    int error=0;
+    int error = 0;
     DBUG_ENTER("Relay_log_info::purge_relay_logs");
-
     /*
       Even if inited==0, we still try to empty master_log_* variables. Indeed,
       inited==0 does not imply that they already are empty.
@@ -1019,8 +1044,8 @@ int Relay_log_info::purge_relay_logs(THD *thd, bool just_reset,
       SLAVE, he will see old, confusing master_log_*. In other words, we reinit
       master_log_* for SHOW SLAVE STATUS to display fine in any case.
     */
-    group_master_log_name[0]= 0;
-    group_master_log_pos= 0;
+    group_master_log_name[0] = 0;
+    group_master_log_pos = 0;
 
     if (!inited) {
         DBUG_PRINT("info", ("inited == 0"));
@@ -1029,8 +1054,7 @@ int Relay_log_info::purge_relay_logs(THD *thd, bool just_reset,
 
     DBUG_ASSERT(slave_running == 0);
     DBUG_ASSERT(mi->slave_running == 0);
-
-    slave_skip_counter= 0;
+    slave_skip_counter = 0;
     mysql_mutex_lock(&data_lock);
 
     /*
@@ -1042,35 +1066,38 @@ int Relay_log_info::purge_relay_logs(THD *thd, bool just_reset,
     if (cur_log_fd >= 0) {
         end_io_cache(&cache_buf);
         my_close(cur_log_fd, MYF(MY_WME));
-        cur_log_fd= -1;
+        cur_log_fd = -1;
     }
 
     if (relay_log.reset_logs(thd)) {
         *errmsg = "Failed during log reset";
-        error=1;
+        error = 1;
         goto err;
     }
+
     /* Save name of used relay log file */
     strmake(group_relay_log_name, relay_log.get_log_fname(),
-            sizeof(group_relay_log_name)-1);
+            sizeof(group_relay_log_name) - 1);
     strmake(event_relay_log_name, relay_log.get_log_fname(),
-            sizeof(event_relay_log_name)-1);
-    group_relay_log_pos= event_relay_log_pos= BIN_LOG_HEADER_SIZE;
+            sizeof(event_relay_log_name) - 1);
+    group_relay_log_pos = event_relay_log_pos = BIN_LOG_HEADER_SIZE;
+
     if (count_relay_log_space()) {
-        *errmsg= "Error counting relay log space";
-        error= 1;
+        *errmsg = "Error counting relay log space";
+        error = 1;
         goto err;
     }
+
     if (!just_reset)
-        error= init_relay_log_pos(group_relay_log_name,
-                                  group_relay_log_pos,
-                                  false/*need_data_lock=false*/, errmsg, 0);
+        error = init_relay_log_pos(group_relay_log_name,
+                                   group_relay_log_pos,
+                                   false/*need_data_lock=false*/, errmsg, 0);
 
 err:
 #ifndef DBUG_OFF
     char buf[22];
 #endif
-    DBUG_PRINT("info",("log_space_total: %s",llstr(log_space_total,buf)));
+    DBUG_PRINT("info", ("log_space_total: %s", llstr(log_space_total, buf)));
     mysql_mutex_unlock(&data_lock);
     DBUG_RETURN(error);
 }
@@ -1108,27 +1135,29 @@ err:
 
 bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
 {
-    char error_msg[]= "Slave SQL thread is stopped because UNTIL "
-                      "condition is bad.";
+    char error_msg[] = "Slave SQL thread is stopped because UNTIL "
+                       "condition is bad.";
     DBUG_ENTER("Relay_log_info::is_until_satisfied");
 
     switch (until_condition) {
     case UNTIL_MASTER_POS:
     case UNTIL_RELAY_POS: {
-        const char *log_name= NULL;
-        ulonglong log_pos= 0;
+        const char *log_name = NULL;
+        ulonglong log_pos = 0;
 
         if (until_condition == UNTIL_MASTER_POS) {
             if (ev && ev->server_id == (uint32) ::server_id && !replicate_same_server_id)
                 DBUG_RETURN(false);
-            log_name= group_master_log_name;
-            log_pos= (!ev)? group_master_log_pos :
-                     ((thd->variables.option_bits & OPTION_BEGIN || !ev->log_pos) ?
-                      group_master_log_pos : ev->log_pos - ev->data_written);
+
+            log_name = group_master_log_name;
+            log_pos = (!ev) ? group_master_log_pos :
+                      ((thd->variables.option_bits & OPTION_BEGIN || !ev->log_pos) ?
+                       group_master_log_pos : ev->log_pos - ev->data_written);
+
         } else {
             /* until_condition == UNTIL_RELAY_POS */
-            log_name= group_relay_log_name;
-            log_pos= group_relay_log_pos;
+            log_name = group_relay_log_name;
+            log_pos = group_relay_log_pos;
         }
 
 #ifndef DBUG_OFF
@@ -1155,26 +1184,28 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
               any event yet, it could be that group_master_log_name is "". In that case,
               just wait for more events (as there is no sensible comparison to do).
             */
-
             if (*log_name) {
-                const char *basename= log_name + dirname_length(log_name);
+                const char *basename = log_name + dirname_length(log_name);
+                const char *q = (const char *)(fn_ext(basename) + 1);
 
-                const char *q= (const char*)(fn_ext(basename)+1);
-                if (strncmp(basename, until_log_name, (int)(q-basename)) == 0) {
+                if (strncmp(basename, until_log_name, (int)(q - basename)) == 0) {
                     /* Now compare extensions. */
                     char *q_end;
-                    ulong log_name_extension= strtoul(q, &q_end, 10);
+                    ulong log_name_extension = strtoul(q, &q_end, 10);
+
                     if (log_name_extension < until_log_name_extension)
-                        until_log_names_cmp_result= UNTIL_LOG_NAMES_CMP_LESS;
+                        until_log_names_cmp_result = UNTIL_LOG_NAMES_CMP_LESS;
                     else
-                        until_log_names_cmp_result=
+                        until_log_names_cmp_result =
                             (log_name_extension > until_log_name_extension) ?
                             UNTIL_LOG_NAMES_CMP_GREATER : UNTIL_LOG_NAMES_CMP_EQUAL ;
+
                 } else {
                     /* Base names do not match, so we abort */
                     sql_print_error("%s", error_msg);
                     DBUG_RETURN(true);
                 }
+
             } else
                 DBUG_RETURN(until_log_pos == 0);
         }
@@ -1187,30 +1218,35 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
                                   " UNTIL position %s", llstr(until_pos(), buf));
             DBUG_RETURN(true);
         }
+
         DBUG_RETURN(false);
     }
 
     case UNTIL_SQL_BEFORE_GTIDS:
         if (ev != NULL && ev->get_type_code() == GTID_LOG_EVENT) {
-            Gtid_log_event *gev= (Gtid_log_event *)ev;
+            Gtid_log_event *gev = (Gtid_log_event *)ev;
             global_sid_lock->rdlock();
+
             if (until_sql_gtids.contains_gtid(gev->get_sidno(false), gev->get_gno())) {
-                char *buffer= until_sql_gtids.to_string();
+                char *buffer = until_sql_gtids.to_string();
                 global_sid_lock->unlock();
                 sql_print_information("Slave SQL thread stopped because it reached "
                                       "UNTIL SQL_BEFORE_GTIDS %s", buffer);
                 my_free(buffer);
                 DBUG_RETURN(true);
             }
+
             global_sid_lock->unlock();
+
             // We only need to check once if logged_gtids set contains any of the until_sql_gtids.
             if (until_sql_gtids_first_event) {
-                until_sql_gtids_first_event= false;
+                until_sql_gtids_first_event = false;
                 global_sid_lock->wrlock();
                 /* Check if until GTIDs were already applied. */
-                const Gtid_set* logged_gtids= gtid_state->get_logged_gtids();
+                const Gtid_set *logged_gtids = gtid_state->get_logged_gtids();
+
                 if (until_sql_gtids.is_intersection_nonempty(logged_gtids)) {
-                    char *buffer= until_sql_gtids.to_string();
+                    char *buffer = until_sql_gtids.to_string();
                     global_sid_lock->unlock();
                     sql_print_information("Slave SQL thread stopped because "
                                           "UNTIL SQL_BEFORE_GTIDS %s is already "
@@ -1218,34 +1254,40 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
                     my_free(buffer);
                     DBUG_RETURN(true);
                 }
+
                 global_sid_lock->unlock();
             }
         }
+
         DBUG_RETURN(false);
         break;
 
     case UNTIL_SQL_AFTER_GTIDS:
         if (ev != NULL && ev->get_type_code() == GTID_LOG_EVENT) {
             global_sid_lock->wrlock();
+
             // We only need to compute until_sql_gtids_seen once.
             if (until_sql_gtids_first_event) {
-                until_sql_gtids_first_event= false;
-                const Gtid_set* logged_gtids= gtid_state->get_logged_gtids();
+                until_sql_gtids_first_event = false;
+                const Gtid_set *logged_gtids = gtid_state->get_logged_gtids();
                 until_sql_gtids.intersection(logged_gtids, &until_sql_gtids_seen);
             }
+
             if (until_sql_gtids.is_subset(const_cast<Gtid_set *>(&until_sql_gtids_seen))) {
-                char *buffer= until_sql_gtids.to_string();
+                char *buffer = until_sql_gtids.to_string();
                 global_sid_lock->unlock();
                 sql_print_information("Slave SQL thread stopped because it reached "
                                       "UNTIL SQL_AFTER_GTIDS %s", buffer);
                 my_free(buffer);
                 DBUG_RETURN(true);
             }
-            Gtid_log_event *gev= (Gtid_log_event *)ev;
+
+            Gtid_log_event *gev = (Gtid_log_event *)ev;
             until_sql_gtids_seen.ensure_sidno(gev->get_sidno(false));
             until_sql_gtids_seen._add_gtid(gev->get_sidno(false), gev->get_gno());
             global_sid_lock->unlock();
         }
+
         DBUG_RETURN(false);
         break;
 
@@ -1253,6 +1295,7 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
 #ifndef DBUG_OFF
     case UNTIL_DONE:
 #endif
+
         /*
           TODO: this condition is actually post-execution or post-scheduling
                 so the proper place to check it before SQL thread goes
@@ -1267,12 +1310,13 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
                                   "processed all gap transactions left from "
                                   "the previous slave session.");
 #ifndef DBUG_OFF
-            until_condition= UNTIL_DONE;
+            until_condition = UNTIL_DONE;
 #endif
             DBUG_RETURN(true);
-        } else {
+
+        } else
             DBUG_RETURN(false);
-        }
+
         break;
 
     case UNTIL_NONE:
@@ -1287,7 +1331,6 @@ bool Relay_log_info::is_until_satisfied(THD *thd, Log_event *ev)
 void Relay_log_info::cached_charset_invalidate()
 {
     DBUG_ENTER("Relay_log_info::cached_charset_invalidate");
-
     /* Full of zeroes means uninitialized. */
     memset(cached_charset, 0, sizeof(cached_charset));
     DBUG_VOID_RETURN;
@@ -1299,19 +1342,18 @@ bool Relay_log_info::cached_charset_compare(char *charset) const
     DBUG_ENTER("Relay_log_info::cached_charset_compare");
 
     if (memcmp(cached_charset, charset, sizeof(cached_charset))) {
-        memcpy(const_cast<char*>(cached_charset), charset, sizeof(cached_charset));
+        memcpy(const_cast<char *>(cached_charset), charset, sizeof(cached_charset));
         DBUG_RETURN(1);
     }
+
     DBUG_RETURN(0);
 }
 
 
 int Relay_log_info::stmt_done(my_off_t event_master_log_pos)
 {
-    int error= 0;
-
+    int error = 0;
     clear_flag(IN_STMT);
-
     DBUG_ASSERT(!belongs_to_client());
     /* Worker does not execute binlog update position logics */
     DBUG_ASSERT(!is_mts_worker(info_thd));
@@ -1347,25 +1389,25 @@ int Relay_log_info::stmt_done(my_off_t event_master_log_pos)
       of a group that is about to be assigned.
     */
     if ((!is_parallel_exec() && is_in_group()) ||
-            mts_group_status != MTS_NOT_IN_GROUP) {
+            mts_group_status != MTS_NOT_IN_GROUP)
         inc_event_relay_log_pos();
-    } else {
+
+    else {
         if (is_parallel_exec()) {
-
             DBUG_ASSERT(!is_mts_worker(info_thd));
-
             /*
               Format Description events only can drive MTS execution to this
               point. It is a special event group that is handled with
               synchronization. For that reason, the checkpoint routine is
               called here.
             */
-            error= mts_checkpoint_routine(this, 0, false,
-                                          true/*need_data_lock=true*/);
-        }
-        if (!error)
-            error= inc_group_relay_log_pos(event_master_log_pos,
+            error = mts_checkpoint_routine(this, 0, false,
                                            true/*need_data_lock=true*/);
+        }
+
+        if (!error)
+            error = inc_group_relay_log_pos(event_master_log_pos,
+                                            true/*need_data_lock=true*/);
     }
 
     return error;
@@ -1375,7 +1417,6 @@ int Relay_log_info::stmt_done(my_off_t event_master_log_pos)
 void Relay_log_info::cleanup_context(THD *thd, bool error)
 {
     DBUG_ENTER("Relay_log_info::cleanup_context");
-
     DBUG_ASSERT(info_thd == thd);
     /*
       1) Instances of Table_map_log_event, if ::do_apply_event() was called on them,
@@ -1410,7 +1451,6 @@ void Relay_log_info::cleanup_context(THD *thd, bool error)
     */
 //   thd->variables.option_bits&= ~OPTION_NO_FOREIGN_KEY_CHECKS;
 //   thd->variables.option_bits&= ~OPTION_RELAXED_UNIQUE_CHECKS;
-
     /*
       Reset state related to long_find_row notes in the error log:
       - timestamp
@@ -1418,7 +1458,6 @@ void Relay_log_info::cleanup_context(THD *thd, bool error)
     */
 //   reset_row_stmt_start_timestamp();
 //   unset_long_find_row_note_printed();
-
     DBUG_VOID_RETURN;
 }
 
@@ -1436,16 +1475,19 @@ void Relay_log_info::clear_tables_to_lock()
       This assertion just confirms that we get no surprises at this
       point.
      */
-    uint i=0;
-    for (TABLE_LIST *ptr= tables_to_lock ; ptr ; ptr= ptr->next_global, i++) ;
+    uint i = 0;
+
+    for (TABLE_LIST *ptr = tables_to_lock ; ptr ; ptr = ptr->next_global, i++) ;
+
     DBUG_ASSERT(i == tables_to_lock_count);
 #endif
 
     while (tables_to_lock) {
-        uchar* to_free= reinterpret_cast<uchar*>(tables_to_lock);
+        uchar *to_free = reinterpret_cast<uchar *>(tables_to_lock);
+
         if (tables_to_lock->m_tabledef_valid) {
             tables_to_lock->m_tabledef.table_def::~table_def();
-            tables_to_lock->m_tabledef_valid= FALSE;
+            tables_to_lock->m_tabledef_valid = FALSE;
         }
 
         /*
@@ -1457,11 +1499,12 @@ void Relay_log_info::clear_tables_to_lock()
         if (tables_to_lock->m_conv_table)
             free_blobs(tables_to_lock->m_conv_table);
 
-        tables_to_lock=
-            static_cast<RPL_TABLE_LIST*>(tables_to_lock->next_global);
+        tables_to_lock =
+            static_cast<RPL_TABLE_LIST *>(tables_to_lock->next_global);
         tables_to_lock_count--;
         my_free(to_free);
     }
+
     DBUG_ASSERT(tables_to_lock == NULL && tables_to_lock_count == 0);
     DBUG_VOID_RETURN;
 }
@@ -1472,7 +1515,6 @@ void Relay_log_info::slave_close_thread_tables(THD *thd)
     DBUG_ENTER("Relay_log_info::slave_close_thread_tables(THD *thd)");
 //   thd->is_error() ? trans_rollback_stmt(thd) : trans_commit_stmt(thd);
 //   thd->get_stmt_da()->set_overwrite_status(false);
-
 //   close_thread_tables(thd);
     /*
       - If inside a multi-statement transaction,
@@ -1501,15 +1543,14 @@ void Relay_log_info::slave_close_thread_tables(THD *thd)
   @retval FALSE success
   @retval TRUE failure
 */
-bool mysql_show_relaylog_events(THD* thd)
+bool mysql_show_relaylog_events(THD *thd)
 {
-    Protocol *protocol= thd->protocol;
+    Protocol *protocol = thd->protocol;
     List<Item> field_list;
     DBUG_ENTER("mysql_show_relaylog_events");
-
     DBUG_ASSERT(thd->lex->sql_command == SQLCOM_SHOW_RELAYLOG_EVENTS);
-
     Log_event::init_show_field_list(&field_list);
+
     if (protocol->send_result_set_metadata(&field_list,
                                            Protocol::SEND_NUM_ROWS | Protocol::SEND_EOF))
         DBUG_RETURN(TRUE);
@@ -1526,12 +1567,10 @@ bool mysql_show_relaylog_events(THD* thd)
 
 int Relay_log_info::rli_init_info()
 {
-    int error= 0;
-    enum_return_check check_return= ERROR_CHECKING_REPOSITORY;
-    const char *msg= NULL;
-
+    int error = 0;
+    enum_return_check check_return = ERROR_CHECKING_REPOSITORY;
+    const char *msg = NULL;
     DBUG_ENTER("Relay_log_info::rli_init_info");
-
     mysql_mutex_assert_owner(&data_lock);
 
     /*
@@ -1559,7 +1598,7 @@ int Relay_log_info::rli_init_info()
           position is at the beginning of the file, and will read the
           "signature" and then fast-forward to the last position read.
         */
-        bool hot_log= FALSE;
+        bool hot_log = FALSE;
         /*
           my_b_seek does an implicit flush_io_cache, so we need to:
 
@@ -1571,9 +1610,9 @@ int Relay_log_info::rli_init_info()
           thread for the IO_CACHE mutex.
 
         */
-        mysql_mutex_t *log_lock= relay_log.get_log_lock();
+        mysql_mutex_t *log_lock = relay_log.get_log_lock();
         mysql_mutex_lock(log_lock);
-        hot_log= relay_log.is_active(linfo.log_file_name);
+        hot_log = relay_log.is_active(linfo.log_file_name);
 
         if (!hot_log)
             mysql_mutex_unlock(log_lock);
@@ -1582,28 +1621,29 @@ int Relay_log_info::rli_init_info()
 
         if (hot_log)
             mysql_mutex_unlock(log_lock);
+
         DBUG_RETURN(recovery_parallel_workers ? mts_recovery_groups(this) : 0);
     }
 
     cur_log_fd = -1;
-    slave_skip_counter= 0;
-    abort_pos_wait= 0;
-    log_space_limit= relay_log_space_limit;
-    log_space_total= 0;
-    tables_to_lock= 0;
-    tables_to_lock_count= 0;
-
+    slave_skip_counter = 0;
+    abort_pos_wait = 0;
+    log_space_limit = relay_log_space_limit;
+    log_space_total = 0;
+    tables_to_lock = 0;
+    tables_to_lock_count = 0;
     char pattern[FN_REFLEN];
     (void) my_realpath(pattern, slave_load_tmpdir, 0);
+
     if (fn_format(pattern, PREFIX_SQL_LOAD, pattern, "",
                   MY_SAFE_PATH | MY_RETURN_REAL_PATH) == NullS) {
         sql_print_error("Unable to use slave's temporary directory '%s'.",
                         slave_load_tmpdir);
         DBUG_RETURN(1);
     }
-    unpack_filename(slave_patternload_file, pattern);
-    slave_patternload_file_size= strlen(slave_patternload_file);
 
+    unpack_filename(slave_patternload_file, pattern);
+    slave_patternload_file_size = strlen(slave_patternload_file);
     /*
       The relay log will now be opened, as a SEQ_READ_APPEND IO_CACHE.
       Note that the I/O thread flushes it to disk after writing every
@@ -1640,9 +1680,10 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
 
         char buf[FN_REFLEN];
         const char *ln;
-        static bool name_warning_sent= 0;
-        ln= relay_log.generate_name(opt_relay_logname, "-relay-bin",
-                                    1, buf);
+        static bool name_warning_sent = 0;
+        ln = relay_log.generate_name(opt_relay_logname, "-relay-bin",
+                                     1, buf);
+
         /* We send the warning only at startup, not after every RESET SLAVE */
         if (!opt_relay_logname && !opt_relaylog_index_name && !name_warning_sent) {
             /*
@@ -1657,20 +1698,22 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
                               "may break when this MySQL server acts as a "
                               "slave and has his hostname changed!! Please "
                               "use '--relay-log=%s' to avoid this problem.", ln);
-            name_warning_sent= 1;
+            name_warning_sent = 1;
         }
 
-        relay_log.is_relay_log= TRUE;
+        relay_log.is_relay_log = TRUE;
 
         if (relay_log.open_index_file(opt_relaylog_index_name, ln, TRUE)) {
             sql_print_error("Failed in open_index_file() called from Relay_log_info::rli_init_info().");
             DBUG_RETURN(1);
         }
+
 #ifndef DBUG_OFF
         global_sid_lock->wrlock();
         gtid_set.dbug_print("set of GTIDs in relay log before initialization");
         global_sid_lock->unlock();
 #endif
+
         if (!current_thd &&
                 relay_log.init_gtid_sets(&gtid_set, NULL,
                                          opt_slave_sql_verify_checksum,
@@ -1678,6 +1721,7 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
             sql_print_error("Failed in init_gtid_sets() called from Relay_log_info::rli_init_info().");
             DBUG_RETURN(1);
         }
+
 #ifndef DBUG_OFF
         global_sid_lock->wrlock();
         gtid_set.dbug_print("set of GTIDs in relay log after initialization");
@@ -1689,6 +1733,7 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
           corretly compute the set of previous gtids.
         */
         relay_log.set_previous_gtid_set(&gtid_set);
+
         /*
           note, that if open() fails, we'll still have index file open
           but a destructor will take care of that
@@ -1709,15 +1754,15 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
      will be values to be read. Please, do not move this call after
      the handler->init_info().
     */
-    if ((check_return= check_info()) == ERROR_CHECKING_REPOSITORY) {
-        msg= "Error checking relay log repository";
-        error= 1;
+    if ((check_return = check_info()) == ERROR_CHECKING_REPOSITORY) {
+        msg = "Error checking relay log repository";
+        error = 1;
         goto err;
     }
 
     if (handler->init_info()) {
-        msg= "Error reading relay log configuration";
-        error= 1;
+        msg = "Error reading relay log configuration";
+        error = 1;
         goto err;
     }
 
@@ -1727,20 +1772,22 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
                                false/*need_data_lock=false (lock should be held
                                   prior to invoking this function)*/,
                                &msg, 0)) {
-            error= 1;
+            error = 1;
             goto err;
         }
-        group_master_log_name[0]= 0;
-        group_master_log_pos= 0;
+
+        group_master_log_name[0] = 0;
+        group_master_log_pos = 0;
+
     } else {
         if (read_info(handler)) {
-            msg= "Error reading relay log configuration";
-            error= 1;
+            msg = "Error reading relay log configuration";
+            error = 1;
             goto err;
         }
 
         if (is_relay_log_recovery && init_recovery(mi, &msg)) {
-            error= 1;
+            error = 1;
             goto err;
         }
 
@@ -1753,7 +1800,7 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
             sql_print_error("Failed to open the relay log '%s' (relay_log_pos %s).",
                             group_relay_log_name,
                             llstr(group_relay_log_pos, llbuf));
-            error= 1;
+            error = 1;
             goto err;
         }
 
@@ -1761,37 +1808,39 @@ a file name for --relay-log-index option.", opt_relaylog_index_name);
         {
             char llbuf1[22], llbuf2[22];
             DBUG_PRINT("info", ("my_b_tell(cur_log)=%s event_relay_log_pos=%s",
-                                llstr(my_b_tell(cur_log),llbuf1),
-                                llstr(event_relay_log_pos,llbuf2)));
+                                llstr(my_b_tell(cur_log), llbuf1),
+                                llstr(event_relay_log_pos, llbuf2)));
             DBUG_ASSERT(event_relay_log_pos >= BIN_LOG_HEADER_SIZE);
             DBUG_ASSERT((my_b_tell(cur_log) == event_relay_log_pos));
         }
 #endif
     }
 
-    inited= 1;
-    error_on_rli_init_info= false;
+    inited = 1;
+    error_on_rli_init_info = false;
+
     if (flush_info(TRUE)) {
-        msg= "Error reading relay log configuration";
-        error= 1;
+        msg = "Error reading relay log configuration";
+        error = 1;
         goto err;
     }
 
     if (count_relay_log_space()) {
-        msg= "Error counting relay log space";
-        error= 1;
+        msg = "Error counting relay log space";
+        error = 1;
         goto err;
     }
 
-    is_relay_log_recovery= FALSE;
+    is_relay_log_recovery = FALSE;
     DBUG_RETURN(error);
-
 err:
     handler->end_info();
-    inited= 0;
-    error_on_rli_init_info= true;
+    inited = 0;
+    error_on_rli_init_info = true;
+
     if (msg)
         sql_print_error("%s.", msg);
+
     relay_log.close(LOG_CLOSE_INDEX | LOG_CLOSE_STOP_EVENT);
     DBUG_RETURN(error);
 }
@@ -1799,8 +1848,8 @@ err:
 void Relay_log_info::end_info()
 {
     DBUG_ENTER("Relay_log_info::end_info");
+    error_on_rli_init_info = false;
 
-    error_on_rli_init_info= false;
     if (!inited)
         DBUG_VOID_RETURN;
 
@@ -1809,8 +1858,9 @@ void Relay_log_info::end_info()
     if (cur_log_fd >= 0) {
         end_io_cache(&cache_buf);
         (void)my_close(cur_log_fd, MYF(MY_WME));
-        cur_log_fd= -1;
+        cur_log_fd = -1;
     }
+
     inited = 0;
     relay_log.close(LOG_CLOSE_INDEX | LOG_CLOSE_STOP_EVENT);
     relay_log.harvest_bytes_written(&log_space_total);
@@ -1820,7 +1870,6 @@ void Relay_log_info::end_info()
       of slave's temp tables after shutdown.
     */
     close_temporary_tables();
-
     DBUG_VOID_RETURN;
 }
 
@@ -1831,16 +1880,17 @@ int Relay_log_info::flush_current_log()
       When we come to this place in code, relay log may or not be initialized;
       the caller is responsible for setting 'flush_relay_log_cache' accordingly.
     */
-    IO_CACHE *log_file= relay_log.get_log_file();
+    IO_CACHE *log_file = relay_log.get_log_file();
+
     if (flush_io_cache(log_file))
         DBUG_RETURN(2);
 
     DBUG_RETURN(0);
 }
 
-void Relay_log_info::set_master_info(Master_info* info)
+void Relay_log_info::set_master_info(Master_info *info)
 {
-    mi= info;
+    mi = info;
 }
 
 /**
@@ -1918,7 +1968,6 @@ int Relay_log_info::flush_info(const bool force)
         goto err;
 
     DBUG_RETURN(0);
-
 err:
     sql_print_error("Error writing relay log configuration.");
     DBUG_RETURN(1);
@@ -1926,18 +1975,17 @@ err:
 
 size_t Relay_log_info::get_number_info_rli_fields()
 {
-    return sizeof(info_rli_fields)/sizeof(info_rli_fields[0]);
+    return sizeof(info_rli_fields) / sizeof(info_rli_fields[0]);
 }
 
 bool Relay_log_info::read_info(Rpl_info_handler *from)
 {
-    int lines= 0;
-    char *first_non_digit= NULL;
-    ulong temp_group_relay_log_pos= 0;
-    ulong temp_group_master_log_pos= 0;
-    int temp_sql_delay= 0;
-    int temp_internal_id= 0;
-
+    int lines = 0;
+    char *first_non_digit = NULL;
+    ulong temp_group_relay_log_pos = 0;
+    ulong temp_group_master_log_pos = 0;
+    int temp_sql_delay = 0;
+    int temp_internal_id = 0;
     DBUG_ENTER("Relay_log_info::read_info");
 
     /*
@@ -1983,14 +2031,15 @@ bool Relay_log_info::read_info(Rpl_info_handler *from)
                            (char *) ""))
         DBUG_RETURN(TRUE);
 
-    lines= strtoul(group_relay_log_name, &first_non_digit, 10);
+    lines = strtoul(group_relay_log_name, &first_non_digit, 10);
 
-    if (group_relay_log_name[0]!='\0' &&
-            *first_non_digit=='\0' && lines >= LINES_IN_RELAY_LOG_INFO_WITH_DELAY) {
+    if (group_relay_log_name[0] != '\0' &&
+            *first_non_digit == '\0' && lines >= LINES_IN_RELAY_LOG_INFO_WITH_DELAY) {
         /* Seems to be new format => read group relay log name */
         if (from->get_info(group_relay_log_name, (size_t) sizeof(group_relay_log_name),
                            (char *) ""))
             DBUG_RETURN(TRUE);
+
     } else
         DBUG_PRINT("info", ("relay_log_info file is in old format."));
 
@@ -2009,7 +2058,7 @@ bool Relay_log_info::read_info(Rpl_info_handler *from)
     }
 
     if (lines >= LINES_IN_RELAY_LOG_INFO_WITH_WORKERS) {
-        if (from->get_info(&recovery_parallel_workers,(ulong) 0))
+        if (from->get_info(&recovery_parallel_workers, (ulong) 0))
             DBUG_RETURN(TRUE);
     }
 
@@ -2018,11 +2067,10 @@ bool Relay_log_info::read_info(Rpl_info_handler *from)
             DBUG_RETURN(TRUE);
     }
 
-    group_relay_log_pos=  temp_group_relay_log_pos;
-    group_master_log_pos= temp_group_master_log_pos;
-    sql_delay= (int32) temp_sql_delay;
-    internal_id= (uint) temp_internal_id;
-
+    group_relay_log_pos =  temp_group_relay_log_pos;
+    group_master_log_pos = temp_group_master_log_pos;
+    sql_delay = (int32) temp_sql_delay;
+    internal_id = (uint) temp_internal_id;
     DBUG_ASSERT(lines < LINES_IN_RELAY_LOG_INFO_WITH_ID ||
                 (lines >= LINES_IN_RELAY_LOG_INFO_WITH_ID && internal_id == 1));
     DBUG_RETURN(FALSE);
@@ -2073,18 +2121,22 @@ void Relay_log_info::set_rli_description_event(Format_description_log_event *fe)
 
     if (fe) {
         adapt_to_master_version(fe);
+
         if (info_thd && is_parallel_exec()) {
-            for (uint i= 0; i < workers.elements; i++) {
-                Slave_worker *w= *(Slave_worker **) dynamic_array_ptr(&workers, i);
+            for (uint i = 0; i < workers.elements; i++) {
+                Slave_worker *w = *(Slave_worker **) dynamic_array_ptr(&workers, i);
                 mysql_mutex_lock(&w->jobs_lock);
+
                 if (w->running_status == Slave_worker::RUNNING)
                     w->set_rli_description_event(fe);
+
                 mysql_mutex_unlock(&w->jobs_lock);
             }
         }
     }
+
     delete rli_description_event;
-    rli_description_event= fe;
+    rli_description_event = fe;
 }
 
 struct st_feature_version
@@ -2097,7 +2149,7 @@ struct st_feature_version
     */
     enum
     {
-        WL6292_TIMESTAMP_EXPLICIT_DEFAULT= 0,
+        WL6292_TIMESTAMP_EXPLICIT_DEFAULT = 0,
         _END_OF_LIST // always last
     } item;
     /*
@@ -2108,19 +2160,20 @@ struct st_feature_version
       Action to perform when according to FormatDescriptor event Master
       is found to be feature-aware while previously it has *not* been.
     */
-    void (*upgrade) (THD*);
+    void (*upgrade) (THD *);
     /*
       Action to perform when according to FormatDescriptor event Master
       is found to be feature-*un*aware while previously it has been.
     */
-    void (*downgrade) (THD*);
+    void (*downgrade) (THD *);
 };
 
 void wl6292_upgrade_func(THD *thd)
 {
-    thd->variables.explicit_defaults_for_timestamp= false;
+    thd->variables.explicit_defaults_for_timestamp = false;
+
     if (global_system_variables.explicit_defaults_for_timestamp)
-        thd->variables.explicit_defaults_for_timestamp= true;
+        thd->variables.explicit_defaults_for_timestamp = true;
 
     return;
 }
@@ -2128,7 +2181,7 @@ void wl6292_upgrade_func(THD *thd)
 void wl6292_downgrade_func(THD *thd)
 {
     if (global_system_variables.explicit_defaults_for_timestamp)
-        thd->variables.explicit_defaults_for_timestamp= false;
+        thd->variables.explicit_defaults_for_timestamp = false;
 
     return;
 }
@@ -2137,7 +2190,7 @@ void wl6292_downgrade_func(THD *thd)
    Sensitive to Master-vs-Slave version difference features
    should be listed in the version non-descending order.
 */
-static st_feature_version s_features[]= {
+static st_feature_version s_features[] = {
     // order is the same as in the enum
     {
         st_feature_version::WL6292_TIMESTAMP_EXPLICIT_DEFAULT,
@@ -2178,11 +2231,11 @@ static st_feature_version s_features[]= {
 */
 void Relay_log_info::adapt_to_master_version(Format_description_log_event *fdle)
 {
-    THD *thd=info_thd;
+    THD *thd = info_thd;
     ulong master_version, current_version;
-    int changed= !fdle || ! rli_description_event ? 0 :
-                 (master_version= fdle->get_version_product()) -
-                 (current_version= rli_description_event->get_version_product());
+    int changed = !fdle || ! rli_description_event ? 0 :
+                  (master_version = fdle->get_version_product()) -
+                  (current_version = rli_description_event->get_version_product());
 
     /* When the last version is not changed nothing to adapt for */
     if (!changed)
@@ -2193,17 +2246,18 @@ void Relay_log_info::adapt_to_master_version(Format_description_log_event *fdle)
       for downgrade or upgrade branches.
       (todo: convert into bsearch when number of features will grow significantly)
     */
-    bool downgrade= changed < 0;
-    long i, i_first= st_feature_version::_END_OF_LIST, i_last= i_first;
+    bool downgrade = changed < 0;
+    long i, i_first = st_feature_version::_END_OF_LIST, i_last = i_first;
 
-    for (i= 0; i < st_feature_version::_END_OF_LIST; i++) {
-        ulong ver_f= version_product(s_features[i].version_split);
+    for (i = 0; i < st_feature_version::_END_OF_LIST; i++) {
+        ulong ver_f = version_product(s_features[i].version_split);
 
         if ((downgrade ? master_version : current_version) < ver_f &&
                 i_first == st_feature_version::_END_OF_LIST)
-            i_first= i;
+            i_first = i;
+
         if ((downgrade ? current_version : master_version) < ver_f) {
-            i_last= i;
+            i_last = i;
             DBUG_ASSERT(i_last >= i_first);
             break;
         }
@@ -2212,21 +2266,20 @@ void Relay_log_info::adapt_to_master_version(Format_description_log_event *fdle)
     /*
        actions, executed in version non-descending st_feature_version order
     */
-    for (i= i_first; i < i_last; i++) {
+    for (i = i_first; i < i_last; i++) {
         /* Run time check of the st_feature_version items ordering */
         DBUG_ASSERT(!i ||
                     version_product(s_features[i - 1].version_split) <=
                     version_product(s_features[i].version_split));
-
         DBUG_ASSERT((downgrade ? master_version : current_version) <
                     version_product(s_features[i].version_split) &&
                     (downgrade ? current_version : master_version  >=
                      version_product(s_features[i].version_split)));
 
-        if (downgrade && s_features[i].downgrade) {
+        if (downgrade && s_features[i].downgrade)
             s_features[i].downgrade(thd);
-        } else if (s_features[i].upgrade) {
+
+        else if (s_features[i].upgrade)
             s_features[i].upgrade(thd);
-        }
     }
 }

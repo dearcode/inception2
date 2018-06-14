@@ -26,8 +26,8 @@
 */
 
 #ifdef HAVE_PSI_INTERFACE
-extern PSI_mutex_key key_LOCK_event_queue;
-extern PSI_cond_key key_COND_queue_state;
+    extern PSI_mutex_key key_LOCK_event_queue;
+    extern PSI_cond_key key_COND_queue_state;
 #endif /* HAVE_PSI_INTERFACE */
 
 #include "queues.h"                             // QUEUE
@@ -121,9 +121,9 @@ private:
     uint mutex_last_locked_at_line;
     uint mutex_last_unlocked_at_line;
     uint mutex_last_attempted_lock_at_line;
-    const char* mutex_last_locked_in_func;
-    const char* mutex_last_unlocked_in_func;
-    const char* mutex_last_attempted_lock_in_func;
+    const char *mutex_last_locked_in_func;
+    const char *mutex_last_unlocked_in_func;
+    const char *mutex_last_attempted_lock_in_func;
     bool mutex_queue_data_locked;
     bool mutex_queue_data_attempting_lock;
     bool waiting_on_cond;

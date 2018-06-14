@@ -26,11 +26,11 @@
 class Item_geometry_func: public Item_str_func
 {
 public:
-    Item_geometry_func() :Item_str_func() {}
-    Item_geometry_func(Item *a) :Item_str_func(a) {}
-    Item_geometry_func(Item *a,Item *b) :Item_str_func(a,b) {}
-    Item_geometry_func(Item *a,Item *b,Item *c) :Item_str_func(a,b,c) {}
-    Item_geometry_func(List<Item> &list) :Item_str_func(list) {}
+    Item_geometry_func() : Item_str_func() {}
+    Item_geometry_func(Item *a) : Item_str_func(a) {}
+    Item_geometry_func(Item *a, Item *b) : Item_str_func(a, b) {}
+    Item_geometry_func(Item *a, Item *b, Item *c) : Item_str_func(a, b, c) {}
+    Item_geometry_func(List<Item> &list) : Item_str_func(list) {}
     void fix_length_and_dec();
     enum_field_types field_type() const
     {
@@ -47,8 +47,8 @@ public:
 class Item_func_geometry_from_text: public Item_geometry_func
 {
 public:
-    Item_func_geometry_from_text(Item *a) :Item_geometry_func(a) {}
-    Item_func_geometry_from_text(Item *a, Item *srid) :Item_geometry_func(a, srid) {}
+    Item_func_geometry_from_text(Item *a) : Item_geometry_func(a) {}
+    Item_func_geometry_from_text(Item *a, Item *srid) : Item_geometry_func(a, srid) {}
     const char *func_name() const
     {
         return "st_geometryfromtext";
@@ -109,7 +109,7 @@ public:
     {
         // "GeometryCollection" is the longest
         fix_length_and_charset(20, default_charset());
-        maybe_null= 1;
+        maybe_null = 1;
     };
 };
 
@@ -164,10 +164,13 @@ public:
         switch (decomp_func) {
         case SP_STARTPOINT:
             return "st_startpoint";
+
         case SP_ENDPOINT:
             return "st_endpoint";
+
         case SP_EXTERIORRING:
             return "st_exteriorring";
+
         default:
             DBUG_ASSERT(0);  // Should never happened
             return "spatial_decomp_unknown";
@@ -190,10 +193,13 @@ public:
         switch (decomp_func_n) {
         case SP_POINTN:
             return "st_pointn";
+
         case SP_GEOMETRYN:
             return "st_geometryn";
+
         case SP_INTERIORRINGN:
             return "st_interiorringn";
+
         default:
             DBUG_ASSERT(0);  // Should never happened
             return "spatial_decomp_n_unknown";
@@ -212,14 +218,15 @@ public:
         List<Item> &list, enum Geometry::wkbType ct, enum Geometry::wkbType it):
         Item_geometry_func(list)
     {
-        coll_type=ct;
-        item_type=it;
+        coll_type = ct;
+        item_type = it;
     }
     String *val_str(String *);
     void fix_length_and_dec()
     {
         Item_geometry_func::fix_length_and_dec();
-        for (unsigned int i= 0; i < arg_count; ++i) {
+
+        for (unsigned int i = 0; i < arg_count; ++i) {
             if (args[i]->fixed && args[i]->field_type() != MYSQL_TYPE_GEOMETRY) {
                 String str;
                 args[i]->print(&str, QT_ORDINARY);
@@ -245,8 +252,8 @@ class Item_func_spatial_mbr_rel: public Item_bool_func2
 {
     enum Functype spatial_rel;
 public:
-    Item_func_spatial_mbr_rel(Item *a,Item *b, enum Functype sp_rel) :
-        Item_bool_func2(a,b)
+    Item_func_spatial_mbr_rel(Item *a, Item *b, enum Functype sp_rel) :
+        Item_bool_func2(a, b)
     {
         spatial_rel = sp_rel;
     }
@@ -260,8 +267,10 @@ public:
         switch (spatial_rel) {
         case SP_CONTAINS_FUNC:
                     return SP_WITHIN_FUNC;
+
         case SP_WITHIN_FUNC:
             return SP_CONTAINS_FUNC;
+
         default:
             return spatial_rel;
         }
@@ -274,7 +283,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool is_null()
     {
@@ -290,9 +299,9 @@ class Item_func_spatial_rel: public Item_bool_func2
     Gcalc_heap collector;
     Gcalc_scan_iterator scan_it;
     Gcalc_function func;
-    String tmp_value1,tmp_value2;
+    String tmp_value1, tmp_value2;
 public:
-    Item_func_spatial_rel(Item *a,Item *b, enum Functype sp_rel);
+    Item_func_spatial_rel(Item *a, Item *b, enum Functype sp_rel);
     virtual ~Item_func_spatial_rel();
     longlong val_int();
     enum Functype functype() const
@@ -304,8 +313,10 @@ public:
         switch (spatial_rel) {
         case SP_CONTAINS_FUNC:
                     return SP_WITHIN_FUNC;
+
         case SP_WITHIN_FUNC:
             return SP_CONTAINS_FUNC;
+
         default:
             return spatial_rel;
         }
@@ -319,7 +330,7 @@ public:
 
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool is_null()
     {
@@ -345,9 +356,9 @@ public:
 
     Gcalc_result_receiver res_receiver;
     Gcalc_operation_reducer operation;
-    String tmp_value1,tmp_value2;
+    String tmp_value1, tmp_value2;
 public:
-    Item_func_spatial_operation(Item *a,Item *b, Gcalc_function::op_type sp_op) :
+    Item_func_spatial_operation(Item *a, Item *b, Gcalc_function::op_type sp_op) :
         Item_geometry_func(a, b), spatial_op(sp_op)
     {}
     virtual ~Item_func_spatial_operation();
@@ -368,8 +379,8 @@ protected:
         int m_npoints;
         double m_d;
         Gcalc_function::op_type m_buffer_op;
-        double x1,y1,x2,y2;
-        double x00,y00,x01,y01;
+        double x1, y1, x2, y2;
+        double x00, y00, x01, y01;
         int add_edge_buffer(Gcalc_shape_status *st,
                             double x3, double y3, bool round_p1, bool round_p2);
         int add_last_edge_buffer(Gcalc_shape_status *st);
@@ -379,8 +390,8 @@ protected:
         Transporter(Gcalc_function *fn, Gcalc_heap *heap, double d) :
             Gcalc_operation_transporter(fn, heap), m_npoints(0), m_d(d)
         {
-            m_buffer_op= d > 0.0 ? Gcalc_function::op_union :
-                         Gcalc_function::op_difference;
+            m_buffer_op = d > 0.0 ? Gcalc_function::op_union :
+                          Gcalc_function::op_difference;
         }
         int single_point(Gcalc_shape_status *st, double x, double y);
         int start_line(Gcalc_shape_status *st);
@@ -441,7 +452,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -464,7 +475,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -483,7 +494,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -499,8 +510,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        max_length= 10;
-        maybe_null= 1;
+        max_length = 10;
+        maybe_null = 1;
     }
 };
 
@@ -517,7 +528,7 @@ public:
     void fix_length_and_dec()
     {
         Item_real_func::fix_length_and_dec();
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -535,7 +546,7 @@ public:
     void fix_length_and_dec()
     {
         Item_real_func::fix_length_and_dec();
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -552,8 +563,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        max_length= 10;
-        maybe_null= 1;
+        max_length = 10;
+        maybe_null = 1;
     }
 };
 
@@ -570,8 +581,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        max_length= 10;
-        maybe_null= 1;
+        max_length = 10;
+        maybe_null = 1;
     }
 };
 
@@ -588,8 +599,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        max_length= 10;
-        maybe_null= 1;
+        max_length = 10;
+        maybe_null = 1;
     }
 };
 
@@ -607,7 +618,7 @@ public:
     void fix_length_and_dec()
     {
         Item_real_func::fix_length_and_dec();
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -625,7 +636,7 @@ public:
     void fix_length_and_dec()
     {
         Item_real_func::fix_length_and_dec();
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -642,8 +653,8 @@ public:
     }
     void fix_length_and_dec()
     {
-        max_length= 10;
-        maybe_null= 1;
+        max_length = 10;
+        maybe_null = 1;
     }
 };
 
@@ -669,9 +680,9 @@ public:
 class Item_func_gis_debug: public Item_int_func
 {
 public:
-    Item_func_gis_debug(Item *a) :Item_int_func(a)
+    Item_func_gis_debug(Item *a) : Item_int_func(a)
     {
-        null_value= false;
+        null_value = false;
     }
     const char *func_name() const
     {

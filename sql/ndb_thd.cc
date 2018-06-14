@@ -25,12 +25,14 @@
   - validate_ndb, check if the Ndb object need to be recycled
 */
 
-Ndb* check_ndb_in_thd(THD* thd, bool validate_ndb)
+Ndb *check_ndb_in_thd(THD *thd, bool validate_ndb)
 {
-    Thd_ndb *thd_ndb= get_thd_ndb(thd);
+    Thd_ndb *thd_ndb = get_thd_ndb(thd);
+
     if (!thd_ndb) {
-        if (!(thd_ndb= Thd_ndb::seize(thd)))
+        if (!(thd_ndb = Thd_ndb::seize(thd)))
             return NULL;
+
         thd_set_thd_ndb(thd, thd_ndb);
     }
 

@@ -27,199 +27,204 @@
 
 uint hashpjw(const char *arKey, uint nKeyLength)
 {
-  uint h = 0, g, i;
+    uint h = 0, g, i;
 
-  for (i = 0; i < nKeyLength; i++) {
-    h = (h << 4) + arKey[i];
-    if ((g = (h & 0xF0000000))) {
-      h = h ^ (g >> 24);
-      h = h ^ g;
+    for (i = 0; i < nKeyLength; i++) {
+        h = (h << 4) + arKey[i];
+
+        if ((g = (h & 0xF0000000))) {
+            h = h ^ (g >> 24);
+            h = h ^ g;
+        }
     }
-  }
-  return h;
+
+    return h;
 }
 
 int completion_hash_init(HashTable *ht, uint nSize)
 {
-  ht->arBuckets = (Bucket **) my_malloc(nSize* sizeof(Bucket *),
-					MYF(MY_ZEROFILL | MY_WME));
+    ht->arBuckets = (Bucket **) my_malloc(nSize * sizeof(Bucket *),
+                                          MYF(MY_ZEROFILL | MY_WME));
 
-  if (!ht->arBuckets)
-  {
-    ht->initialized = 0;
-    return FAILURE;
-  }
-  init_alloc_root(&ht->mem_root, 8192, 0);
-  ht->pHashFunction = hashpjw;
-  ht->nTableSize = nSize;
-  ht->initialized = 1;
-  return SUCCESS;
+    if (!ht->arBuckets)
+    {
+        ht->initialized = 0;
+        return FAILURE;
+    }
+
+    init_alloc_root(&ht->mem_root, 8192, 0);
+    ht->pHashFunction = hashpjw;
+    ht->nTableSize = nSize;
+    ht->initialized = 1;
+    return SUCCESS;
 }
 
 
 int completion_hash_update(HashTable *ht, char *arKey, uint nKeyLength,
-			   char *str)
+                           char *str)
 {
-  uint h, nIndex;
+    uint h, nIndex;
+    Bucket *p;
+    h = ht->pHashFunction(arKey, nKeyLength);
+    nIndex = h % ht->nTableSize;
 
-  Bucket *p;
+    if (nKeyLength <= 0)
+        return FAILURE;
 
-  h = ht->pHashFunction(arKey, nKeyLength);
-  nIndex = h % ht->nTableSize;
+    p = ht->arBuckets[nIndex];
 
-  if (nKeyLength <= 0) {
-    return FAILURE;
-  }
-  p = ht->arBuckets[nIndex];
-  while (p)
-  {
-    if ((p->h == h) && (p->nKeyLength == nKeyLength)) {
-      if (!memcmp(p->arKey, arKey, nKeyLength)) {
-	entry *n;
+    while (p)
+    {
+        if ((p->h == h) && (p->nKeyLength == nKeyLength)) {
+            if (!memcmp(p->arKey, arKey, nKeyLength)) {
+                entry *n;
 
-	if (!(n = (entry *) alloc_root(&ht->mem_root,sizeof(entry))))
-          return FAILURE;
-	n->pNext = p->pData;
-	n->str = str;
-	p->pData = n;
-	p->count++;
+                if (!(n = (entry *) alloc_root(&ht->mem_root, sizeof(entry))))
+                    return FAILURE;
 
-	return SUCCESS;
-      }
+                n->pNext = p->pData;
+                n->str = str;
+                p->pData = n;
+                p->count++;
+                return SUCCESS;
+            }
+        }
+
+        p = p->pNext;
     }
-    p = p->pNext;
-  }
 
-  if (!(p = (Bucket *) alloc_root(&ht->mem_root, sizeof(Bucket))))
-    return FAILURE;
+    if (!(p = (Bucket *) alloc_root(&ht->mem_root, sizeof(Bucket))))
+        return FAILURE;
 
-  p->arKey = arKey;
-  p->nKeyLength = nKeyLength;
-  p->h = h;
+    p->arKey = arKey;
+    p->nKeyLength = nKeyLength;
+    p->h = h;
 
-  if (!(p->pData = (entry*) alloc_root(&ht->mem_root, sizeof(entry))))
-    return FAILURE;
+    if (!(p->pData = (entry *) alloc_root(&ht->mem_root, sizeof(entry))))
+        return FAILURE;
 
-  p->pData->str = str;
-  p->pData->pNext = 0;
-  p->count = 1;
-
-  p->pNext = ht->arBuckets[nIndex];
-  ht->arBuckets[nIndex] = p;
-
-  return SUCCESS;
+    p->pData->str = str;
+    p->pData->pNext = 0;
+    p->count = 1;
+    p->pNext = ht->arBuckets[nIndex];
+    ht->arBuckets[nIndex] = p;
+    return SUCCESS;
 }
 
 static Bucket *completion_hash_find(HashTable *ht, const char *arKey,
-				    uint nKeyLength)
+                                    uint nKeyLength)
 {
-  uint h, nIndex;
-  Bucket *p;
+    uint h, nIndex;
+    Bucket *p;
+    h = ht->pHashFunction(arKey, nKeyLength);
+    nIndex = h % ht->nTableSize;
+    p = ht->arBuckets[nIndex];
 
-  h = ht->pHashFunction(arKey, nKeyLength);
-  nIndex = h % ht->nTableSize;
+    while (p)
+    {
+        if ((p->h == h) && (p->nKeyLength == nKeyLength)) {
+            if (!memcmp(p->arKey, arKey, nKeyLength))
+                return p;
+        }
 
-  p = ht->arBuckets[nIndex];
-  while (p)
-  {
-    if ((p->h == h) && (p->nKeyLength == nKeyLength)) {
-      if (!memcmp(p->arKey, arKey, nKeyLength)) {
-	return p;
-      }
+        p = p->pNext;
     }
-    p = p->pNext;
-  }
-  return (Bucket*) 0;
+
+    return (Bucket *) 0;
 }
 
 
 int completion_hash_exists(HashTable *ht, char *arKey, uint nKeyLength)
 {
-  uint h, nIndex;
-  Bucket *p;
+    uint h, nIndex;
+    Bucket *p;
+    h = ht->pHashFunction(arKey, nKeyLength);
+    nIndex = h % ht->nTableSize;
+    p = ht->arBuckets[nIndex];
 
-  h = ht->pHashFunction(arKey, nKeyLength);
-  nIndex = h % ht->nTableSize;
-
-  p = ht->arBuckets[nIndex];
-  while (p)
-  {
-    if ((p->h == h) && (p->nKeyLength == nKeyLength))
+    while (p)
     {
-      if (!strcmp(p->arKey, arKey)) {
-	return 1;
-      }
+        if ((p->h == h) && (p->nKeyLength == nKeyLength))
+        {
+            if (!strcmp(p->arKey, arKey))
+                return 1;
+        }
+
+        p = p->pNext;
     }
-    p = p->pNext;
-  }
-  return 0;
+
+    return 0;
 }
 
 Bucket *find_all_matches(HashTable *ht, const char *str, uint length,
-			 uint *res_length)
+                         uint *res_length)
 {
-  Bucket *b;
+    Bucket *b;
+    b = completion_hash_find(ht, str, length);
 
-  b = completion_hash_find(ht,str,length);
-  if (!b) {
-    *res_length = 0;
-    return (Bucket*) 0;
-  } else {
-    *res_length = length;
-    return b;
-  }
+    if (!b) {
+        *res_length = 0;
+        return (Bucket *) 0;
+
+    } else {
+        *res_length = length;
+        return b;
+    }
 }
 
 Bucket *find_longest_match(HashTable *ht, char *str, uint length,
-			   uint *res_length)
+                           uint *res_length)
 {
-  Bucket *b,*return_b;
-  char *s;
-  uint count;
-  uint lm;
+    Bucket *b, *return_b;
+    char *s;
+    uint count;
+    uint lm;
+    b = completion_hash_find(ht, str, length);
 
-  b = completion_hash_find(ht,str,length);
-  if (!b) {
-    *res_length = 0;
-    return (Bucket*) 0;
-  }
-
-  count = b->count;
-  lm = length;
-  s = b->pData->str;
-
-  return_b = b;
-  while (s[lm]!=0 && (b=completion_hash_find(ht,s,lm+1))) {
-    if (b->count<count) {
-      *res_length=lm;
-      return return_b;
+    if (!b) {
+        *res_length = 0;
+        return (Bucket *) 0;
     }
-    return_b=b;
-    lm++;
-  }
-  *res_length=lm;
-  return return_b;
+
+    count = b->count;
+    lm = length;
+    s = b->pData->str;
+    return_b = b;
+
+    while (s[lm] != 0 && (b = completion_hash_find(ht, s, lm + 1))) {
+        if (b->count < count) {
+            *res_length = lm;
+            return return_b;
+        }
+
+        return_b = b;
+        lm++;
+    }
+
+    *res_length = lm;
+    return return_b;
 }
 
 
 void completion_hash_clean(HashTable *ht)
 {
-  free_root(&ht->mem_root,MYF(0));
-  memset(ht->arBuckets, 0, ht->nTableSize * sizeof(Bucket *));
+    free_root(&ht->mem_root, MYF(0));
+    memset(ht->arBuckets, 0, ht->nTableSize * sizeof(Bucket *));
 }
 
 
 void completion_hash_free(HashTable *ht)
 {
-  completion_hash_clean(ht);
-  my_free(ht->arBuckets);
+    completion_hash_clean(ht);
+    my_free(ht->arBuckets);
 }
 
 
-void add_word(HashTable *ht,char *str)
+void add_word(HashTable *ht, char *str)
 {
-  int i;
-  char *pos=str;
-  for (i=1; *pos; i++, pos++)
-    completion_hash_update(ht, str, i, str);
+    int i;
+    char *pos = str;
+
+    for (i = 1; *pos; i++, pos++)
+        completion_hash_update(ht, str, i, str);
 }

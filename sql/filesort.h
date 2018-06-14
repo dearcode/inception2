@@ -69,7 +69,7 @@ private:
 ha_rows filesort(THD *thd, TABLE *table, Filesort *fsort, bool sort_positions,
                  ha_rows *examined_rows, ha_rows *found_rows);
 void filesort_free_buffers(TABLE *table, bool full);
-void change_double_for_sort(double nr,uchar *to);
+void change_double_for_sort(double nr, uchar *to);
 
 class Sort_param;
 /// Declared here so we can unit test it.

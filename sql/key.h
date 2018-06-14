@@ -30,7 +30,7 @@ int find_ref_key(KEY *key, uint key_count, uchar *record, Field *field,
 void key_copy(uchar *to_key, uchar *from_record, KEY *key_info, uint key_length);
 void key_restore(uchar *to_record, uchar *from_key, KEY *key_info,
                  uint key_length);
-bool key_cmp_if_same(TABLE *form,const uchar *key,uint index,uint key_length);
+bool key_cmp_if_same(TABLE *form, const uchar *key, uint index, uint key_length);
 void key_unpack(String *to, TABLE *table, KEY *key);
 bool is_key_used(TABLE *table, uint idx, const MY_BITMAP *fields);
 int key_cmp(KEY_PART_INFO *key_part, const uchar *key, uint key_length);

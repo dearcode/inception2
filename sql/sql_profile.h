@@ -44,7 +44,7 @@ int make_profile_table_for_show(THD *thd, ST_SCHEMA_TABLE *schema_table);
 #include "unireg.h"
 
 #ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
+    #include <sys/resource.h>
 #endif
 
 
@@ -72,18 +72,20 @@ private:
 public:
     Queue()
     {
-        elements= 0;
-        first= last= NULL;
+        elements = 0;
+        first = last = NULL;
     }
 
     void empty()
     {
         struct queue_item *i, *after_i;
-        for (i= first; i != NULL; i= after_i) {
-            after_i= i->next;
+
+        for (i = first; i != NULL; i = after_i) {
+            after_i = i->next;
             my_free(i);
         }
-        elements= 0;
+
+        elements = 0;
     }
 
     ulong elements;                       /* The count of items in the Queue */
@@ -91,44 +93,43 @@ public:
     void push_back(T *payload)
     {
         struct queue_item *new_item;
-
-        new_item= (struct queue_item *) my_malloc(sizeof(struct queue_item), MYF(0));
-
-        new_item->payload= payload;
+        new_item = (struct queue_item *) my_malloc(sizeof(struct queue_item), MYF(0));
+        new_item->payload = payload;
 
         if (first == NULL)
-            first= new_item;
+            first = new_item;
+
         if (last != NULL) {
             DBUG_ASSERT(last->next == NULL);
-            last->next= new_item;
+            last->next = new_item;
         }
-        new_item->previous= last;
-        new_item->next= NULL;
-        last= new_item;
 
+        new_item->previous = last;
+        new_item->next = NULL;
+        last = new_item;
         elements++;
     }
 
     T *pop()
     {
-        struct queue_item *old_item= first;
-        T *ret= NULL;
+        struct queue_item *old_item = first;
+        T *ret = NULL;
 
         if (first == NULL) {
             DBUG_PRINT("warning", ("tried to pop nonexistent item from Queue"));
             return NULL;
         }
 
-        ret= old_item->payload;
-        if (first->next != NULL)
-            first->next->previous= NULL;
-        else
-            last= NULL;
-        first= first->next;
+        ret = old_item->payload;
 
+        if (first->next != NULL)
+            first->next->previous = NULL;
+        else
+            last = NULL;
+
+        first = first->next;
         my_free(old_item);
         elements--;
-
         return ret;
     }
 
@@ -264,7 +265,7 @@ public:
     ~PROFILING();
     void set_query_source(char *query_source_arg, uint query_length_arg);
 
-    void start_new_query(const char *initial_state= "starting");
+    void start_new_query(const char *initial_state = "starting");
 
     void discard_current_query();
 
@@ -276,7 +277,7 @@ public:
 
     inline void set_thd(THD *thd_arg)
     {
-        thd= thd_arg;
+        thd = thd_arg;
     };
 
     /* SHOW PROFILES */

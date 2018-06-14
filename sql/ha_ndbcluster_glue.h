@@ -21,25 +21,25 @@
 #include <mysql_version.h>
 
 #ifndef MYSQL_SERVER
-#define MYSQL_SERVER
+    #define MYSQL_SERVER
 #endif
 
 #if MYSQL_VERSION_ID >= 50501
-/* Include files for sql/ was split in 5.5, and ha_ndb*  uses a few.. */
-#include "sql_priv.h"
-#include "unireg.h"         // REQUIRED: for other includes
-#include "sql_table.h"      // build_table_filename,
-// tablename_to_filename,
-// filename_to_tablename
-#include "sql_partition.h"  // HA_CAN_*, partition_info, part_id_range
-#include "sql_base.h"       // close_cached_tables
-#include "discover.h"       // readfrm
-#include "sql_acl.h"        // wild_case_compare
-#include "transaction.h"
-#include "sql_test.h"       // print_where
-#include "key.h"            // key_restore
+    /* Include files for sql/ was split in 5.5, and ha_ndb*  uses a few.. */
+    #include "sql_priv.h"
+    #include "unireg.h"         // REQUIRED: for other includes
+    #include "sql_table.h"      // build_table_filename,
+    // tablename_to_filename,
+    // filename_to_tablename
+    #include "sql_partition.h"  // HA_CAN_*, partition_info, part_id_range
+    #include "sql_base.h"       // close_cached_tables
+    #include "discover.h"       // readfrm
+    #include "sql_acl.h"        // wild_case_compare
+    #include "transaction.h"
+    #include "sql_test.h"       // print_where
+    #include "key.h"            // key_restore
 #else
-#include "mysql_priv.h"
+    #include "mysql_priv.h"
 #endif
 
 #include "sql_show.h"       // init_fill_schema_files_row,
@@ -50,7 +50,7 @@
 
 /* my_free has lost last argument */
 static inline
-void my_free(void* ptr, myf MyFlags)
+void my_free(void *ptr, myf MyFlags)
 {
     my_free(ptr);
 }
@@ -78,7 +78,7 @@ bool close_cached_tables(THD *thd, TABLE_LIST *tables, bool have_lock,
 extern ulong opt_server_id_mask;
 
 static inline
-uint32 thd_unmasked_server_id(const THD* thd)
+uint32 thd_unmasked_server_id(const THD *thd)
 {
 #ifndef NDB_WITHOUT_SERVER_ID_BITS
     const uint32 unmasked_server_id = thd->unmasked_server_id;
@@ -92,7 +92,7 @@ uint32 thd_unmasked_server_id(const THD* thd)
 
 /* extract the bitmask of options from THD */
 static inline
-ulonglong thd_options(const THD * thd)
+ulonglong thd_options(const THD *thd)
 {
 #if MYSQL_VERSION_ID < 50500
     return thd->options;
@@ -104,7 +104,7 @@ ulonglong thd_options(const THD * thd)
 
 /* set the "command" member of thd */
 static inline
-void thd_set_command(THD* thd, enum enum_server_command command)
+void thd_set_command(THD *thd, enum enum_server_command command)
 {
 #if MYSQL_VERSION_ID < 50600
     thd->command = command;
@@ -116,7 +116,7 @@ void thd_set_command(THD* thd, enum enum_server_command command)
 
 /* get pointer to diagnostic area for statement from THD */
 static inline
-Diagnostics_area* thd_stmt_da(THD* thd)
+Diagnostics_area *thd_stmt_da(THD *thd)
 {
 #if MYSQL_VERSION_ID < 50500
     return &(thd->main_da);
@@ -142,19 +142,19 @@ Diagnostics_area* thd_stmt_da(THD* thd)
 typedef pthread_mutex_t mysql_mutex_t;
 
 static inline
-int mysql_mutex_lock(mysql_mutex_t* mutex)
+int mysql_mutex_lock(mysql_mutex_t *mutex)
 {
     return pthread_mutex_lock(mutex);
 }
 
 static inline
-int mysql_mutex_unlock(mysql_mutex_t* mutex)
+int mysql_mutex_unlock(mysql_mutex_t *mutex)
 {
     return pthread_mutex_unlock(mutex);
 }
 
 static inline
-void mysql_mutex_assert_owner(mysql_mutex_t* mutex)
+void mysql_mutex_assert_owner(mysql_mutex_t *mutex)
 {
     return safe_mutex_assert_owner(mutex);
 }
@@ -162,14 +162,14 @@ void mysql_mutex_assert_owner(mysql_mutex_t* mutex)
 typedef pthread_cond_t mysql_cond_t;
 
 static inline
-int mysql_cond_wait(mysql_cond_t* cond, mysql_mutex_t* mutex)
+int mysql_cond_wait(mysql_cond_t *cond, mysql_mutex_t *mutex)
 {
     return pthread_cond_wait(cond, mutex);
 }
 
 static inline
-int mysql_cond_timedwait(mysql_cond_t* cond, mysql_mutex_t* mutex,
-                         struct timespec* abstime)
+int mysql_cond_timedwait(mysql_cond_t *cond, mysql_mutex_t *mutex,
+                         struct timespec *abstime)
 {
     return pthread_cond_timedwait(cond, mutex, abstime);
 }
@@ -177,7 +177,7 @@ int mysql_cond_timedwait(mysql_cond_t* cond, mysql_mutex_t* mutex,
 #endif
 
 static inline
-uint partition_info_num_full_part_fields(const partition_info* part_info)
+uint partition_info_num_full_part_fields(const partition_info *part_info)
 {
 #if MYSQL_VERSION_ID < 50500
     return part_info->no_full_part_fields;
@@ -188,7 +188,7 @@ uint partition_info_num_full_part_fields(const partition_info* part_info)
 }
 
 static inline
-uint partition_info_num_parts(const partition_info* part_info)
+uint partition_info_num_parts(const partition_info *part_info)
 {
 #if MYSQL_VERSION_ID < 50500
     return part_info->no_parts;
@@ -199,7 +199,7 @@ uint partition_info_num_parts(const partition_info* part_info)
 }
 
 static inline
-uint partition_info_num_list_values(const partition_info* part_info)
+uint partition_info_num_list_values(const partition_info *part_info)
 {
 #if MYSQL_VERSION_ID < 50500
     return part_info->no_list_values;
@@ -210,7 +210,7 @@ uint partition_info_num_list_values(const partition_info* part_info)
 }
 
 static inline
-bool partition_info_use_default_num_partitions(const partition_info* part_info)
+bool partition_info_use_default_num_partitions(const partition_info *part_info)
 {
 #if MYSQL_VERSION_ID < 50500
     return part_info->use_default_no_partitions;
@@ -221,7 +221,7 @@ bool partition_info_use_default_num_partitions(const partition_info* part_info)
 }
 
 static inline
-uint partition_info_num_subparts(const partition_info* part_info)
+uint partition_info_num_subparts(const partition_info *part_info)
 {
 #if MYSQL_VERSION_ID < 50500
     return part_info->no_subparts;
@@ -233,8 +233,8 @@ uint partition_info_num_subparts(const partition_info* part_info)
 
 #if MYSQL_VERSION_ID >= 50600
 
-/* New multi range read interface replaced original mrr */
-#define NDB_WITH_NEW_MRR_INTERFACE
+    /* New multi range read interface replaced original mrr */
+    #define NDB_WITH_NEW_MRR_INTERFACE
 
 #endif
 

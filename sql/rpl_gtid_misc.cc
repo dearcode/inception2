@@ -21,53 +21,58 @@
 
 #include "mysqld_error.h"
 #ifndef MYSQL_CLIENT
-#include "sql_class.h"
+    #include "sql_class.h"
 #endif // ifndef MYSQL_CLIENT
 
 enum_return_status Gtid::parse(Sid_map *sid_map, const char *text)
 {
     DBUG_ENTER("Gtid::parse");
     rpl_sid sid;
-    const char *s= text;
-
+    const char *s = text;
     SKIP_WHITESPACE();
 
     // parse sid
     if (sid.parse(s) == RETURN_STATUS_OK) {
-        rpl_sidno sidno_var= sid_map->add_sid(sid);
+        rpl_sidno sidno_var = sid_map->add_sid(sid);
+
         if (sidno_var <= 0)
             RETURN_REPORTED_ERROR;
-        s += Uuid::TEXT_LENGTH;
 
+        s += Uuid::TEXT_LENGTH;
         SKIP_WHITESPACE();
 
         // parse colon
         if (*s == ':') {
             s++;
-
             SKIP_WHITESPACE();
-
             // parse gno
-            rpl_gno gno_var= parse_gno(&s);
+            rpl_gno gno_var = parse_gno(&s);
+
             if (gno_var > 0) {
                 SKIP_WHITESPACE();
+
                 if (*s == '\0') {
-                    sidno= sidno_var;
-                    gno= gno_var;
+                    sidno = sidno_var;
+                    gno = gno_var;
                     RETURN_OK;
+
                 } else
                     DBUG_PRINT("info", ("expected end of string, found garbage '%.80s' "
                                         "at char %d in '%s'",
                                         s, (int)(s - text), text));
+
             } else
                 DBUG_PRINT("info", ("GNO was zero or invalid (%lld) at char %d in '%s'",
                                     gno_var, (int)(s - text), text));
+
         } else
             DBUG_PRINT("info", ("missing colon at char %d in '%s'",
                                 (int)(s - text), text));
+
     } else
         DBUG_PRINT("info", ("not a uuid at char %d in '%s'",
                             (int)(s - text), text));
+
     BINLOG_ERROR(("Malformed GTID specification: %.200s", text),
                  (ER_MALFORMED_GTID_SPECIFICATION, MYF(0), text));
     RETURN_REPORTED_ERROR;
@@ -77,10 +82,10 @@ enum_return_status Gtid::parse(Sid_map *sid_map, const char *text)
 int Gtid::to_string(const rpl_sid &sid, char *buf) const
 {
     DBUG_ENTER("Gtid::to_string");
-    char *s= buf + sid.to_string(buf);
-    *s= ':';
+    char *s = buf + sid.to_string(buf);
+    *s = ':';
     s++;
-    s+= format_gno(s, gno);
+    s += format_gno(s, gno);
     DBUG_RETURN((int)(s - buf));
 }
 
@@ -88,7 +93,7 @@ int Gtid::to_string(const rpl_sid &sid, char *buf) const
 int Gtid::to_string(const Sid_map *sid_map, char *buf) const
 {
     DBUG_ENTER("Gtid::to_string");
-    int ret= to_string(sid_map->sidno_to_sid(sidno), buf);
+    int ret = to_string(sid_map->sidno_to_sid(sidno), buf);
     DBUG_RETURN(ret);
 }
 
@@ -96,34 +101,42 @@ int Gtid::to_string(const Sid_map *sid_map, char *buf) const
 bool Gtid::is_valid(const char *text)
 {
     DBUG_ENTER("Gtid::is_valid");
-    const char *s= text;
+    const char *s = text;
     SKIP_WHITESPACE();
+
     if (!rpl_sid::is_valid(s)) {
         DBUG_PRINT("info", ("not a uuid at char %d in '%s'",
                             (int)(s - text), text));
         DBUG_RETURN(false);
     }
+
     s += Uuid::TEXT_LENGTH;
     SKIP_WHITESPACE();
+
     if (*s != ':') {
         DBUG_PRINT("info", ("missing colon at char %d in '%s'",
                             (int)(s - text), text));
         DBUG_RETURN(false);
     }
+
     s++;
     SKIP_WHITESPACE();
+
     if (parse_gno(&s) <= 0) {
         DBUG_PRINT("info", ("GNO was zero or invalid at char %d in '%s'",
                             (int)(s - text), text));
         DBUG_RETURN(false);
     }
+
     SKIP_WHITESPACE();
+
     if (*s != 0) {
         DBUG_PRINT("info", ("expected end of string, found garbage '%.80s' "
                             "at char %d in '%s'",
                             s, (int)(s - text), text));
         DBUG_RETURN(false);
     }
+
     DBUG_RETURN(true);
 }
 
@@ -134,13 +147,15 @@ void check_return_status(enum_return_status status, const char *action,
 {
     if (status != RETURN_STATUS_OK) {
         DBUG_ASSERT(allow_unreported || status == RETURN_STATUS_REPORTED_ERROR);
+
         if (status == RETURN_STATUS_REPORTED_ERROR) {
 #if !defined(MYSQL_CLIENT) && !defined(DBUG_OFF)
-            THD *thd= current_thd;
+            THD *thd = current_thd;
             DBUG_ASSERT(thd == NULL ||
                         thd->get_stmt_da()->status() == Diagnostics_area::DA_ERROR);
 #endif
         }
+
         DBUG_PRINT("info", ("%s error %d (%s)", action, status, status_name));
     }
 }

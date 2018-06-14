@@ -63,10 +63,8 @@ bool init_errmessage(void)
 {
     DBUG_ENTER("init_errmessage");
 
-
-    if (! (server_errmsgs= (const char**) my_malloc(SERVER_ERR_ERRORS * sizeof(char*), MYF(MY_WME | MY_ZEROFILL))))
+    if (! (server_errmsgs = (const char **) my_malloc(SERVER_ERR_ERRORS * sizeof(char *), MYF(MY_WME | MY_ZEROFILL))))
         return 1;
-
 
     SERVER_SETMSG(ER_ERROR_FIRST, "HelloWorld");
     SERVER_SETMSG(ER_NOT_SUPPORTED_YET, "Not supported statement type.");
@@ -219,6 +217,7 @@ Initiates error-messages used by my_func-library.
 static void init_myfunc_errs()
 {
     init_glob_errs();			/* Initiate english errors */
+
     if (!(specialflag & SPECIAL_ENGLISH)) {
         EE(EE_FILENOTFOUND)   = ER(ER_FILE_NOT_FOUND);
         EE(EE_CANTCREATEFILE) = ER(ER_CANT_CREATE_FILE);

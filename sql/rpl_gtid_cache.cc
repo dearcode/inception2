@@ -39,27 +39,31 @@ Group_cache::~Group_cache()
 void Group_cache::clear()
 {
     DBUG_ENTER("Group_cache::clear");
-    groups.elements= 0;
+    groups.elements = 0;
     DBUG_VOID_RETURN;
 }
 
 
-Group_cache::enum_add_group_status
-Group_cache::add_logged_group(const THD *thd, my_off_t binlog_offset)
+Group_cache::enum_add_group_status Group_cache::add_logged_group(const THD *thd, my_off_t binlog_offset)
 {
     DBUG_ENTER("Group_cache::add_logged_group(THD *, my_off_t)");
-    const Gtid_specification &spec= thd->variables.gtid_next;
+    const Gtid_specification &spec = thd->variables.gtid_next;
     DBUG_ASSERT(spec.type != UNDEFINED_GROUP);
     // merge with previous group if possible
-    Cached_group *prev= get_last_group();
+    Cached_group *prev = get_last_group();
+
     if (prev != NULL && prev->spec.equals(spec))
         DBUG_RETURN(EXTEND_EXISTING_GROUP);
+
     // otherwise add a new group
-    Cached_group *group= allocate_group();
+    Cached_group *group = allocate_group();
+
     if (group ==  NULL)
         DBUG_RETURN(ERROR);
-    group->spec= spec;
-    group->binlog_offset= binlog_offset;
+
+    group->spec = spec;
+    group->binlog_offset = binlog_offset;
+
     // Update the internal status of this Group_cache (see comment above
     // definition of enum_group_cache_type).
     if (group->spec.type == GTID_GROUP) {
@@ -70,18 +74,22 @@ Group_cache::add_logged_group(const THD *thd, my_off_t binlog_offset)
           to it here. /Sven
         */
     }
+
     DBUG_RETURN(APPEND_NEW_GROUP);
 }
 
 
 bool Group_cache::contains_gtid(const Gtid &gtid) const
 {
-    int n_groups= get_n_groups();
-    for (int i= 0; i < n_groups; i++) {
-        const Cached_group *group= get_unsafe_pointer(i);
+    int n_groups = get_n_groups();
+
+    for (int i = 0; i < n_groups; i++) {
+        const Cached_group *group = get_unsafe_pointer(i);
+
         if (group->spec.equals(gtid))
             return true;
     }
+
     return false;
 }
 
@@ -92,21 +100,25 @@ bool Group_cache::contains_gtid(const Gtid &gtid) const
   necessary. /Alfranio
 */
 #ifdef NON_ERROR_GTID
-Group_cache::enum_add_group_status
-Group_cache::add_empty_group(const Gtid &gtid)
+Group_cache::enum_add_group_status Group_cache::add_empty_group(const Gtid &gtid)
 {
     DBUG_ENTER("Group_cache::add_empty_group");
     // merge with previous group if possible
-    Cached_group *prev= get_last_group();
+    Cached_group *prev = get_last_group();
+
     if (prev != NULL && prev->spec.equals(gtid))
         DBUG_RETURN(EXTEND_EXISTING_GROUP);
+
     // otherwise add new group
-    Cached_group *group= allocate_group();
+    Cached_group *group = allocate_group();
+
     if (group == NULL)
         DBUG_RETURN(ERROR);
-    group->spec.type= GTID_GROUP;
-    group->spec.gtid= gtid;
-    group->binlog_offset= prev != NULL ? prev->binlog_offset : 0;
+
+    group->spec.type = GTID_GROUP;
+    group->spec.gtid = gtid;
+    group->binlog_offset = prev != NULL ? prev->binlog_offset : 0;
+
     // Update the internal status of this Group_cache (see comment above
     // definition of enum_group_cache_type).
     if (group->spec.type == GTID_GROUP) {
@@ -117,6 +129,7 @@ Group_cache::add_empty_group(const Gtid &gtid)
           to it here. /Sven
         */
     }
+
     DBUG_RETURN(APPEND_NEW_GROUP);
 }
 #endif
@@ -127,33 +140,40 @@ enum_return_status Group_cache::generate_automatic_gno(THD *thd)
     DBUG_ENTER("Group_cache::generate_automatic_gno");
     DBUG_ASSERT(thd->variables.gtid_next.type == AUTOMATIC_GROUP);
     DBUG_ASSERT(thd->variables.gtid_next_list.get_gtid_set() == NULL);
-    int n_groups= get_n_groups();
-    enum_group_type automatic_type= INVALID_GROUP;
-    Gtid automatic_gtid= { 0, 0 };
-    for (int i= 0; i < n_groups; i++) {
-        Cached_group *group= get_unsafe_pointer(i);
+    int n_groups = get_n_groups();
+    enum_group_type automatic_type = INVALID_GROUP;
+    Gtid automatic_gtid = { 0, 0 };
+
+    for (int i = 0; i < n_groups; i++) {
+        Cached_group *group = get_unsafe_pointer(i);
+
         if (group->spec.type == AUTOMATIC_GROUP) {
             if (automatic_type == INVALID_GROUP) {
-                if (gtid_mode <= 1) {
-                    automatic_type= ANONYMOUS_GROUP;
-                } else {
-                    automatic_type= GTID_GROUP;
-                    automatic_gtid.sidno= gtid_state->get_server_sidno();
+                if (gtid_mode <= 1)
+                    automatic_type = ANONYMOUS_GROUP;
+
+                else {
+                    automatic_type = GTID_GROUP;
+                    automatic_gtid.sidno = gtid_state->get_server_sidno();
                     gtid_state->lock_sidno(automatic_gtid.sidno);
-                    automatic_gtid.gno=
+                    automatic_gtid.gno =
                         gtid_state->get_automatic_gno(automatic_gtid.sidno);
+
                     if (automatic_gtid.gno == -1) {
                         gtid_state->unlock_sidno(automatic_gtid.sidno);
                         RETURN_REPORTED_ERROR;
                     }
+
                     gtid_state->acquire_ownership(thd, automatic_gtid);
                     gtid_state->unlock_sidno(automatic_gtid.sidno);
                 }
             }
-            group->spec.type= automatic_type;
-            group->spec.gtid= automatic_gtid;
+
+            group->spec.type = automatic_type;
+            group->spec.gtid = automatic_gtid;
         }
     }
+
     RETURN_OK;
 }
 
@@ -161,10 +181,12 @@ enum_return_status Group_cache::generate_automatic_gno(THD *thd)
 enum_return_status Group_cache::get_gtids(Gtid_set *gs) const
 {
     DBUG_ENTER("Group_cache::get_groups");
-    int n_groups= get_n_groups();
+    int n_groups = get_n_groups();
     PROPAGATE_REPORTED_ERROR(gs->ensure_sidno(gs->get_sid_map()->get_max_sidno()));
-    for (int i= 0; i < n_groups; i++) {
-        Cached_group *group= get_unsafe_pointer(i);
+
+    for (int i = 0; i < n_groups; i++) {
+        Cached_group *group = get_unsafe_pointer(i);
+
         /*
           Cached groups only have GTIDs if SET @@SESSION.GTID_NEXT statement
           was executed before group.
@@ -172,5 +194,6 @@ enum_return_status Group_cache::get_gtids(Gtid_set *gs) const
         if (group->spec.type == GTID_GROUP)
             PROPAGATE_REPORTED_ERROR(gs->_add_gtid(group->spec.gtid));
     }
+
     RETURN_OK;
 }

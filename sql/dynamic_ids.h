@@ -47,9 +47,9 @@ protected:
     size_t size;
 
 private:
-    virtual bool do_pack_dynamic_ids(String *buffer)= 0;
-    virtual bool do_unpack_dynamic_ids(char *param_dynamic_ids)= 0;
-    virtual bool do_search_id(const void *id)= 0;
+    virtual bool do_pack_dynamic_ids(String *buffer) = 0;
+    virtual bool do_unpack_dynamic_ids(char *param_dynamic_ids) = 0;
+    virtual bool do_search_id(const void *id) = 0;
 };
 
 class Server_ids : public Dynamic_ids

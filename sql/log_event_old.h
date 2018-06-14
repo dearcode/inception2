@@ -125,13 +125,13 @@ public:
 
 #ifdef MYSQL_CLIENT
     /* not for direct call, each derived has its own ::print() */
-    virtual void print(FILE *file, PRINT_EVENT_INFO *print_event_info)= 0;
+    virtual void print(FILE *file, PRINT_EVENT_INFO *print_event_info) = 0;
 #endif
 
 #ifndef MYSQL_CLIENT
     int add_row_data(uchar *data, size_t length)
     {
-        return do_add_row_data(data,length);
+        return do_add_row_data(data, length);
     }
 #endif
 
@@ -178,7 +178,7 @@ protected:
        this class, not create instances of this class.
     */
 #ifndef MYSQL_CLIENT
-    Old_rows_log_event(THD*, TABLE*, ulong table_id,
+    Old_rows_log_event(THD *, TABLE *, ulong table_id,
                        MY_BITMAP const *cols, bool is_transactional);
 #endif
     Old_rows_log_event(const char *row_data, uint event_len,
@@ -203,8 +203,8 @@ protected:
     ulong       m_master_reclength; /* Length of record on master side */
 
     /* Bit buffers in the same memory as the class */
-    uint32    m_bitbuf[128/(sizeof(uint32)*8)];
-    uint32    m_bitbuf_ai[128/(sizeof(uint32)*8)];
+    uint32    m_bitbuf[128 / (sizeof(uint32) * 8)];
+    uint32    m_bitbuf_ai[128 / (sizeof(uint32) * 8)];
 
     uchar    *m_rows_buf;		/* The rows in packed format */
     uchar    *m_rows_cur;		/* One-after the end of the data */
@@ -227,8 +227,8 @@ protected:
     {
         DBUG_ASSERT(m_table);
         ASSERT_OR_RETURN_ERROR(m_curr_row < m_rows_end, HA_ERR_CORRUPT_EVENT);
-        int const result= ::unpack_row(rli, m_table, m_width, m_curr_row, &m_cols,
-                                       &m_curr_row_end, &m_master_reclength);
+        int const result = ::unpack_row(rli, m_table, m_width, m_curr_row, &m_cols,
+                                        &m_curr_row_end, &m_master_reclength);
         ASSERT_OR_RETURN_ERROR(m_curr_row_end <= m_rows_end, HA_ERR_CORRUPT_EVENT);
         return result;
     }
@@ -298,7 +298,7 @@ protected:
 
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
 
-    int do_apply_event(Old_rows_log_event*,const Relay_log_info*);
+    int do_apply_event(Old_rows_log_event *, const Relay_log_info *);
 
     /*
       Primitive to prepare for a sequence of row executions.
@@ -347,7 +347,7 @@ protected:
       RETURN VALUE
         Error code, if something went wrong, 0 otherwise.
      */
-    virtual int do_prepare_row(THD*, Relay_log_info const*, TABLE*,
+    virtual int do_prepare_row(THD *, Relay_log_info const *, TABLE *,
                                uchar const *row_start,
                                uchar const **row_end) = 0;
 
@@ -381,7 +381,7 @@ class Write_rows_log_event_old : public Old_rows_log_event
     /********** BEGIN CUT & PASTE FROM Write_rows_log_event **********/
 public:
 #if !defined(MYSQL_CLIENT)
-    Write_rows_log_event_old(THD*, TABLE*, ulong table_id,
+    Write_rows_log_event_old(THD *, TABLE *, ulong table_id,
                              MY_BITMAP const *cols,
                              bool is_transactional);
 #endif
@@ -408,7 +408,7 @@ private:
 
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
     virtual int do_before_row_operations(const Slave_reporting_capability *const);
-    virtual int do_after_row_operations(const Slave_reporting_capability *const,int);
+    virtual int do_after_row_operations(const Slave_reporting_capability *const, int);
     virtual int do_exec_row(const Relay_log_info *const);
 #endif
     /********** END OF CUT & PASTE FROM Write_rows_log_event **********/
@@ -430,13 +430,13 @@ private:
     // use old definition of do_apply_event()
     virtual int do_apply_event(const Relay_log_info *rli)
     {
-        return Old_rows_log_event::do_apply_event(this,rli);
+        return Old_rows_log_event::do_apply_event(this, rli);
     }
 
     // primitives for old version of do_apply_event()
     virtual int do_before_row_operations(TABLE *table);
     virtual int do_after_row_operations(TABLE *table, int error);
-    virtual int do_prepare_row(THD*, Relay_log_info const*, TABLE*,
+    virtual int do_prepare_row(THD *, Relay_log_info const *, TABLE *,
                                uchar const *row_start, uchar const **row_end);
     virtual int do_exec_row(TABLE *table);
 
@@ -459,7 +459,7 @@ class Update_rows_log_event_old : public Old_rows_log_event
     /********** BEGIN CUT & PASTE FROM Update_rows_log_event **********/
 public:
 #ifndef MYSQL_CLIENT
-    Update_rows_log_event_old(THD*, TABLE*, ulong table_id,
+    Update_rows_log_event_old(THD *, TABLE *, ulong table_id,
                               MY_BITMAP const *cols,
                               bool is_transactional);
 #endif
@@ -487,7 +487,7 @@ protected:
 
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
     virtual int do_before_row_operations(const Slave_reporting_capability *const);
-    virtual int do_after_row_operations(const Slave_reporting_capability *const,int);
+    virtual int do_after_row_operations(const Slave_reporting_capability *const, int);
     virtual int do_exec_row(const Relay_log_info *const);
 #endif /* !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION) */
     /********** END OF CUT & PASTE FROM Update_rows_log_event **********/
@@ -511,13 +511,13 @@ private:
     // use old definition of do_apply_event()
     virtual int do_apply_event(const Relay_log_info *rli)
     {
-        return Old_rows_log_event::do_apply_event(this,rli);
+        return Old_rows_log_event::do_apply_event(this, rli);
     }
 
     // primitives for old version of do_apply_event()
     virtual int do_before_row_operations(TABLE *table);
     virtual int do_after_row_operations(TABLE *table, int error);
-    virtual int do_prepare_row(THD*, Relay_log_info const*, TABLE*,
+    virtual int do_prepare_row(THD *, Relay_log_info const *, TABLE *,
                                uchar const *row_start, uchar const **row_end);
     virtual int do_exec_row(TABLE *table);
 #endif /* !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION) */
@@ -539,7 +539,7 @@ class Delete_rows_log_event_old : public Old_rows_log_event
     /********** BEGIN CUT & PASTE FROM Update_rows_log_event **********/
 public:
 #ifndef MYSQL_CLIENT
-    Delete_rows_log_event_old(THD*, TABLE*, ulong,
+    Delete_rows_log_event_old(THD *, TABLE *, ulong,
                               MY_BITMAP const *cols,
                               bool is_transactional);
 #endif
@@ -566,7 +566,7 @@ protected:
 
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
     virtual int do_before_row_operations(const Slave_reporting_capability *const);
-    virtual int do_after_row_operations(const Slave_reporting_capability *const,int);
+    virtual int do_after_row_operations(const Slave_reporting_capability *const, int);
     virtual int do_exec_row(const Relay_log_info *const);
 #endif
     /********** END CUT & PASTE FROM Delete_rows_log_event **********/
@@ -590,13 +590,13 @@ private:
     // use old definition of do_apply_event()
     virtual int do_apply_event(const Relay_log_info *rli)
     {
-        return Old_rows_log_event::do_apply_event(this,rli);
+        return Old_rows_log_event::do_apply_event(this, rli);
     }
 
     // primitives for old version of do_apply_event()
     virtual int do_before_row_operations(TABLE *table);
     virtual int do_after_row_operations(TABLE *table, int error);
-    virtual int do_prepare_row(THD*, Relay_log_info const*, TABLE*,
+    virtual int do_prepare_row(THD *, Relay_log_info const *, TABLE *,
                                uchar const *row_start, uchar const **row_end);
     virtual int do_exec_row(TABLE *table);
 #endif

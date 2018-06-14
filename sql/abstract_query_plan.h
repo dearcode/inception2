@@ -62,11 +62,11 @@ class Join_plan : public Sql_alloc
     friend class Table_access;
 public:
 
-    explicit Join_plan(const JOIN* join);
+    explicit Join_plan(const JOIN *join);
 
     ~Join_plan();
 
-    const Table_access* get_table_access(uint access_no) const;
+    const Table_access *get_table_access(uint access_no) const;
 
     uint get_access_count() const;
 
@@ -75,17 +75,17 @@ private:
       Array of the JOIN_TABs that are the internal representation of table
       access operations.
     */
-    const JOIN_TAB* const m_join_tabs;
+    const JOIN_TAB *const m_join_tabs;
 
     /** Number of table access operations. */
     const uint m_access_count;
-    Table_access* m_table_accesses;
+    Table_access *m_table_accesses;
 
-    const JOIN_TAB* get_join_tab(uint join_tab_no) const;
+    const JOIN_TAB *get_join_tab(uint join_tab_no) const;
 
     // No copying.
-    Join_plan(const Join_plan&);
-    Join_plan& operator=(const Join_plan&);
+    Join_plan(const Join_plan &);
+    Join_plan &operator=(const Join_plan &);
 };
 // class Join_plan
 
@@ -99,10 +99,10 @@ private:
 class Equal_set_iterator : public Sql_alloc
 {
 public:
-    explicit Equal_set_iterator(Item_equal& item_equal)
+    explicit Equal_set_iterator(Item_equal &item_equal)
         : m_iterator(item_equal) {}
 
-    const Item_field* next()
+    const Item_field *next()
     {
         return m_iterator++;
     }
@@ -114,8 +114,8 @@ private:
     Item_equal_iterator m_iterator;
 
     // No copying.
-    Equal_set_iterator(const Equal_set_iterator&);
-    Equal_set_iterator& operator=(const Equal_set_iterator&);
+    Equal_set_iterator(const Equal_set_iterator &);
+    Equal_set_iterator &operator=(const Equal_set_iterator &);
 };
 // class Equal_set_iterator
 
@@ -169,32 +169,32 @@ enum enum_join_type
 class Table_access : public Sql_alloc
 {
     friend class Join_plan;
-    friend inline bool equal(const Table_access*, const Table_access*);
+    friend inline bool equal(const Table_access *, const Table_access *);
 public:
 
-    const Join_plan* get_join_plan() const;
+    const Join_plan *get_join_plan() const;
 
     enum_access_type get_access_type() const;
 
-    const char* get_other_access_reason() const;
+    const char *get_other_access_reason() const;
 
-    enum_join_type get_join_type(const Table_access* parent) const;
+    enum_join_type get_join_type(const Table_access *parent) const;
 
     uint get_no_of_key_fields() const;
 
-    const Item* get_key_field(uint field_no) const;
+    const Item *get_key_field(uint field_no) const;
 
-    const KEY_PART_INFO* get_key_part_info(uint field_no) const;
+    const KEY_PART_INFO *get_key_part_info(uint field_no) const;
 
     uint get_access_no() const;
 
     int get_index_no() const;
 
-    TABLE* get_table() const;
+    TABLE *get_table() const;
 
     double get_fanout() const;
 
-    Item_equal* get_item_equal(const Item_field* field_item) const;
+    Item_equal *get_item_equal(const Item_field *field_item) const;
 
     void dbug_print() const;
 
@@ -205,7 +205,7 @@ public:
 private:
 
     /** Backref. to the Join_plan which this Table_access is part of */
-    const Join_plan* m_join_plan;
+    const Join_plan *m_join_plan;
 
     /** This operation corresponds to m_root_tab[m_tab_no].*/
     uint m_tab_no;
@@ -216,20 +216,20 @@ private:
     /**
       The reason for getting m_access_type==AT_OTHER. Used for explain extended.
     */
-    mutable const char* m_other_access_reason;
+    mutable const char *m_other_access_reason;
 
     /** The index to use for this operation (if applicable )*/
     mutable int m_index_no;
 
     explicit Table_access();
 
-    const JOIN_TAB* get_join_tab() const;
+    const JOIN_TAB *get_join_tab() const;
 
     void compute_type_and_index() const;
 
     /** No copying*/
-    Table_access(const Table_access&);
-    Table_access& operator=(const Table_access&);
+    Table_access(const Table_access &);
+    Table_access &operator=(const Table_access &);
 };
 // class Table_access
 
@@ -238,7 +238,7 @@ private:
   @param access_no The index of the table access operation to fetch.
   @return The access_no'th table access operation.
 */
-inline const Table_access* Join_plan::get_table_access(uint access_no) const
+inline const Table_access *Join_plan::get_table_access(uint access_no) const
 {
     DBUG_ASSERT(access_no < m_access_count);
     return m_table_accesses + access_no;
@@ -253,7 +253,7 @@ inline uint Join_plan::get_access_count() const
 }
 
 /** Get the Join_plan that this Table_access belongs to.*/
-inline const Join_plan* Table_access::get_join_plan() const
+inline const Join_plan *Table_access::get_join_plan() const
 {
     return m_join_plan;
 }
@@ -263,6 +263,7 @@ inline enum_access_type Table_access::get_access_type() const
 {
     if (m_access_type == AT_VOID)
         compute_type_and_index();
+
     return m_access_type;
 }
 
@@ -272,10 +273,11 @@ inline enum_access_type Table_access::get_access_type() const
   @return A string that should be assumed to have the same life time as the
   Table_access object.
 */
-inline const char* Table_access::get_other_access_reason() const
+inline const char *Table_access::get_other_access_reason() const
 {
     if (m_access_type == AT_VOID)
         compute_type_and_index();
+
     return m_other_access_reason;
 }
 

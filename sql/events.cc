@@ -78,8 +78,8 @@
 Event_queue *Events::event_queue;
 Event_scheduler *Events::scheduler;
 Event_db_repository *Events::db_repository;
-ulong Events::opt_event_scheduler= Events::EVENTS_OFF;
-bool Events::check_system_tables_error= FALSE;
+ulong Events::opt_event_scheduler = Events::EVENTS_OFF;
+bool Events::check_system_tables_error = FALSE;
 
 
 /*
@@ -99,8 +99,8 @@ bool Events::check_system_tables_error= FALSE;
 
 int sortcmp_lex_string(LEX_STRING s, LEX_STRING t, CHARSET_INFO *cs)
 {
-    return cs->coll->strnncollsp(cs, (uchar *) s.str,s.length,
-                                 (uchar *) t.str,t.length, 0);
+    return cs->coll->strnncollsp(cs, (uchar *) s.str, s.length,
+                                 (uchar *) t.str, t.length, 0);
 }
 
 
@@ -140,89 +140,84 @@ bool Events::check_if_system_tables_error()
     1  Error
 */
 
-int
-Events::reconstruct_interval_expression(String *buf, interval_type interval,
-                                        longlong expression)
+int Events::reconstruct_interval_expression(String *buf, interval_type interval,
+        longlong expression)
 {
-    ulonglong expr= expression;
+    ulonglong expr = expression;
     char tmp_buff[128], *end;
-    bool close_quote= TRUE;
-    int multipl= 0;
-    char separator=':';
+    bool close_quote = TRUE;
+    int multipl = 0;
+    char separator = ':';
 
     switch (interval) {
     case INTERVAL_YEAR_MONTH:
-        multipl= 12;
-        separator= '-';
+        multipl = 12;
+        separator = '-';
         goto common_1_lev_code;
+
     case INTERVAL_DAY_HOUR:
-        multipl= 24;
-        separator= ' ';
+        multipl = 24;
+        separator = ' ';
         goto common_1_lev_code;
+
     case INTERVAL_HOUR_MINUTE:
     case INTERVAL_MINUTE_SECOND:
-        multipl= 60;
-common_1_lev_code:
+        multipl = 60;
+    common_1_lev_code:
         buf->append('\'');
-        end= longlong10_to_str(expression/multipl, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));
-        expr= expr - (expr/multipl)*multipl;
+        end = longlong10_to_str(expression / multipl, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff));
+        expr = expr - (expr / multipl) * multipl;
         break;
+
     case INTERVAL_DAY_MINUTE: {
-        ulonglong tmp_expr= expr;
-
-        tmp_expr/=(24*60);
+        ulonglong tmp_expr = expr;
+        tmp_expr /= (24 * 60);
         buf->append('\'');
-        end= longlong10_to_str(tmp_expr, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// days
+        end = longlong10_to_str(tmp_expr, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // days
         buf->append(' ');
-
-        tmp_expr= expr - tmp_expr*(24*60);//minutes left
-        end= longlong10_to_str(tmp_expr/60, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// hours
-
-        expr= tmp_expr - (tmp_expr/60)*60;
+        tmp_expr = expr - tmp_expr * (24 * 60); //minutes left
+        end = longlong10_to_str(tmp_expr / 60, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // hours
+        expr = tmp_expr - (tmp_expr / 60) * 60;
         /* the code after the switch will finish */
     }
     break;
+
     case INTERVAL_HOUR_SECOND: {
-        ulonglong tmp_expr= expr;
-
+        ulonglong tmp_expr = expr;
         buf->append('\'');
-        end= longlong10_to_str(tmp_expr/3600, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// hours
+        end = longlong10_to_str(tmp_expr / 3600, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // hours
         buf->append(':');
-
-        tmp_expr= tmp_expr - (tmp_expr/3600)*3600;
-        end= longlong10_to_str(tmp_expr/60, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// minutes
-
-        expr= tmp_expr - (tmp_expr/60)*60;
+        tmp_expr = tmp_expr - (tmp_expr / 3600) * 3600;
+        end = longlong10_to_str(tmp_expr / 60, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // minutes
+        expr = tmp_expr - (tmp_expr / 60) * 60;
         /* the code after the switch will finish */
     }
     break;
+
     case INTERVAL_DAY_SECOND: {
-        ulonglong tmp_expr= expr;
-
-        tmp_expr/=(24*3600);
+        ulonglong tmp_expr = expr;
+        tmp_expr /= (24 * 3600);
         buf->append('\'');
-        end= longlong10_to_str(tmp_expr, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// days
+        end = longlong10_to_str(tmp_expr, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // days
         buf->append(' ');
-
-        tmp_expr= expr - tmp_expr*(24*3600);//seconds left
-        end= longlong10_to_str(tmp_expr/3600, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// hours
+        tmp_expr = expr - tmp_expr * (24 * 3600); //seconds left
+        end = longlong10_to_str(tmp_expr / 3600, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // hours
         buf->append(':');
-
-        tmp_expr= tmp_expr - (tmp_expr/3600)*3600;
-        end= longlong10_to_str(tmp_expr/60, tmp_buff, 10);
-        buf->append(tmp_buff, (uint) (end- tmp_buff));// minutes
-
-        expr= tmp_expr - (tmp_expr/60)*60;
+        tmp_expr = tmp_expr - (tmp_expr / 3600) * 3600;
+        end = longlong10_to_str(tmp_expr / 60, tmp_buff, 10);
+        buf->append(tmp_buff, (uint) (end - tmp_buff)); // minutes
+        expr = tmp_expr - (tmp_expr / 60) * 60;
         /* the code after the switch will finish */
     }
     break;
+
     case INTERVAL_DAY_MICROSECOND:
     case INTERVAL_HOUR_MICROSECOND:
     case INTERVAL_MINUTE_MICROSECOND:
@@ -231,20 +226,26 @@ common_1_lev_code:
         my_error(ER_NOT_SUPPORTED_YET, MYF(0), "MICROSECOND");
         return 1;
         break;
+
     case INTERVAL_QUARTER:
-        expr/= 3;
-        close_quote= FALSE;
+        expr /= 3;
+        close_quote = FALSE;
         break;
+
     case INTERVAL_WEEK:
-        expr/= 7;
+        expr /= 7;
+
     default:
-        close_quote= FALSE;
+        close_quote = FALSE;
         break;
     }
+
     if (close_quote)
         buf->append(separator);
-    end= longlong10_to_str(expr, tmp_buff, 10);
-    buf->append(tmp_buff, (uint) (end- tmp_buff));
+
+    end = longlong10_to_str(expr, tmp_buff, 10);
+    buf->append(tmp_buff, (uint) (end - tmp_buff));
+
     if (close_quote)
         buf->append('\'');
 
@@ -264,14 +265,15 @@ common_1_lev_code:
              0           ok
              1           error
 */
-static int
-create_query_string(THD *thd, String *buf)
+static int create_query_string(THD *thd, String *buf)
 {
     /* Append the "CREATE" part of the query */
     if (buf->append(STRING_WITH_LEN("CREATE ")))
         return 1;
+
     /* Append definer */
     append_definer(thd, buf, &(thd->lex->definer->user), &(thd->lex->definer->host));
+
     /* Append the left part of thd->query after "DEFINER" part */
     if (buf->append(thd->lex->stmt_definition_begin,
                     thd->lex->stmt_definition_end -
@@ -298,9 +300,8 @@ create_query_string(THD *thd, String *buf)
   @retval  TRUE   Error (reported)
 */
 
-bool
-Events::create_event(THD *thd, Event_parse_data *parse_data,
-                     bool if_not_exists)
+bool Events::create_event(THD *thd, Event_parse_data *parse_data,
+                          bool if_not_exists)
 {
     bool ret;
     bool save_binlog_row_based, event_already_exists;
@@ -327,11 +328,12 @@ Events::create_event(THD *thd, Event_parse_data *parse_data,
 
     if (parse_data->do_not_create)
         DBUG_RETURN(FALSE);
+
     /*
       Turn off row binlogging of this statement and use statement-based
       so that all supporting tables are updated for CREATE EVENT command.
     */
-    if ((save_binlog_row_based= thd->is_current_stmt_binlog_format_row()))
+    if ((save_binlog_row_based = thd->is_current_stmt_binlog_format_row()))
         thd->clear_current_stmt_binlog_format_row();
 
     if (lock_object_name(thd, MDL_key::EVENT,
@@ -339,28 +341,32 @@ Events::create_event(THD *thd, Event_parse_data *parse_data,
         DBUG_RETURN(TRUE);
 
     /* On error conditions my_error() is called so no need to handle here */
-    if (!(ret= db_repository->create_event(thd, parse_data, if_not_exists,
-                                           &event_already_exists))) {
+    if (!(ret = db_repository->create_event(thd, parse_data, if_not_exists,
+                                            &event_already_exists))) {
         Event_queue_element *new_element;
-        bool dropped= 0;
+        bool dropped = 0;
 
         if (!event_already_exists) {
-            if (!(new_element= new Event_queue_element()))
-                ret= TRUE;                                // OOM
-            else if ((ret= db_repository->load_named_event(thd, parse_data->dbname,
-                           parse_data->name,
-                           new_element))) {
+            if (!(new_element = new Event_queue_element()))
+                ret = TRUE;                               // OOM
+            else if ((ret = db_repository->load_named_event(thd, parse_data->dbname,
+                            parse_data->name,
+                            new_element))) {
                 if (!db_repository->drop_event(thd, parse_data->dbname, parse_data->name,
                                                TRUE))
-                    dropped= 1;
+                    dropped = 1;
+
                 delete new_element;
+
             } else {
                 /* TODO: do not ignore the out parameter and a possible OOM error! */
                 bool created;
+
                 if (event_queue)
                     event_queue->create_event(thd, new_element, &created);
             }
         }
+
         /*
           binlog the create event unless it's been successfully dropped
         */
@@ -368,10 +374,12 @@ Events::create_event(THD *thd, Event_parse_data *parse_data,
             /* Binlog the create event. */
             DBUG_ASSERT(thd->query() && thd->query_length());
             String log_query;
+
             if (create_query_string(thd, &log_query)) {
                 sql_print_error("Event Error: An error occurred while creating query string, "
                                 "before writing it into binary log.");
-                ret= true;
+                ret = true;
+
             } else {
 //         thd->add_to_binlog_accessed_dbs(parse_data->dbname.str);
 //         /*
@@ -382,8 +390,10 @@ Events::create_event(THD *thd, Event_parse_data *parse_data,
             }
         }
     }
+
     /* Restore the state of binlog format */
     DBUG_ASSERT(!thd->is_current_stmt_binlog_format_row());
+
     if (save_binlog_row_based)
         thd->set_current_stmt_binlog_format_row();
 
@@ -410,14 +420,12 @@ Events::create_event(THD *thd, Event_parse_data *parse_data,
   @retval  TRUE   error (reported)
 */
 
-bool
-Events::update_event(THD *thd, Event_parse_data *parse_data,
-                     LEX_STRING *new_dbname, LEX_STRING *new_name)
+bool Events::update_event(THD *thd, Event_parse_data *parse_data,
+                          LEX_STRING *new_dbname, LEX_STRING *new_name)
 {
     int ret;
     bool save_binlog_row_based;
     Event_queue_element *new_element;
-
     DBUG_ENTER("Events::update_event");
 
     if (check_if_system_tables_error())
@@ -447,7 +455,7 @@ Events::update_event(THD *thd, Event_parse_data *parse_data,
       Turn off row binlogging of this statement and use statement-based
       so that all supporting tables are updated for UPDATE EVENT command.
     */
-    if ((save_binlog_row_based= thd->is_current_stmt_binlog_format_row()))
+    if ((save_binlog_row_based = thd->is_current_stmt_binlog_format_row()))
         thd->clear_current_stmt_binlog_format_row();
 
     if (lock_object_name(thd, MDL_key::EVENT,
@@ -455,15 +463,15 @@ Events::update_event(THD *thd, Event_parse_data *parse_data,
         DBUG_RETURN(TRUE);
 
     /* On error conditions my_error() is called so no need to handle here */
-    if (!(ret= db_repository->update_event(thd, parse_data,
-                                           new_dbname, new_name))) {
-        LEX_STRING dbname= new_dbname ? *new_dbname : parse_data->dbname;
-        LEX_STRING name= new_name ? *new_name : parse_data->name;
+    if (!(ret = db_repository->update_event(thd, parse_data,
+                                            new_dbname, new_name))) {
+        LEX_STRING dbname = new_dbname ? *new_dbname : parse_data->dbname;
+        LEX_STRING name = new_name ? *new_name : parse_data->name;
 
-        if (!(new_element= new Event_queue_element()))
-            ret= TRUE;                                // OOM
-        else if ((ret= db_repository->load_named_event(thd, dbname, name,
-                       new_element)))
+        if (!(new_element = new Event_queue_element()))
+            ret = TRUE;                               // OOM
+        else if ((ret = db_repository->load_named_event(thd, dbname, name,
+                        new_element)))
             delete new_element;
         else {
             /*
@@ -477,16 +485,16 @@ Events::update_event(THD *thd, Event_parse_data *parse_data,
 //                                   new_element);
             /* Binlog the alter event. */
             DBUG_ASSERT(thd->query() && thd->query_length());
-
 //       thd->add_to_binlog_accessed_dbs(parse_data->dbname.str);
 //       if (new_dbname)
 //         thd->add_to_binlog_accessed_dbs(new_dbname->str);
-
 //       ret= write_bin_log(thd, TRUE, thd->query(), thd->query_length());
         }
     }
+
     /* Restore the state of binlog format */
     DBUG_ASSERT(!thd->is_current_stmt_binlog_format_row());
+
     if (save_binlog_row_based)
         thd->set_current_stmt_binlog_format_row();
 
@@ -518,8 +526,7 @@ Events::update_event(THD *thd, Event_parse_data *parse_data,
   @retval  TRUE   Error (reported)
 */
 
-bool
-Events::drop_event(THD *thd, LEX_STRING dbname, LEX_STRING name, bool if_exists)
+bool Events::drop_event(THD *thd, LEX_STRING dbname, LEX_STRING name, bool if_exists)
 {
     int ret;
     bool save_binlog_row_based;
@@ -532,12 +539,13 @@ Events::drop_event(THD *thd, LEX_STRING dbname, LEX_STRING name, bool if_exists)
       Turn off row binlogging of this statement and use statement-based so
       that all supporting tables are updated for DROP EVENT command.
     */
-    if ((save_binlog_row_based= thd->is_current_stmt_binlog_format_row()))
+    if ((save_binlog_row_based = thd->is_current_stmt_binlog_format_row()))
         thd->clear_current_stmt_binlog_format_row();
 
     if (lock_object_name(thd, MDL_key::EVENT,
                          dbname.str, name.str))
         DBUG_RETURN(TRUE);
+
     /* On error conditions my_error() is called so no need to handle here */
 //   if (!(ret= db_repository->drop_event(thd, dbname, name, if_exists)))
 //   {
@@ -568,11 +576,9 @@ Events::drop_event(THD *thd, LEX_STRING dbname, LEX_STRING name, bool if_exists)
   @param[in]      db   ASCIIZ schema name
 */
 
-void
-Events::drop_schema_events(THD *thd, char *db)
+void Events::drop_schema_events(THD *thd, char *db)
 {
-    LEX_STRING const db_lex= { db, strlen(db) };
-
+    LEX_STRING const db_lex = { db, strlen(db) };
     DBUG_ENTER("Events::drop_schema_events");
     DBUG_PRINT("enter", ("dropping events from %s", db));
 
@@ -582,8 +588,8 @@ Events::drop_schema_events(THD *thd, char *db)
     */
     if (event_queue)
         event_queue->drop_schema_events(thd, db_lex);
-    db_repository->drop_schema_events(thd, db_lex);
 
+    db_repository->drop_schema_events(thd, db_lex);
     DBUG_VOID_RETURN;
 }
 
@@ -593,18 +599,16 @@ Events::drop_schema_events(THD *thd, char *db)
   a named event
 */
 
-static bool
-send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
+static bool send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
 {
     char show_str_buf[10 * STRING_BUFFER_USUAL_SIZE];
     String show_str(show_str_buf, sizeof(show_str_buf), system_charset_info);
     List<Item> field_list;
     LEX_STRING sql_mode;
     const String *tz_name;
-
     DBUG_ENTER("send_show_create_event");
-
     show_str.length(0);
+
     if (et->get_create_event(thd, &show_str))
         DBUG_RETURN(TRUE);
 
@@ -614,21 +618,15 @@ send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
         DBUG_RETURN(TRUE);
 
     field_list.push_back(new Item_empty_string("sql_mode", (uint) sql_mode.length));
-
-    tz_name= et->time_zone->get_name();
-
+    tz_name = et->time_zone->get_name();
     field_list.push_back(new Item_empty_string("time_zone",
                          tz_name->length()));
-
     field_list.push_back(new Item_empty_string("Create Event",
                          show_str.length()));
-
     field_list.push_back(
         new Item_empty_string("character_set_client", MY_CS_NAME_SIZE));
-
     field_list.push_back(
         new Item_empty_string("collation_connection", MY_CS_NAME_SIZE));
-
     field_list.push_back(
         new Item_empty_string("Database Collation", MY_CS_NAME_SIZE));
 
@@ -637,7 +635,6 @@ send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
         DBUG_RETURN(TRUE);
 
     protocol->prepare_for_resend();
-
     protocol->store(et->name.str, et->name.length, system_charset_info);
     protocol->store(sql_mode.str, sql_mode.length, system_charset_info);
     protocol->store(tz_name->ptr(), tz_name->length(), system_charset_info);
@@ -657,7 +654,6 @@ send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
         DBUG_RETURN(TRUE);
 
     my_eof(thd);
-
     DBUG_RETURN(FALSE);
 }
 
@@ -672,17 +668,16 @@ send_show_create_event(THD *thd, Event_timed *et, Protocol *protocol)
   @retval  TRUE   error (reported)
 */
 
-bool
-Events::show_create_event(THD *thd, LEX_STRING dbname, LEX_STRING name)
+bool Events::show_create_event(THD *thd, LEX_STRING dbname, LEX_STRING name)
 {
     Event_timed et;
     bool ret;
-
     DBUG_ENTER("Events::show_create_event");
     DBUG_PRINT("enter", ("name: %s@%s", dbname.str, name.str));
 
     if (check_if_system_tables_error())
         DBUG_RETURN(TRUE);
+
     /*
       We would like to allow SHOW CREATE EVENT under LOCK TABLES and
       in pre-locked mode. mysql.event table is marked as a system table.
@@ -693,10 +688,10 @@ Events::show_create_event(THD *thd, LEX_STRING dbname, LEX_STRING name)
       deadlock can occur please refer to the description of 'system table'
       flag.
     */
-    ret= db_repository->load_named_event(thd, dbname, name, &et);
+    ret = db_repository->load_named_event(thd, dbname, name, &et);
 
     if (!ret)
-        ret= send_show_create_event(thd, &et, thd->protocol);
+        ret = send_show_create_event(thd, &et, thd->protocol);
 
     DBUG_RETURN(ret);
 }
@@ -718,10 +713,9 @@ Events::show_create_event(THD *thd, LEX_STRING dbname, LEX_STRING name)
   @retval  1  an error, pushed into the error stack
 */
 
-int
-Events::fill_schema_events(THD *thd, TABLE_LIST *tables, Item * /* cond */)
+int Events::fill_schema_events(THD *thd, TABLE_LIST *tables, Item * /* cond */)
 {
-    char *db= NULL;
+    char *db = NULL;
     int ret;
     DBUG_ENTER("Events::fill_schema_events");
 
@@ -741,8 +735,7 @@ Events::fill_schema_events(THD *thd, TABLE_LIST *tables, Item * /* cond */)
 //       DBUG_RETURN(1);
 //     db= thd->lex->select_lex.db;
 //   }
-    ret= db_repository->fill_schema_events(thd, tables, db);
-
+    ret = db_repository->fill_schema_events(thd, tables, db);
     DBUG_RETURN(ret);
 }
 
@@ -762,26 +755,24 @@ Events::fill_schema_events(THD *thd, TABLE_LIST *tables, Item * /* cond */)
   @retval  TRUE    Fatal error. Startup must terminate (call unireg_abort()).
 */
 
-bool
-Events::init(my_bool opt_noacl_or_bootstrap)
+bool Events::init(my_bool opt_noacl_or_bootstrap)
 {
-
     THD *thd;
-    bool res= FALSE;
-
+    bool res = FALSE;
     DBUG_ENTER("Events::init");
 
     /* We need a temporary THD during boot */
-    if (!(thd= new THD())) {
-        res= TRUE;
+    if (!(thd = new THD())) {
+        res = TRUE;
         goto end;
     }
+
     /*
       The thread stack does not start from this function but we cannot
       guess the real value. So better some value that doesn't assert than
       no value.
     */
-    thd->thread_stack= (char*) &thd;
+    thd->thread_stack = (char *) &thd;
     thd->store_globals();
     /*
       Set current time for the thread that handles events.
@@ -793,12 +784,13 @@ Events::init(my_bool opt_noacl_or_bootstrap)
       to true if event was expired.
     */
     thd->set_time();
+
     /*
       We will need Event_db_repository anyway, even if the scheduler is
       disabled - to perform events DDL.
     */
-    if (!(db_repository= new Event_db_repository)) {
-        res= TRUE; /* fatal error: request unireg_abort */
+    if (!(db_repository = new Event_db_repository)) {
+        res = TRUE; /* fatal error: request unireg_abort */
         goto end;
     }
 
@@ -815,11 +807,11 @@ Events::init(my_bool opt_noacl_or_bootstrap)
         if (! opt_noacl_or_bootstrap) {
             sql_print_error("Event Scheduler: An error occurred when initializing "
                             "system tables. Disabling the Event Scheduler.");
-            check_system_tables_error= TRUE;
+            check_system_tables_error = TRUE;
         }
 
         /* Disable the scheduler since the system tables are not up to date */
-        opt_event_scheduler= EVENTS_DISABLED;
+        opt_event_scheduler = EVENTS_DISABLED;
         goto end;
     }
 
@@ -831,34 +823,34 @@ Events::init(my_bool opt_noacl_or_bootstrap)
     if (opt_event_scheduler == Events::EVENTS_DISABLED)
         goto end;
 
-
     DBUG_ASSERT(opt_event_scheduler == Events::EVENTS_ON ||
                 opt_event_scheduler == Events::EVENTS_OFF);
 
-    if (!(event_queue= new Event_queue) ||
-            !(scheduler= new Event_scheduler(event_queue))) {
-        res= TRUE; /* fatal error: request unireg_abort */
+    if (!(event_queue = new Event_queue) ||
+            !(scheduler = new Event_scheduler(event_queue))) {
+        res = TRUE; /* fatal error: request unireg_abort */
         goto end;
     }
 
     if (event_queue->init_queue(thd) || load_events_from_db(thd) ||
             (opt_event_scheduler == EVENTS_ON && scheduler->start())) {
         sql_print_error("Event Scheduler: Error while loading from disk.");
-        res= TRUE; /* fatal error: request unireg_abort */
+        res = TRUE; /* fatal error: request unireg_abort */
         goto end;
     }
-    Event_worker_thread::init(db_repository);
 
+    Event_worker_thread::init(db_repository);
 end:
+
     if (res) {
         delete db_repository;
         delete event_queue;
         delete scheduler;
     }
+
     delete thd;
     /* Remember that we don't have a THD */
     my_pthread_setspecific_ptr(THR_THD,  NULL);
-
     DBUG_RETURN(res);
 }
 
@@ -872,21 +864,19 @@ end:
     This function is not synchronized.
 */
 
-void
-Events::deinit()
+void Events::deinit()
 {
     DBUG_ENTER("Events::deinit");
 
     if (opt_event_scheduler != EVENTS_DISABLED) {
         delete scheduler;
-        scheduler= NULL;                            /* safety */
+        scheduler = NULL;                           /* safety */
         delete event_queue;
-        event_queue= NULL;                          /* safety */
+        event_queue = NULL;                         /* safety */
     }
 
     delete db_repository;
-    db_repository= NULL;                          /* safety */
-
+    db_repository = NULL;                         /* safety */
     DBUG_VOID_RETURN;
 }
 
@@ -894,32 +884,32 @@ Events::deinit()
 PSI_mutex_key key_LOCK_event_queue,
               key_event_scheduler_LOCK_scheduler_state;
 
-static PSI_mutex_info all_events_mutexes[]= {
+static PSI_mutex_info all_events_mutexes[] = {
     { &key_LOCK_event_queue, "LOCK_event_queue", PSI_FLAG_GLOBAL},
     { &key_event_scheduler_LOCK_scheduler_state, "Event_scheduler::LOCK_scheduler_state", PSI_FLAG_GLOBAL}
 };
 
 PSI_cond_key key_event_scheduler_COND_state, key_COND_queue_state;
 
-static PSI_cond_info all_events_conds[]= {
+static PSI_cond_info all_events_conds[] = {
     { &key_event_scheduler_COND_state, "Event_scheduler::COND_state", PSI_FLAG_GLOBAL},
     { &key_COND_queue_state, "COND_queue_state", PSI_FLAG_GLOBAL},
 };
 
 PSI_thread_key key_thread_event_scheduler, key_thread_event_worker;
 
-static PSI_thread_info all_events_threads[]= {
+static PSI_thread_info all_events_threads[] = {
     { &key_thread_event_scheduler, "event_scheduler", PSI_FLAG_GLOBAL},
     { &key_thread_event_worker, "event_worker", 0}
 };
 #endif /* HAVE_PSI_INTERFACE */
 
-PSI_stage_info stage_waiting_on_empty_queue= { 0, "Waiting on empty queue", 0};
-PSI_stage_info stage_waiting_for_next_activation= { 0, "Waiting for next activation", 0};
-PSI_stage_info stage_waiting_for_scheduler_to_stop= { 0, "Waiting for the scheduler to stop", 0};
+PSI_stage_info stage_waiting_on_empty_queue = { 0, "Waiting on empty queue", 0};
+PSI_stage_info stage_waiting_for_next_activation = { 0, "Waiting for next activation", 0};
+PSI_stage_info stage_waiting_for_scheduler_to_stop = { 0, "Waiting for the scheduler to stop", 0};
 
 #ifdef HAVE_PSI_INTERFACE
-PSI_stage_info *all_events_stages[]= {
+PSI_stage_info *all_events_stages[] = {
     & stage_waiting_on_empty_queue,
     & stage_waiting_for_next_activation,
     & stage_waiting_for_scheduler_to_stop
@@ -927,21 +917,16 @@ PSI_stage_info *all_events_stages[]= {
 
 static void init_events_psi_keys(void)
 {
-    const char* category= "sql";
+    const char *category = "sql";
     int count;
-
-    count= array_elements(all_events_mutexes);
+    count = array_elements(all_events_mutexes);
     mysql_mutex_register(category, all_events_mutexes, count);
-
-    count= array_elements(all_events_conds);
+    count = array_elements(all_events_conds);
     mysql_cond_register(category, all_events_conds, count);
-
-    count= array_elements(all_events_threads);
+    count = array_elements(all_events_threads);
     mysql_thread_register(category, all_events_threads, count);
-
-    count= array_elements(all_events_stages);
+    count = array_elements(all_events_stages);
     mysql_stage_register(category, all_events_stages, count);
-
 }
 #endif /* HAVE_PSI_INTERFACE */
 
@@ -953,8 +938,7 @@ static void init_events_psi_keys(void)
       thd  Thread
 */
 
-void
-Events::init_mutexes()
+void Events::init_mutexes()
 {
 #ifdef HAVE_PSI_INTERFACE
     init_events_psi_keys();
@@ -972,19 +956,18 @@ Events::init_mutexes()
     Events::dump_internal_status()
 */
 
-void
-Events::dump_internal_status()
+void Events::dump_internal_status()
 {
     DBUG_ENTER("Events::dump_internal_status");
     puts("\n\n\nEvents status:");
     puts("LLA = Last Locked At  LUA = Last Unlocked At");
     puts("WOC = Waiting On Condition  DL = Data Locked");
-
     /*
       opt_event_scheduler should only be accessed while
       holding LOCK_global_system_variables.
     */
     mysql_mutex_lock(&LOCK_global_system_variables);
+
     if (opt_event_scheduler == EVENTS_DISABLED)
         puts("The Event Scheduler is disabled");
     else {
@@ -1024,18 +1007,15 @@ bool Events::stop()
   @note Reports the error to the console
 */
 
-bool
-Events::load_events_from_db(THD *thd)
+bool Events::load_events_from_db(THD *thd)
 {
     TABLE *table;
     READ_RECORD read_record_info;
-    bool ret= TRUE;
-    uint count= 0;
+    bool ret = TRUE;
+    uint count = 0;
     ulong saved_master_access;
-
     DBUG_ENTER("Events::load_events_from_db");
     DBUG_PRINT("enter", ("thd: 0x%lx", (long) thd));
-
     /*
       NOTE: even if we run in read-only mode, we should be able to lock the
       mysql.event table for writing. In order to achieve this, we should call
@@ -1044,16 +1024,13 @@ Events::load_events_from_db(THD *thd)
       Same goes for transaction access mode.
       Temporarily reset it to read-write.
     */
-
-    saved_master_access= thd->security_ctx->master_access;
+    saved_master_access = thd->security_ctx->master_access;
     thd->security_ctx->master_access |= SUPER_ACL;
-    bool save_tx_read_only= thd->tx_read_only;
-    thd->tx_read_only= false;
-
-    ret= db_repository->open_event_table(thd, TL_WRITE, &table);
-
-    thd->tx_read_only= save_tx_read_only;
-    thd->security_ctx->master_access= saved_master_access;
+    bool save_tx_read_only = thd->tx_read_only;
+    thd->tx_read_only = false;
+    ret = db_repository->open_event_table(thd, TL_WRITE, &table);
+    thd->tx_read_only = save_tx_read_only;
+    thd->security_ctx->master_access = saved_master_access;
 
     if (ret) {
         sql_print_error("Event Scheduler: Failed to open table mysql.event");
@@ -1064,11 +1041,12 @@ Events::load_events_from_db(THD *thd)
         sql_print_error("Event Scheduler: Error while starting read of mysql.event");
         DBUG_RETURN(TRUE);
     }
+
     while (!(read_record_info.read_record(&read_record_info))) {
         Event_queue_element *et;
         bool created, dropped;
 
-        if (!(et= new Event_queue_element))
+        if (!(et = new Event_queue_element))
             goto end;
 
         DBUG_PRINT("info", ("Loading event from row."));
@@ -1086,12 +1064,14 @@ Events::load_events_from_db(THD *thd)
           Event_queue::create_event we should save the value of dropped flag
           into the temporary variable.
         */
-        dropped= et->dropped;
+        dropped = et->dropped;
+
         if (event_queue->create_event(thd, et, &created)) {
             /* Out of memory */
             delete et;
             goto end;
         }
+
         if (created)
             count++;
         else if (dropped) {
@@ -1104,20 +1084,20 @@ Events::load_events_from_db(THD *thd)
                    an event created on the master, after master restart, won't be
                    replicated to the slave correctly, as the create will fail there.
             */
-            int rc= table->file->ha_delete_row(table->record[0]);
+            int rc = table->file->ha_delete_row(table->record[0]);
+
             if (rc) {
                 table->file->print_error(rc, MYF(0));
                 goto end;
             }
         }
     }
+
     sql_print_information("Event Scheduler: Loaded %d event%s",
                           count, (count == 1) ? "" : "s");
-    ret= FALSE;
-
+    ret = FALSE;
 end:
     end_read_record(&read_record_info);
-
     close_mysql_tables(thd);
     DBUG_RETURN(ret);
 }

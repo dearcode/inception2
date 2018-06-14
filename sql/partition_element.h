@@ -24,7 +24,7 @@
  */
 enum partition_type
 {
-    NOT_A_PARTITION= 0,
+    NOT_A_PARTITION = 0,
     RANGE_PARTITION,
     HASH_PARTITION,
     LIST_PARTITION
@@ -32,16 +32,16 @@ enum partition_type
 
 enum partition_state
 {
-    PART_NORMAL= 0,
-    PART_IS_DROPPED= 1,
-    PART_TO_BE_DROPPED= 2,
-    PART_TO_BE_ADDED= 3,
-    PART_TO_BE_REORGED= 4,
-    PART_REORGED_DROPPED= 5,
-    PART_CHANGED= 6,
-    PART_IS_CHANGED= 7,
-    PART_IS_ADDED= 8,
-    PART_ADMIN= 9
+    PART_NORMAL = 0,
+    PART_IS_DROPPED = 1,
+    PART_TO_BE_DROPPED = 2,
+    PART_TO_BE_ADDED = 3,
+    PART_TO_BE_REORGED = 4,
+    PART_REORGED_DROPPED = 5,
+    PART_CHANGED = 6,
+    PART_IS_CHANGED = 7,
+    PART_IS_ADDED = 8,
+    PART_ADMIN = 9
 };
 
 /*
@@ -63,8 +63,8 @@ enum partition_state
 
 typedef struct p_column_list_val
 {
-    void* column_value;
-    Item* item_expression;
+    void *column_value;
+    Item *item_expression;
     partition_info *part_info;
     uint partition_id;
     bool max_value;
@@ -91,7 +91,7 @@ typedef struct p_elem_val
 
 struct st_ddl_log_memory_entry;
 
-class partition_element :public Sql_alloc
+class partition_element : public Sql_alloc
 {
 public:
     List<partition_element> subpartitions;
@@ -102,9 +102,9 @@ public:
     char *partition_name;
     char *tablespace_name;
     struct st_ddl_log_memory_entry *log_entry;
-    char* part_comment;
-    char* data_file_name;
-    char* index_file_name;
+    char *part_comment;
+    char *data_file_name;
+    char *index_file_name;
     handlerton *engine_type;
     enum partition_state part_state;
     uint16 nodegroup_id;

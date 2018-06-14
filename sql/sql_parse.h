@@ -30,8 +30,8 @@ struct LEX;
 
 enum enum_mysql_completiontype
 {
-    ROLLBACK_RELEASE=-2, ROLLBACK=1,  ROLLBACK_AND_CHAIN=7,
-    COMMIT_RELEASE=-1,   COMMIT=0,    COMMIT_AND_CHAIN=6
+    ROLLBACK_RELEASE = -2, ROLLBACK = 1,  ROLLBACK_AND_CHAIN = 7,
+    COMMIT_RELEASE = -1,   COMMIT = 0,    COMMIT_AND_CHAIN = 6
 };
 
 #define INCEPTION_COM_DATABASES         1
@@ -94,15 +94,15 @@ bool check_string_byte_length(LEX_STRING *str, const char *err_msg,
 bool check_string_char_length(LEX_STRING *str, const char *err_mg,
                               uint max_char_length, const CHARSET_INFO *cs,
                               bool no_error);
-bool check_string_char_with_length(char* str, size_t length, const char *err_msg,
+bool check_string_char_with_length(char *str, size_t length, const char *err_msg,
                                    uint max_char_length, const CHARSET_INFO *cs,
                                    bool no_error);
-const CHARSET_INFO* merge_charset_and_collation(const CHARSET_INFO *cs,
+const CHARSET_INFO *merge_charset_and_collation(const CHARSET_INFO *cs,
         const CHARSET_INFO *cl);
 bool check_host_name(LEX_STRING *str);
 bool check_identifier_name(LEX_STRING *str, uint max_char_length,
                            uint err_code, const char *param_for_err_msg);
-bool mysql_test_parse_for_slave(THD *thd,char *inBuf,uint length);
+bool mysql_test_parse_for_slave(THD *thd, char *inBuf, uint length);
 bool is_explainable_query(enum enum_sql_command command);
 bool is_log_table_write_query(enum enum_sql_command command);
 bool alloc_query(THD *thd, const char *packet, uint packet_length);
@@ -120,7 +120,7 @@ int mysql_execute_command(THD *thd);
 bool do_command(THD *thd);
 void do_handle_bootstrap(THD *thd);
 bool dispatch_command(enum enum_server_command command, THD *thd,
-                      char* packet, uint packet_length);
+                      char *packet, uint packet_length);
 void log_slow_statement(THD *thd);
 bool log_slow_applicable(THD *thd);
 void log_slow_do(THD *thd);
@@ -139,8 +139,8 @@ bool add_field_to_list(THD *thd, LEX_STRING *field_name, enum enum_field_types t
                        const CHARSET_INFO *cs,
                        uint uint_geom_type);
 bool add_to_list(THD *thd, SQL_I_List<ORDER> &list, Item *group, bool asc);
-void add_join_on(TABLE_LIST *b,Item *expr);
-void add_join_natural(TABLE_LIST *a,TABLE_LIST *b,List<String> *using_fields,
+void add_join_on(TABLE_LIST *b, Item *expr);
+void add_join_natural(TABLE_LIST *a, TABLE_LIST *b, List<String> *using_fields,
                       SELECT_LEX *lex);
 bool push_new_name_resolution_context(THD *thd,
                                       TABLE_LIST *left_op,
@@ -153,7 +153,7 @@ bool check_stack_overrun(THD *thd, long margin, uchar *dummy);
 
 /* Variables */
 
-extern const char* any_db;
+extern const char *any_db;
 extern uint sql_command_flags[];
 extern uint server_command_flags[];
 extern const LEX_STRING command_name[];
@@ -180,14 +180,14 @@ inline bool is_supported_parser_charset(const CHARSET_INFO *cs)
 }
 
 int mysql_check_column_default(
-    THD* thd,
+    THD *thd,
     Item *default_value,
     uint flags,
-    field_info_t* field_info,
-    const char*   field_name,
+    field_info_t *field_info,
+    const char   *field_name,
     enum enum_field_types real_type
 );
-int mysql_field_check(THD* thd, Create_field* field, char* table_name);
-void mysql_check_index_attribute(THD * thd, Key* key, char* table_name);
+int mysql_field_check(THD *thd, Create_field *field, char *table_name);
+void mysql_check_index_attribute(THD *thd, Key *key, char *table_name);
 
 #endif /* SQL_PARSE_INCLUDED */

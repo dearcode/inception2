@@ -60,7 +60,7 @@ enum scheduler_types
       the first entry in this enum and the first entry in the
       thread_handling_names array.
     */
-    SCHEDULER_ONE_THREAD_PER_CONNECTION=0,
+    SCHEDULER_ONE_THREAD_PER_CONNECTION = 0,
     SCHEDULER_NO_THREADS,
     SCHEDULER_TYPES_COUNT
 };
@@ -94,7 +94,7 @@ public:
 
 void *thd_get_scheduler_data(THD *thd);
 void thd_set_scheduler_data(THD *thd, void *data);
-PSI_thread* thd_get_psi(THD *thd);
+PSI_thread *thd_get_psi(THD *thd);
 void thd_set_psi(THD *thd, PSI_thread *psi);
 
 extern scheduler_functions *thread_scheduler;

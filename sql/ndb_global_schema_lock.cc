@@ -25,7 +25,7 @@
 static inline
 void do_retry_sleep(unsigned milli_sleep)
 {
-    my_sleep(1000*(milli_sleep + 5*(rand()%(milli_sleep/5))));
+    my_sleep(1000 * (milli_sleep + 5 * (rand() % (milli_sleep / 5))));
 }
 
 
@@ -38,41 +38,43 @@ void do_retry_sleep(unsigned milli_sleep)
   retry_time <  0 means infinite retries
   retry_time >  0 means retries for max 'retry_time' seconds
 */
-static NdbTransaction *
-gsl_lock_ext(THD *thd, Ndb *ndb, NdbError &ndb_error,
-             int retry_time= 10)
+static NdbTransaction *gsl_lock_ext(THD *thd, Ndb *ndb, NdbError &ndb_error,
+                                    int retry_time = 10)
 {
     ndb->setDatabaseName("sys");
     ndb->setDatabaseSchemaName("def");
-    NdbDictionary::Dictionary *dict= ndb->getDictionary();
+    NdbDictionary::Dictionary *dict = ndb->getDictionary();
     Ndb_table_guard ndbtab_g(dict, "SYSTAB_0");
-    const NdbDictionary::Table *ndbtab= NULL;
+    const NdbDictionary::Table *ndbtab = NULL;
     NdbOperation *op;
-    NdbTransaction *trans= NULL;
-    int retry_sleep= 50; /* 50 milliseconds, transaction */
+    NdbTransaction *trans = NULL;
+    int retry_sleep = 50; /* 50 milliseconds, transaction */
     NDB_TICKS time_end;
 
     if (retry_time > 0) {
-        time_end= NdbTick_CurrentMillisecond();
-        time_end+= retry_time * 1000;
+        time_end = NdbTick_CurrentMillisecond();
+        time_end += retry_time * 1000;
     }
+
     while (1) {
         if (!ndbtab) {
-            if (!(ndbtab= ndbtab_g.get_table())) {
+            if (!(ndbtab = ndbtab_g.get_table())) {
                 if (dict->getNdbError().status == NdbError::TemporaryError)
                     goto retry;
-                ndb_error= dict->getNdbError();
+
+                ndb_error = dict->getNdbError();
                 goto error_handler;
             }
         }
 
-        trans= ndb->startTransaction();
+        trans = ndb->startTransaction();
+
         if (trans == NULL) {
-            ndb_error= ndb->getNdbError();
+            ndb_error = ndb->getNdbError();
             goto error_handler;
         }
 
-        op= trans->getNdbOperation(ndbtab);
+        op = trans->getNdbOperation(ndbtab);
         op->readTuple(NdbOperation::LM_Exclusive);
         op->equal("SYSKEY_0", NDB_BACKUP_SEQUENCE);
 
@@ -83,38 +85,45 @@ gsl_lock_ext(THD *thd, Ndb *ndb, NdbError &ndb_error,
             goto error_handler;
         else if (thd_killed(thd))
             goto error_handler;
-retry:
+
+    retry:
+
         if (retry_time == 0)
             goto error_handler;
+
         if (retry_time > 0 &&
                 time_end < NdbTick_CurrentMillisecond())
             goto error_handler;
+
         if (trans) {
             ndb->closeTransaction(trans);
-            trans= NULL;
+            trans = NULL;
         }
+
         do_retry_sleep(retry_sleep);
     }
-    return trans;
 
+    return trans;
 error_handler:
+
     if (trans) {
-        ndb_error= trans->getNdbError();
+        ndb_error = trans->getNdbError();
         ndb->closeTransaction(trans);
     }
+
     return NULL;
 }
 
 
-static bool
-gsl_unlock_ext(Ndb *ndb, NdbTransaction *trans,
-               NdbError &ndb_error)
+static bool gsl_unlock_ext(Ndb *ndb, NdbTransaction *trans,
+                           NdbError &ndb_error)
 {
     if (trans->execute(NdbTransaction::Commit)) {
-        ndb_error= trans->getNdbError();
+        ndb_error = trans->getNdbError();
         ndb->closeTransaction(trans);
         return false;
     }
+
     ndb->closeTransaction(trans);
     return true;
 }
@@ -123,15 +132,15 @@ gsl_unlock_ext(Ndb *ndb, NdbTransaction *trans,
   lock/unlock calls are reference counted, so calls to lock
   must be matched to a call to unlock even if the lock call fails
 */
-static int gsl_is_locked_or_queued= 0;
-static int gsl_no_locking_allowed= 0;
+static int gsl_is_locked_or_queued = 0;
+static int gsl_no_locking_allowed = 0;
 static pthread_mutex_t gsl_mutex;
 
 /*
   Indicates if ndb_global_schema_lock module is active/initialized, normally
   turned on/off in ndbcluster_init/deinit with LOCK_plugin held.
 */
-static bool gsl_initialized= false;
+static bool gsl_initialized = false;
 
 // NOTE! 'thd_proc_info' is defined in myql/plugin.h but not implemented, only
 // a #define available in sql_class.h -> include sql_class.h until
@@ -143,9 +152,10 @@ class Thd_proc_info_guard
 public:
     Thd_proc_info_guard(THD *thd)
         : m_thd(thd), m_proc_info(NULL) {}
-    void set(const char* message)
+    void set(const char *message)
     {
-        const char* old= thd_proc_info(m_thd, message);
+        const char *old = thd_proc_info(m_thd, message);
+
         if (!m_proc_info) {
             // Save the original on first change
             m_proc_info = old;
@@ -169,37 +179,40 @@ private:
 extern ulong opt_ndb_extra_logging;
 
 static
-int
-ndbcluster_global_schema_lock(THD *thd, bool no_lock_queue,
-                              bool report_cluster_disconnected)
+int ndbcluster_global_schema_lock(THD *thd, bool no_lock_queue,
+                                  bool report_cluster_disconnected)
 {
     if (!gsl_initialized)
         return 0;
 
-    Ndb *ndb= check_ndb_in_thd(thd);
-    Thd_ndb *thd_ndb= get_thd_ndb(thd);
+    Ndb *ndb = check_ndb_in_thd(thd);
+    Thd_ndb *thd_ndb = get_thd_ndb(thd);
     NdbError ndb_error;
+
     if (thd_ndb->options & TNO_NO_LOCK_SCHEMA_OP)
         return 0;
+
     DBUG_ENTER("ndbcluster_global_schema_lock");
     DBUG_PRINT("enter", ("query: '%-.4096s', no_lock_queue: %d",
                          *thd_query(thd), no_lock_queue));
+
     if (thd_ndb->global_schema_lock_count) {
         if (thd_ndb->global_schema_lock_trans)
             thd_ndb->global_schema_lock_trans->refresh();
         else
             DBUG_ASSERT(thd_ndb->global_schema_lock_error != 0);
+
         thd_ndb->global_schema_lock_count++;
         DBUG_PRINT("exit", ("global_schema_lock_count: %d",
                             thd_ndb->global_schema_lock_count));
         DBUG_RETURN(0);
     }
+
     DBUG_ASSERT(thd_ndb->global_schema_lock_count == 0);
-    thd_ndb->global_schema_lock_count= 1;
-    thd_ndb->global_schema_lock_error= 0;
+    thd_ndb->global_schema_lock_count = 1;
+    thd_ndb->global_schema_lock_error = 0;
     DBUG_PRINT("exit", ("global_schema_lock_count: %d",
                         thd_ndb->global_schema_lock_count));
-
     /*
       Check that taking the lock is allowed
       - if not allowed to enter lock queue, return if lock exists
@@ -210,56 +223,58 @@ ndbcluster_global_schema_lock(THD *thd, bool no_lock_queue,
     pthread_mutex_lock(&gsl_mutex);
     /* increase global lock count */
     gsl_is_locked_or_queued++;
+
     if (no_lock_queue) {
         if (gsl_is_locked_or_queued != 1) {
             /* Other thread has lock and this thread may not enter lock queue */
             pthread_mutex_unlock(&gsl_mutex);
-            thd_ndb->global_schema_lock_error= -1;
+            thd_ndb->global_schema_lock_error = -1;
             DBUG_PRINT("exit", ("aborting as lock exists"));
             DBUG_RETURN(-1);
         }
+
         /* Mark that no other thread may be take lock */
-        gsl_no_locking_allowed= 1;
+        gsl_no_locking_allowed = 1;
+
     } else {
         while (gsl_no_locking_allowed) {
             proc_info.set("Waiting for allowed to take ndbcluster global schema lock");
             /* Wait until locking is allowed */
             pthread_mutex_unlock(&gsl_mutex);
             do_retry_sleep(50);
+
             if (thd_killed(thd)) {
-                thd_ndb->global_schema_lock_error= -1;
+                thd_ndb->global_schema_lock_error = -1;
                 DBUG_RETURN(-1);
             }
+
             pthread_mutex_lock(&gsl_mutex);
         }
     }
-    pthread_mutex_unlock(&gsl_mutex);
 
+    pthread_mutex_unlock(&gsl_mutex);
     /*
       Take the lock
     */
     proc_info.set("Waiting for ndbcluster global schema lock");
-    thd_ndb->global_schema_lock_trans= gsl_lock_ext(thd, ndb, ndb_error, -1);
-
+    thd_ndb->global_schema_lock_trans = gsl_lock_ext(thd, ndb, ndb_error, -1);
     DBUG_EXECUTE_IF("sleep_after_global_schema_lock", my_sleep(6000000););
 
     if (no_lock_queue) {
         pthread_mutex_lock(&gsl_mutex);
         /* Mark that other thread may be take lock */
-        gsl_no_locking_allowed= 0;
+        gsl_no_locking_allowed = 0;
         pthread_mutex_unlock(&gsl_mutex);
     }
 
     if (thd_ndb->global_schema_lock_trans) {
-        if (opt_ndb_extra_logging > 19) {
+        if (opt_ndb_extra_logging > 19)
             sql_print_information("NDB: Global schema lock acquired");
-        }
 
         // Count number of global schema locks taken by this thread
         thd_ndb->schema_locks_count++;
         DBUG_PRINT("info", ("schema_locks_count: %d",
                             thd_ndb->schema_locks_count));
-
         DBUG_RETURN(0);
     }
 
@@ -271,37 +286,41 @@ ndbcluster_global_schema_lock(THD *thd, bool no_lock_queue,
                             ndb_error.code, ndb_error.message,
                             "NDB. Could not acquire global schema lock");
     }
-    thd_ndb->global_schema_lock_error= ndb_error.code ? ndb_error.code : -1;
+
+    thd_ndb->global_schema_lock_error = ndb_error.code ? ndb_error.code : -1;
     DBUG_RETURN(-1);
 }
 
 
 static
-int
-ndbcluster_global_schema_unlock(THD *thd)
+int ndbcluster_global_schema_unlock(THD *thd)
 {
     if (!gsl_initialized)
         return 0;
 
-    Thd_ndb *thd_ndb= get_thd_ndb(thd);
+    Thd_ndb *thd_ndb = get_thd_ndb(thd);
     DBUG_ASSERT(thd_ndb != 0);
+
     if (thd_ndb == 0 || (thd_ndb->options & TNO_NO_LOCK_SCHEMA_OP))
         return 0;
-    Ndb *ndb= thd_ndb->ndb;
+
+    Ndb *ndb = thd_ndb->ndb;
     DBUG_ENTER("ndbcluster_global_schema_unlock");
-    NdbTransaction *trans= thd_ndb->global_schema_lock_trans;
+    NdbTransaction *trans = thd_ndb->global_schema_lock_trans;
     thd_ndb->global_schema_lock_count--;
     DBUG_PRINT("exit", ("global_schema_lock_count: %d",
                         thd_ndb->global_schema_lock_count));
     DBUG_ASSERT(ndb != NULL);
+
     if (ndb == NULL)
         return 0;
-    DBUG_ASSERT(trans != NULL || thd_ndb->global_schema_lock_error != 0);
-    if (thd_ndb->global_schema_lock_count != 0) {
-        DBUG_RETURN(0);
-    }
-    thd_ndb->global_schema_lock_error= 0;
 
+    DBUG_ASSERT(trans != NULL || thd_ndb->global_schema_lock_error != 0);
+
+    if (thd_ndb->global_schema_lock_count != 0)
+        DBUG_RETURN(0);
+
+    thd_ndb->global_schema_lock_error = 0;
     /*
       Decrease global lock count
     */
@@ -310,8 +329,9 @@ ndbcluster_global_schema_unlock(THD *thd)
     pthread_mutex_unlock(&gsl_mutex);
 
     if (trans) {
-        thd_ndb->global_schema_lock_trans= NULL;
+        thd_ndb->global_schema_lock_trans = NULL;
         NdbError ndb_error;
+
         if (!gsl_unlock_ext(ndb, trans, ndb_error)) {
             sql_print_warning("NDB: Releasing global schema lock (%d)%s",
                               ndb_error.code, ndb_error.message);
@@ -322,18 +342,18 @@ ndbcluster_global_schema_unlock(THD *thd)
                                 "ndb. Releasing global schema lock");
             DBUG_RETURN(-1);
         }
-        if (opt_ndb_extra_logging > 19) {
+
+        if (opt_ndb_extra_logging > 19)
             sql_print_information("NDB: Global schema lock release");
-        }
     }
+
     DBUG_RETURN(0);
 }
 
 
 #ifndef NDB_WITHOUT_GLOBAL_SCHEMA_LOCK
 static
-int
-ndbcluster_global_schema_func(THD *thd, bool lock, void* args)
+int ndbcluster_global_schema_func(THD *thd, bool lock, void *args)
 {
     if (lock) {
         bool no_lock_queue = (bool)args;
@@ -352,11 +372,10 @@ void ndbcluster_global_schema_lock_init(handlerton *hton)
     assert(gsl_initialized == false);
     assert(gsl_is_locked_or_queued == 0);
     assert(gsl_no_locking_allowed == 0);
-    gsl_initialized= true;
+    gsl_initialized = true;
     pthread_mutex_init(&gsl_mutex, MY_MUTEX_INIT_FAST);
-
 #ifndef NDB_WITHOUT_GLOBAL_SCHEMA_LOCK
-    hton->global_schema_func= ndbcluster_global_schema_func;
+    hton->global_schema_func = ndbcluster_global_schema_func;
 #endif
 }
 
@@ -366,19 +385,19 @@ void ndbcluster_global_schema_lock_deinit(void)
     assert(gsl_initialized == true);
     assert(gsl_is_locked_or_queued == 0);
     assert(gsl_no_locking_allowed == 0);
-    gsl_initialized= false;
+    gsl_initialized = false;
     pthread_mutex_destroy(&gsl_mutex);
 }
 
 
-bool
-Thd_ndb::has_required_global_schema_lock(const char* func)
+bool Thd_ndb::has_required_global_schema_lock(const char *func)
 {
 #ifdef NDB_WITHOUT_GLOBAL_SCHEMA_LOCK
     // The global schema lock hook is not installed ->
     //  no thd has gsl
     return true;
 #else
+
     if (global_schema_lock_error) {
         // An error occured while locking, either because
         // no connection to cluster or another user has locked
@@ -393,7 +412,7 @@ Thd_ndb::has_required_global_schema_lock(const char* func)
 
     // No attempt at taking global schema lock has been done, neither
     // error or trans set -> programming error
-    LEX_STRING* query= thd_query_string(m_thd);
+    LEX_STRING *query = thd_query_string(m_thd);
     sql_print_error("NDB: programming error, no lock taken while running "
                     "query '%*s' in function '%s'",
                     (int)query->length, query->str, func);
@@ -423,14 +442,12 @@ int Ndb_global_schema_lock_guard::lock(bool no_lock_queue,
 {
     /* only one lock call allowed */
     assert(!m_locked);
-
     /*
       Always set m_locked, even if lock fails. Since the
       lock/unlock calls are reference counted, the number
       of calls to lock and unlock need to match up.
     */
-    m_locked= true;
-
+    m_locked = true;
     return ndbcluster_global_schema_lock(m_thd, no_lock_queue,
                                          report_cluster_disconnected);
 }

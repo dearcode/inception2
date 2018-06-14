@@ -72,21 +72,21 @@ public:
     /// Initializes a record pointer.
     uchar *get_record_buffer(uint idx)
     {
-        m_idx_array[idx]= m_start_of_data + (idx * m_record_length);
+        m_idx_array[idx] = m_start_of_data + (idx * m_record_length);
         return m_idx_array[idx];
     }
 
     /// Initializes all the record pointers.
     void init_record_pointers()
     {
-        for (uint ix= 0; ix < m_idx_array.size(); ++ix)
+        for (uint ix = 0; ix < m_idx_array.size(); ++ix)
             (void) get_record_buffer(ix);
     }
 
     /// Returns total size: pointer array + record buffers.
     size_t sort_buffer_size() const
     {
-        return m_idx_array.size() * (m_record_length + sizeof(uchar*));
+        return m_idx_array.size() * (m_record_length + sizeof(uchar *));
     }
 
     /// Allocates the buffer, but does *not* initialize pointers.
@@ -116,14 +116,14 @@ public:
     */
     Filesort_buffer &operator=(const Filesort_buffer &rhs)
     {
-        m_idx_array= rhs.m_idx_array;
-        m_record_length= rhs.m_record_length;
-        m_start_of_data= rhs.m_start_of_data;
+        m_idx_array = rhs.m_idx_array;
+        m_record_length = rhs.m_record_length;
+        m_start_of_data = rhs.m_start_of_data;
         return *this;
     }
 
 private:
-    typedef Bounds_checked_array<uchar*> Idx_array;
+    typedef Bounds_checked_array<uchar *> Idx_array;
 
     Idx_array  m_idx_array;
     uint       m_record_length;

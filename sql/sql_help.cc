@@ -30,7 +30,7 @@ struct st_find_field
 
 /* Used fields */
 
-static struct st_find_field init_used_fields[]= {
+static struct st_find_field init_used_fields[] = {
     { "help_topic",    "help_topic_id",      0},
     { "help_topic",    "name",               0},
     { "help_topic",    "help_category_id",   0},
@@ -50,7 +50,7 @@ static struct st_find_field init_used_fields[]= {
 
 enum enum_used_fields
 {
-    help_topic_help_topic_id= 0,
+    help_topic_help_topic_id = 0,
     help_topic_name,
     help_topic_help_category_id,
     help_topic_description,
@@ -86,24 +86,28 @@ enum enum_used_fields
 static bool init_fields(THD *thd, TABLE_LIST *tables,
                         struct st_find_field *find_fields, uint count)
 {
-    Name_resolution_context *context= &thd->lex->select_lex.context;
+    Name_resolution_context *context = &thd->lex->select_lex.context;
     DBUG_ENTER("init_fields");
     context->resolve_in_table_list_only(tables);
+
     for (; count-- ; find_fields++) {
         /* We have to use 'new' here as field will be re_linked on free */
-        Item_field *field= new Item_field(context,
-                                          "mysql", find_fields->table_name,
-                                          find_fields->field_name);
-        if (!(find_fields->field= find_field_in_tables(thd, field, tables, NULL,
-                                  0, REPORT_ALL_ERRORS, 1,
-                                  TRUE)))
+        Item_field *field = new Item_field(context,
+                                           "mysql", find_fields->table_name,
+                                           find_fields->field_name);
+
+        if (!(find_fields->field = find_field_in_tables(thd, field, tables, NULL,
+                                   0, REPORT_ALL_ERRORS, 1,
+                                   TRUE)))
             DBUG_RETURN(1);
+
         bitmap_set_bit(find_fields->field->table->read_set,
                        find_fields->field->field_index);
         /* To make life easier when setting values in keys */
         bitmap_set_bit(find_fields->field->table->write_set,
                        find_fields->field->field_index);
     }
+
     DBUG_RETURN(0);
 }
 
@@ -139,18 +143,22 @@ void memorize_variant_topic(THD *thd, TABLE *topics, int count,
                             String *name, String *description, String *example)
 {
     DBUG_ENTER("memorize_variant_topic");
-    MEM_ROOT *mem_root= thd->mem_root;
-    if (count==0) {
-        get_field(mem_root,find_fields[help_topic_name].field,        name);
-        get_field(mem_root,find_fields[help_topic_description].field, description);
-        get_field(mem_root,find_fields[help_topic_example].field,     example);
+    MEM_ROOT *mem_root = thd->mem_root;
+
+    if (count == 0) {
+        get_field(mem_root, find_fields[help_topic_name].field,        name);
+        get_field(mem_root, find_fields[help_topic_description].field, description);
+        get_field(mem_root, find_fields[help_topic_example].field,     example);
+
     } else {
         if (count == 1)
             names->push_back(name);
-        String *new_name= new (thd->mem_root) String;
-        get_field(mem_root,find_fields[help_topic_name].field,new_name);
+
+        String *new_name = new (thd->mem_root) String;
+        get_field(mem_root, find_fields[help_topic_name].field, new_name);
         names->push_back(new_name);
     }
+
     DBUG_VOID_RETURN;
 }
 
@@ -184,7 +192,7 @@ int search_topics(THD *thd, TABLE *topics, struct st_find_field *find_fields,
                   SQL_SELECT *select, List<String> *names,
                   String *name, String *description, String *example)
 {
-    int count= 0;
+    int count = 0;
     READ_RECORD read_record_info;
     DBUG_ENTER("search_topics");
 
@@ -194,12 +202,13 @@ int search_topics(THD *thd, TABLE *topics, struct st_find_field *find_fields,
     while (!read_record_info.read_record(&read_record_info)) {
         if (!select->cond->val_int())		// Doesn't match like
             continue;
-        memorize_variant_topic(thd,topics,count,find_fields,
-                               names,name,description,example);
+
+        memorize_variant_topic(thd, topics, count, find_fields,
+                               names, name, description, example);
         count++;
     }
-    end_read_record(&read_record_info);
 
+    end_read_record(&read_record_info);
     DBUG_RETURN(count);
 }
 
@@ -225,23 +234,22 @@ int search_topics(THD *thd, TABLE *topics, struct st_find_field *find_fields,
 int search_keyword(THD *thd, TABLE *keywords, struct st_find_field *find_fields,
                    SQL_SELECT *select, int *key_id)
 {
-    int count= 0;
+    int count = 0;
     READ_RECORD read_record_info;
     DBUG_ENTER("search_keyword");
 
     if (init_read_record(&read_record_info, thd, keywords, select, 1, 0, FALSE))
         DBUG_RETURN(0);
 
-    while (!read_record_info.read_record(&read_record_info) && count<2) {
+    while (!read_record_info.read_record(&read_record_info) && count < 2) {
         if (!select->cond->val_int())		// Dosn't match like
             continue;
 
-        *key_id= (int)find_fields[help_keyword_help_keyword_id].field->val_int();
-
+        *key_id = (int)find_fields[help_keyword_help_keyword_id].field->val_int();
         count++;
     }
-    end_read_record(&read_record_info);
 
+    end_read_record(&read_record_info);
     DBUG_RETURN(count);
 }
 
@@ -277,53 +285,56 @@ int get_topics_for_keyword(THD *thd, TABLE *topics, TABLE *relations,
                            String *name, String *description, String *example)
 {
     uchar buff[8];	// Max int length
-    int count= 0;
+    int count = 0;
     int iindex_topic, iindex_relations;
     Field *rtopic_id, *rkey_id;
     DBUG_ENTER("get_topics_for_keyword");
 
-    if ((iindex_topic=
+    if ((iindex_topic =
                 find_type(primary_key_name, &topics->s->keynames,
                           FIND_TYPE_NO_PREFIX) - 1) < 0 ||
-            (iindex_relations=
+            (iindex_relations =
                  find_type(primary_key_name, &relations->s->keynames,
                            FIND_TYPE_NO_PREFIX) - 1) < 0) {
         my_message(ER_CORRUPT_HELP_DB, ER(ER_CORRUPT_HELP_DB), MYF(0));
         DBUG_RETURN(-1);
     }
-    rtopic_id= find_fields[help_relation_help_topic_id].field;
-    rkey_id=   find_fields[help_relation_help_keyword_id].field;
 
-    if (topics->file->ha_index_init(iindex_topic,1) ||
-            relations->file->ha_index_init(iindex_relations,1)) {
+    rtopic_id = find_fields[help_relation_help_topic_id].field;
+    rkey_id =   find_fields[help_relation_help_keyword_id].field;
+
+    if (topics->file->ha_index_init(iindex_topic, 1) ||
+            relations->file->ha_index_init(iindex_relations, 1)) {
         if (topics->file->inited)
             topics->file->ha_index_end();
+
         my_message(ER_CORRUPT_HELP_DB, ER(ER_CORRUPT_HELP_DB), MYF(0));
         DBUG_RETURN(-1);
     }
 
     rkey_id->store((longlong) key_id, TRUE);
     rkey_id->get_key_image(buff, rkey_id->pack_length(), Field::itRAW);
-    int key_res= relations->file->ha_index_read_map(relations->record[0],
-                 buff, (key_part_map) 1,
-                 HA_READ_KEY_EXACT);
+    int key_res = relations->file->ha_index_read_map(relations->record[0],
+                  buff, (key_part_map) 1,
+                  HA_READ_KEY_EXACT);
 
     for ( ;
             !key_res && key_id == (int16) rkey_id->val_int() ;
-            key_res= relations->file->ha_index_next(relations->record[0])) {
+            key_res = relations->file->ha_index_next(relations->record[0])) {
         uchar topic_id_buff[8];
-        longlong topic_id= rtopic_id->val_int();
-        Field *field= find_fields[help_topic_help_topic_id].field;
+        longlong topic_id = rtopic_id->val_int();
+        Field *field = find_fields[help_topic_help_topic_id].field;
         field->store((longlong) topic_id, TRUE);
         field->get_key_image(topic_id_buff, field->pack_length(), Field::itRAW);
 
         if (!topics->file->ha_index_read_map(topics->record[0], topic_id_buff,
                                              (key_part_map)1, HA_READ_KEY_EXACT)) {
-            memorize_variant_topic(thd,topics,count,find_fields,
-                                   names,name,description,example);
+            memorize_variant_topic(thd, topics, count, find_fields,
+                                   names, name, description, example);
             count++;
         }
     }
+
     topics->file->ha_index_end();
     relations->file->ha_index_end();
     DBUG_RETURN(count);
@@ -351,11 +362,10 @@ int search_categories(THD *thd, TABLE *categories,
                       struct st_find_field *find_fields,
                       SQL_SELECT *select, List<String> *names, int16 *res_id)
 {
-    Field *pfname= find_fields[help_category_name].field;
-    Field *pcat_id= find_fields[help_category_help_category_id].field;
-    int count= 0;
+    Field *pfname = find_fields[help_category_name].field;
+    Field *pcat_id = find_fields[help_category_help_category_id].field;
+    int count = 0;
     READ_RECORD read_record_info;
-
     DBUG_ENTER("search_categories");
 
     if (init_read_record(&read_record_info, thd, categories, select,
@@ -365,14 +375,17 @@ int search_categories(THD *thd, TABLE *categories,
     while (!read_record_info.read_record(&read_record_info)) {
         if (select && !select->cond->val_int())
             continue;
-        String *lname= new (thd->mem_root) String;
-        get_field(thd->mem_root,pfname,lname);
+
+        String *lname = new (thd->mem_root) String;
+        get_field(thd->mem_root, pfname, lname);
+
         if (++count == 1 && res_id)
-            *res_id= (int16) pcat_id->val_int();
+            *res_id = (int16) pcat_id->val_int();
+
         names->push_back(lname);
     }
-    end_read_record(&read_record_info);
 
+    end_read_record(&read_record_info);
     DBUG_RETURN(count);
 }
 
@@ -397,15 +410,17 @@ void get_all_items_for_category(THD *thd, TABLE *items, Field *pfname,
     if (init_read_record(&read_record_info, thd, items, select,
                          1, 0, FALSE))
         DBUG_VOID_RETURN;
+
     while (!read_record_info.read_record(&read_record_info)) {
         if (!select->cond->val_int())
             continue;
-        String *name= new (thd->mem_root) String();
-        get_field(thd->mem_root,pfname,name);
+
+        String *name = new (thd->mem_root) String();
+        get_field(thd->mem_root, pfname, name);
         res->push_back(name);
     }
-    end_read_record(&read_record_info);
 
+    end_read_record(&read_record_info);
     DBUG_VOID_RETURN;
 }
 
@@ -438,9 +453,9 @@ int send_answer_1(Protocol *protocol, String *s1, String *s2, String *s3)
 {
     DBUG_ENTER("send_answer_1");
     List<Item> field_list;
-    field_list.push_back(new Item_empty_string("name",64));
-    field_list.push_back(new Item_empty_string("description",1000));
-    field_list.push_back(new Item_empty_string("example",1000));
+    field_list.push_back(new Item_empty_string("name", 64));
+    field_list.push_back(new Item_empty_string("description", 1000));
+    field_list.push_back(new Item_empty_string("example", 1000));
 
     if (protocol->send_result_set_metadata(&field_list,
                                            Protocol::SEND_NUM_ROWS | Protocol::SEND_EOF))
@@ -450,8 +465,10 @@ int send_answer_1(Protocol *protocol, String *s1, String *s2, String *s3)
     protocol->store(s1);
     protocol->store(s2);
     protocol->store(s3);
+
     if (protocol->write())
         DBUG_RETURN(-1);
+
     DBUG_RETURN(0);
 }
 
@@ -481,10 +498,12 @@ int send_header_2(Protocol *protocol, bool for_category)
 {
     DBUG_ENTER("send_header_2");
     List<Item> field_list;
+
     if (for_category)
-        field_list.push_back(new Item_empty_string("source_category_name",64));
-    field_list.push_back(new Item_empty_string("name",64));
-    field_list.push_back(new Item_empty_string("is_it_category",1));
+        field_list.push_back(new Item_empty_string("source_category_name", 64));
+
+    field_list.push_back(new Item_empty_string("name", 64));
+    field_list.push_back(new Item_empty_string("is_it_category", 1));
     DBUG_RETURN(protocol->send_result_set_metadata(&field_list, Protocol::SEND_NUM_ROWS |
                 Protocol::SEND_EOF));
 }
@@ -501,11 +520,11 @@ int send_header_2(Protocol *protocol, bool for_category)
     same as strcmp
 */
 
-extern "C" int string_ptr_cmp(const void* ptr1, const void* ptr2)
+extern "C" int string_ptr_cmp(const void *ptr1, const void *ptr2)
 {
-    String *str1= *(String**)ptr1;
-    String *str2= *(String**)ptr2;
-    return strcmp(str1->c_ptr(),str2->c_ptr());
+    String *str1 = *(String **)ptr1;
+    String *str2 = *(String **)ptr2;
+    return strcmp(str1->c_ptr(), str2->c_ptr());
 }
 
 /*
@@ -530,23 +549,25 @@ int send_variant_2_list(MEM_ROOT *mem_root, Protocol *protocol,
                         const char *cat, String *source_name)
 {
     DBUG_ENTER("send_variant_2_list");
-
-    String **pointers= (String**)alloc_root(mem_root,
-                                            sizeof(String*)*names->elements);
+    String **pointers = (String **)alloc_root(mem_root,
+                        sizeof(String *)*names->elements);
     String **pos;
-    String **end= pointers + names->elements;
-
+    String **end = pointers + names->elements;
     List_iterator<String> it(*names);
-    for (pos= pointers; pos!=end; (*pos++= it++)) ;
 
-    my_qsort(pointers,names->elements,sizeof(String*),string_ptr_cmp);
+    for (pos = pointers; pos != end; (*pos++ = it++)) ;
 
-    for (pos= pointers; pos!=end; pos++) {
+    my_qsort(pointers, names->elements, sizeof(String *), string_ptr_cmp);
+
+    for (pos = pointers; pos != end; pos++) {
         protocol->prepare_for_resend();
+
         if (source_name)
             protocol->store(source_name);
+
         protocol->store(*pos);
-        protocol->store(cat,1,&my_charset_latin1);
+        protocol->store(cat, 1, &my_charset_latin1);
+
         if (protocol->write())
             DBUG_RETURN(-1);
     }
@@ -577,9 +598,7 @@ SQL_SELECT *prepare_simple_select(THD *thd, Item *cond,
 
     /* Assume that no indexes cover all required fields */
     table->covering_keys.clear_all();
-
 //   SQL_SELECT *res= make_select(table, 0, 0, cond, 0, error);
-
     // Wrapper for correct JSON in optimizer trace
 //   Opt_trace_object wrapper(&thd->opt_trace);
 //   if (*error || (res && res->check_quick(thd, 0, HA_POS_ERROR)) ||
@@ -613,12 +632,14 @@ SQL_SELECT *prepare_select_for_name(THD *thd, const char *mask, uint mlen,
                                     TABLE_LIST *tables, TABLE *table,
                                     Field *pfname, int *error)
 {
-    Item *cond= new Item_func_like(new Item_field(pfname),
-                                   new Item_string(mask,mlen,pfname->charset()),
-                                   new Item_string("\\",1,&my_charset_latin1),
-                                   FALSE);
+    Item *cond = new Item_func_like(new Item_field(pfname),
+                                    new Item_string(mask, mlen, pfname->charset()),
+                                    new Item_string("\\", 1, &my_charset_latin1),
+                                    FALSE);
+
     if (thd->is_fatal_error)
         return 0;					// OOM
+
     return prepare_simple_select(thd, cond, table, error);
 }
 
@@ -637,19 +658,18 @@ SQL_SELECT *prepare_select_for_name(THD *thd, const char *mask, uint mlen,
 
 bool mysqld_help(THD *thd, const char *mask)
 {
-    Protocol *protocol= thd->protocol;
+    Protocol *protocol = thd->protocol;
 //   SQL_SELECT *select;
     st_find_field used_fields[array_elements(init_used_fields)];
-    TABLE_LIST *leaves= 0;
+    TABLE_LIST *leaves = 0;
     TABLE_LIST tables[4];
     List<String> topics_list, categories_list, subcategories_list;
     String name, description, example;
     int count_topics, count_categories, error;
-    uint mlen= strlen(mask);
+    uint mlen = strlen(mask);
     size_t i;
-    MEM_ROOT *mem_root= thd->mem_root;
+    MEM_ROOT *mem_root = thd->mem_root;
     DBUG_ENTER("mysqld_help");
-
     tables[0].init_one_table(C_STRING_WITH_LEN("mysql"),
                              C_STRING_WITH_LEN("help_topic"),
                              "help_topic", TL_READ);
@@ -662,13 +682,12 @@ bool mysqld_help(THD *thd, const char *mask)
     tables[3].init_one_table(C_STRING_WITH_LEN("mysql"),
                              C_STRING_WITH_LEN("help_keyword"),
                              "help_keyword", TL_READ);
-    tables[0].next_global= tables[0].next_local=
-                               tables[0].next_name_resolution_table= &tables[1];
-    tables[1].next_global= tables[1].next_local=
-                               tables[1].next_name_resolution_table= &tables[2];
-    tables[2].next_global= tables[2].next_local=
-                               tables[2].next_name_resolution_table= &tables[3];
-
+    tables[0].next_global = tables[0].next_local =
+                                tables[0].next_name_resolution_table = &tables[1];
+    tables[1].next_global = tables[1].next_local =
+                                tables[1].next_name_resolution_table = &tables[2];
+    tables[2].next_global = tables[2].next_local =
+                                tables[2].next_name_resolution_table = &tables[3];
     /*
       HELP must be available under LOCK TABLES.
       Reset and backup the current open tables state to
@@ -677,7 +696,6 @@ bool mysqld_help(THD *thd, const char *mask)
 //   Open_tables_backup open_tables_state_backup;
 //   if (open_system_tables_for_read(thd, tables, &open_tables_state_backup))
 //     goto error2;
-
     /*
       Init tables and fields to be usable from items
       tables do not contain VIEWs => we can pass 0 as conds
@@ -693,7 +711,6 @@ bool mysqld_help(THD *thd, const char *mask)
 //     goto error;
 //   for (i=0; i<sizeof(tables)/sizeof(TABLE_LIST); i++)
 //     tables[i].table->file->init_table_handle_for_HANDLER();
-
 //   if (!(select=
 // 	prepare_select_for_name(thd,mask,mlen,tables,tables[0].table,
 // 				used_fields[help_topic_name].field,&error)))
@@ -800,13 +817,11 @@ bool mysqld_help(THD *thd, const char *mask)
 //       goto error;
 //   }
 //   my_eof(thd);
-
 //   close_system_tables(thd, &open_tables_state_backup);
 //   DBUG_RETURN(FALSE);
 //
 // error:
 //   close_system_tables(thd, &open_tables_state_backup);
-
 error2:
     DBUG_RETURN(TRUE);
 }

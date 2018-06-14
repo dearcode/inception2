@@ -204,11 +204,12 @@ typedef struct st_table_ref : public Sql_alloc
     bool impossible_null_ref() const
     {
         if (null_rejecting != 0) {
-            for (uint i= 0 ; i < key_parts ; i++) {
+            for (uint i = 0 ; i < key_parts ; i++) {
                 if ((null_rejecting & 1 << i) && items[i]->is_null())
                     return TRUE;
             }
         }
+
         return FALSE;
     }
 
@@ -229,6 +230,7 @@ typedef struct st_table_ref : public Sql_alloc
             if (cond_guards[i])
                 return true;
         }
+
         return false;
     }
 } TABLE_REF;
@@ -238,10 +240,10 @@ typedef struct st_table_ref : public Sql_alloc
   The structs which holds the join connections and join states
 */
 enum join_type
-{ /*
-                       Initial state. Access type has not yet been decided
-                       for the table
-                     */
+{   /*
+                         Initial state. Access type has not yet been decided
+                         for the table
+                       */
     JT_UNKNOWN,
     /* Table has exactly one row */
     JT_SYSTEM,
@@ -479,14 +481,14 @@ typedef struct st_position : public Sql_alloc
     */
     void no_semijoin()
     {
-        sj_strategy= SJ_OPT_NONE;
-        dups_producing_tables= 0;
+        sj_strategy = SJ_OPT_NONE;
+        dups_producing_tables = 0;
     }
     void set_prefix_costs(double read_time_arg, double row_count_arg)
     {
         prefix_cost.reset();
         prefix_cost.add_io(read_time_arg);
-        prefix_record_count= row_count_arg;
+        prefix_record_count = row_count_arg;
     }
 } POSITION;
 
@@ -518,8 +520,8 @@ typedef struct st_join_table : public Sql_alloc
     */
     void set_prefix_tables(table_map prefix_tables, table_map prev_tables)
     {
-        prefix_tables_map= prefix_tables;
-        added_tables_map= prefix_tables & ~prev_tables;
+        prefix_tables_map = prefix_tables;
+        added_tables_map = prefix_tables & ~prev_tables;
     }
 
     /**
@@ -529,8 +531,8 @@ typedef struct st_join_table : public Sql_alloc
     */
     void add_prefix_tables(table_map tables)
     {
-        prefix_tables_map|= tables;
-        added_tables_map|= tables;
+        prefix_tables_map |= tables;
+        added_tables_map |= tables;
     }
 
     /// Return true if join_tab should perform a FirstMatch action
@@ -664,7 +666,7 @@ private:
     table_map     added_tables_map;
 public:
     uint		index;
-    uint		used_fields,used_fieldlength,used_blobs;
+    uint		used_fields, used_fieldlength, used_blobs;
     uint          used_null_fields;
     uint          used_rowid_fields;
     uint          used_uneven_bit_fields;
@@ -807,9 +809,10 @@ public:
     bool check_rowid_field()
     {
         if (keep_current_rowid && !used_rowid_fields) {
-            used_rowid_fields= 1;
-            used_fieldlength+= table->file->ref_length;
+            used_rowid_fields = 1;
+            used_fieldlength += table->file->ref_length;
         }
+
         return test(used_rowid_fields);
     }
     bool is_inner_table_of_outer_join()
@@ -837,7 +840,7 @@ public:
         DBUG_PRINT("info",
                    ("JOIN_TAB::m_condition changes %p -> %p at line %u tab %p",
                     m_condition, to, line, this));
-        m_condition= to;
+        m_condition = to;
         quick_order_tested.clear_all();
     }
 
@@ -855,6 +858,7 @@ public:
     {
         if (first_sj_inner_tab == NULL)
             return SJ_OPT_NONE;
+
         DBUG_ASSERT(first_sj_inner_tab->position->sj_strategy != SJ_OPT_NONE);
         return first_sj_inner_tab->position->sj_strategy;
     }
@@ -884,8 +888,7 @@ public:
     bool remove_duplicates();
 } JOIN_TAB;
 
-inline
-st_join_table::st_join_table()
+inline st_join_table::st_join_table()
     : table(NULL),
       position(NULL),
       keyuse(NULL),
@@ -1016,7 +1019,7 @@ st_join_table::st_join_table()
     true if jt1 is smaller than jt2, false otherwise
 */
 class Join_tab_compare_default :
-    public std::binary_function<const JOIN_TAB*, const JOIN_TAB*, bool>
+    public std::binary_function<const JOIN_TAB *, const JOIN_TAB *, bool>
 {
 public:
     bool operator()(const JOIN_TAB *jt1, const JOIN_TAB *jt2)
@@ -1026,19 +1029,22 @@ public:
 
         if (jt1->dependent & jt2->table->map)
             return false;
+
         if (jt2->dependent & jt1->table->map)
             return true;
 
-        const bool jt1_keydep_jt2= jt1->key_dependent & jt2->table->map;
-        const bool jt2_keydep_jt1= jt2->key_dependent & jt1->table->map;
+        const bool jt1_keydep_jt2 = jt1->key_dependent & jt2->table->map;
+        const bool jt2_keydep_jt1 = jt2->key_dependent & jt1->table->map;
 
         if (jt1_keydep_jt2 && !jt2_keydep_jt1)
             return false;
+
         if (jt2_keydep_jt1 && !jt1_keydep_jt2)
             return true;
 
         if (jt1->found_records > jt2->found_records)
             return false;
+
         if (jt1->found_records < jt2->found_records)
             return true;
 
@@ -1054,14 +1060,13 @@ public:
   dependencies are ignored here.
 */
 class Join_tab_compare_straight :
-    public std::binary_function<const JOIN_TAB*, const JOIN_TAB*, bool>
+    public std::binary_function<const JOIN_TAB *, const JOIN_TAB *, bool>
 {
 public:
     bool operator()(const JOIN_TAB *jt1, const JOIN_TAB *jt2)
     {
         // Sorting distinct tables, so a table should not be compared with itself
         DBUG_ASSERT(jt1 != jt2);
-
         /*
           We don't do subquery flattening if the parent or child select has
           STRAIGHT_JOIN modifier. It is complicated to implement and the semantics
@@ -1072,6 +1077,7 @@ public:
 
         if (jt1->dependent & jt2->table->map)
             return false;
+
         if (jt2->dependent & jt1->table->map)
             return true;
 
@@ -1085,7 +1091,7 @@ public:
   materialization nests.
 */
 class Join_tab_compare_embedded_first :
-    public std::binary_function<const JOIN_TAB*, const JOIN_TAB*, bool>
+    public std::binary_function<const JOIN_TAB *, const JOIN_TAB *, bool>
 {
 private:
     const TABLE_LIST *emb_nest;
@@ -1100,20 +1106,21 @@ public:
 
         if (jt1->emb_sj_nest == emb_nest && jt2->emb_sj_nest != emb_nest)
             return true;
+
         if (jt1->emb_sj_nest != emb_nest && jt2->emb_sj_nest == emb_nest)
             return false;
 
         Join_tab_compare_default cmp;
-        return cmp(jt1,jt2);
+        return cmp(jt1, jt2);
     }
 };
 
 
-typedef Bounds_checked_array<Item_null_result*> Item_null_array;
+typedef Bounds_checked_array<Item_null_result *> Item_null_array;
 
 typedef struct st_select_check
 {
-    uint const_ref,reg_ref;
+    uint const_ref, reg_ref;
 } SELECT_CHECK;
 
 /* Extern functions in sql_select.cc */
@@ -1123,22 +1130,22 @@ uint find_shortest_key(TABLE *table, const key_map *usable_keys);
 
 /* functions from opt_sum.cc */
 bool simple_pred(Item_func *func_item, Item **args, bool *inv_order);
-int opt_sum_query(THD* thd,
+int opt_sum_query(THD *thd,
                   TABLE_LIST *tables, List<Item> &all_fields, Item *conds);
 
 /* from sql_delete.cc, used by opt_range.cc */
-extern "C" int refpos_order_cmp(const void* arg, const void *a,const void *b);
+extern "C" int refpos_order_cmp(const void *arg, const void *a, const void *b);
 
 /** class to copying an field/item to a key struct */
 
-class store_key :public Sql_alloc
+class store_key : public Sql_alloc
 {
 public:
     bool null_key; /* TRUE <=> the value of the key has a null part */
     enum store_key_result
     { STORE_KEY_OK, STORE_KEY_FATAL, STORE_KEY_CONV };
     store_key(THD *thd, Field *field_arg, uchar *ptr, uchar *null, uint length)
-        :null_key(0), null_ptr(null), err(0)
+        : null_key(0), null_ptr(null), err(0)
     {
         if (field_arg->type() == MYSQL_TYPE_BLOB
                 || field_arg->type() == MYSQL_TYPE_GEOMETRY) {
@@ -1146,16 +1153,17 @@ public:
               Key segments are always packed with a 2 byte length prefix.
               See mi_rkey for details.
             */
-            to_field= new Field_varstring(ptr, length, 2, null, 1,
-                                          Field::NONE, field_arg->field_name,
-                                          field_arg->table->s, field_arg->charset());
+            to_field = new Field_varstring(ptr, length, 2, null, 1,
+                                           Field::NONE, field_arg->field_name,
+                                           field_arg->table->s, field_arg->charset());
             to_field->init(field_arg->table);
+
         } else
-            to_field=field_arg->new_key_field(thd->mem_root, field_arg->table,
-                                              ptr, null, 1);
+            to_field = field_arg->new_key_field(thd->mem_root, field_arg->table,
+                                                ptr, null, 1);
     }
     virtual ~store_key() {}			/** Not actually needed */
-    virtual const char *name() const=0;
+    virtual const char *name() const = 0;
 
     /**
       @brief sets ignore truncation warnings mode and calls the real copy method
@@ -1166,18 +1174,14 @@ public:
     enum store_key_result copy()
     {
         enum store_key_result result;
-        THD *thd= to_field->table->in_use;
-        enum_check_fields saved_count_cuted_fields= thd->count_cuted_fields;
-        sql_mode_t sql_mode= thd->variables.sql_mode;
-        thd->variables.sql_mode&= ~(MODE_NO_ZERO_IN_DATE | MODE_NO_ZERO_DATE);
-
-        thd->count_cuted_fields= CHECK_FIELD_IGNORE;
-
-        result= copy_inner();
-
-        thd->count_cuted_fields= saved_count_cuted_fields;
-        thd->variables.sql_mode= sql_mode;
-
+        THD *thd = to_field->table->in_use;
+        enum_check_fields saved_count_cuted_fields = thd->count_cuted_fields;
+        sql_mode_t sql_mode = thd->variables.sql_mode;
+        thd->variables.sql_mode &= ~(MODE_NO_ZERO_IN_DATE | MODE_NO_ZERO_DATE);
+        thd->count_cuted_fields = CHECK_FIELD_IGNORE;
+        result = copy_inner();
+        thd->count_cuted_fields = saved_count_cuted_fields;
+        thd->variables.sql_mode = sql_mode;
         return result;
     }
 
@@ -1186,18 +1190,19 @@ protected:
     uchar *null_ptr;
     uchar err;
 
-    virtual enum store_key_result copy_inner()=0;
+    virtual enum store_key_result copy_inner() = 0;
 };
 
 
-static store_key::store_key_result
-type_conversion_status_to_store_key (type_conversion_status ts)
+static store_key::store_key_result type_conversion_status_to_store_key (type_conversion_status ts)
 {
     switch (ts) {
     case TYPE_OK:
         return store_key::STORE_KEY_OK;
+
     case TYPE_NOTE_TIME_TRUNCATED:
         return store_key::STORE_KEY_CONV;
+
     case TYPE_WARN_OUT_OF_RANGE:
     case TYPE_NOTE_TRUNCATED:
     case TYPE_WARN_TRUNCATED:
@@ -1205,6 +1210,7 @@ type_conversion_status_to_store_key (type_conversion_status ts)
     case TYPE_ERR_BAD_VALUE:
     case TYPE_ERR_OOM:
         return store_key::STORE_KEY_FATAL;
+
     default:
         DBUG_ASSERT(false); // not possible
     }
@@ -1220,13 +1226,12 @@ public:
     store_key_field(THD *thd, Field *to_field_arg, uchar *ptr,
                     uchar *null_ptr_arg,
                     uint length, Field *from_field, const char *name_arg)
-        :store_key(thd, to_field_arg,ptr,
-                   null_ptr_arg ? null_ptr_arg : from_field->maybe_null() ? &err
-                   : (uchar*) 0, length), field_name(name_arg)
+        : store_key(thd, to_field_arg, ptr,
+                    null_ptr_arg ? null_ptr_arg : from_field->maybe_null() ? & err
+                    : (uchar *) 0, length), field_name(name_arg)
     {
-        if (to_field) {
-            copy_field.set(to_field,from_field,0);
-        }
+        if (to_field)
+            copy_field.set(to_field, from_field, 0);
     }
     const char *name() const
     {
@@ -1236,27 +1241,27 @@ public:
 protected:
     enum store_key_result copy_inner()
     {
-        TABLE *table= copy_field.to_field->table;
-        my_bitmap_map *old_map= dbug_tmp_use_all_columns(table,
-                                table->write_set);
+        TABLE *table = copy_field.to_field->table;
+        my_bitmap_map *old_map = dbug_tmp_use_all_columns(table,
+                                 table->write_set);
         copy_field.do_copy(&copy_field);
         dbug_tmp_restore_column_map(table->write_set, old_map);
-        null_key= to_field->is_null();
+        null_key = to_field->is_null();
         return err != 0 ? STORE_KEY_FATAL : STORE_KEY_OK;
     }
 };
 
 
-class store_key_item :public store_key
+class store_key_item : public store_key
 {
 protected:
     Item *item;
 public:
     store_key_item(THD *thd, Field *to_field_arg, uchar *ptr,
                    uchar *null_ptr_arg, uint length, Item *item_arg)
-        :store_key(thd, to_field_arg, ptr,
-                   null_ptr_arg ? null_ptr_arg : item_arg->maybe_null ?
-                   &err : (uchar*) 0, length), item(item_arg)
+        : store_key(thd, to_field_arg, ptr,
+                    null_ptr_arg ? null_ptr_arg : item_arg->maybe_null ?
+                    & err : (uchar *) 0, length), item(item_arg)
     {}
     const char *name() const
     {
@@ -1266,35 +1271,37 @@ public:
 protected:
     enum store_key_result copy_inner()
     {
-        TABLE *table= to_field->table;
-        my_bitmap_map *old_map= dbug_tmp_use_all_columns(table,
-                                table->write_set);
-        type_conversion_status save_res= item->save_in_field(to_field, true);
+        TABLE *table = to_field->table;
+        my_bitmap_map *old_map = dbug_tmp_use_all_columns(table,
+                                 table->write_set);
+        type_conversion_status save_res = item->save_in_field(to_field, true);
         store_key_result res;
+
         /*
          Item::save_in_field() may call Item::val_xxx(). And if this is a subquery
          we need to check for errors executing it and react accordingly
         */
         if (save_res != TYPE_OK && table->in_use->is_error())
-            res= STORE_KEY_FATAL;
+            res = STORE_KEY_FATAL;
         else
-            res= type_conversion_status_to_store_key(save_res);
+            res = type_conversion_status_to_store_key(save_res);
+
         dbug_tmp_restore_column_map(table->write_set, old_map);
-        null_key= to_field->is_null() || item->null_value;
+        null_key = to_field->is_null() || item->null_value;
         return (err != 0) ? STORE_KEY_FATAL : res;
     }
 };
 
 
-class store_key_const_item :public store_key_item
+class store_key_const_item : public store_key_item
 {
     bool inited;
 public:
     store_key_const_item(THD *thd, Field *to_field_arg, uchar *ptr,
                          uchar *null_ptr_arg, uint length,
                          Item *item_arg)
-        :store_key_item(thd, to_field_arg, ptr,
-                        null_ptr_arg, length, item_arg), inited(0)
+        : store_key_item(thd, to_field_arg, ptr,
+                         null_ptr_arg, length, item_arg), inited(0)
     {
     }
     const char *name() const
@@ -1306,11 +1313,13 @@ protected:
     enum store_key_result copy_inner()
     {
         if (!inited) {
-            inited=1;
-            store_key_result res= store_key_item::copy_inner();
+            inited = 1;
+            store_key_result res = store_key_item::copy_inner();
+
             if (res && !err)
-                err= res;
+                err = res;
         }
+
         return (err > 2 ? STORE_KEY_FATAL : (store_key_result) err);
     }
 };
@@ -1339,10 +1348,10 @@ uint get_index_for_order(ORDER *order, TABLE *table, SQL_SELECT *select,
                          ha_rows limit, bool *need_sort, bool *reverse);
 ORDER *simple_remove_const(ORDER *order, Item *where);
 bool const_expression_in_where(Item *cond, Item *comp_item,
-                               Field *comp_field= NULL,
-                               Item **const_item= NULL);
-bool test_if_subpart(ORDER *a,ORDER *b);
-void calc_group_buffer(JOIN *join,ORDER *group);
+                               Field *comp_field = NULL,
+                               Item **const_item = NULL);
+bool test_if_subpart(ORDER *a, ORDER *b);
+void calc_group_buffer(JOIN *join, ORDER *group);
 bool
 test_if_skip_sort_order(JOIN_TAB *tab, ORDER *order, ha_rows select_limit,
                         const bool no_changes, const key_map *map,
@@ -1353,9 +1362,9 @@ bool create_ref_for_key(JOIN *join, JOIN_TAB *j, Key_use *org_keyuse,
 bool types_allow_materialization(Item *outer, Item *inner);
 bool and_conditions(Item **e1, Item *e2);
 
-static inline Item * and_items(Item* cond, Item *item)
+static inline Item *and_items(Item *cond, Item *item)
 {
-    return (cond? (new Item_cond_and(cond, item)) : item);
+    return (cond ? (new Item_cond_and(cond, item)) : item);
 }
 
 uint actual_key_parts(KEY *key_info);

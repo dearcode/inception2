@@ -45,7 +45,7 @@ public:
         }
         void set_item_id(uint id)
         {
-            m_item_id= id;
+            m_item_id = id;
         }
 #endif
     public:
@@ -57,35 +57,37 @@ public:
     Item *new_item()
     {
         Item *result;
+
         if (!m_free && alloc_new_blk())
             return NULL;
 
         DBUG_ASSERT(m_free);
-        result= m_free;
-        m_free= m_free->next;
-
+        result = m_free;
+        m_free = m_free->next;
 #ifndef DBUG_OFF
         result->set_item_id(++m_last_item_id);
 #endif
-        result->next= NULL;
+        result->next = NULL;
         return result;
     }
     inline void free_item(Item *item)
     {
-        item->next= m_free;
-        m_free= item;
+        item->next = m_free;
+        m_free = item;
     }
     inline void free_list(Item *list, Item **hook)
     {
-        *hook= m_free;
-        m_free= list;
+        *hook = m_free;
+        m_free = list;
     }
 
     void free_list(Item *list)
     {
-        Item **hook= &list;
+        Item **hook = &list;
+
         while (*hook)
-            hook= &(*hook)->next;
+            hook = &(*hook)->next;
+
         free_list(list, hook);
     }
 
@@ -102,10 +104,10 @@ protected:
     Item *m_keep;
 
     bool alloc_new_blk();
-    void format_blk(void* block);
+    void format_blk(void *block);
     inline Item *ptr_add(Item *ptr, int n_items)
     {
-        return (Item *)(((char*)ptr) + n_items * m_sizeof_item);
+        return (Item *)(((char *)ptr) + n_items * m_sizeof_item);
     }
 };
 
@@ -131,7 +133,7 @@ public:
         gcalc_shape_info shape;
         Info *left;
         Info *right;
-        double x,y;
+        double x, y;
 
         inline bool is_bottom() const
         {
@@ -150,19 +152,21 @@ public:
 #endif
     };
 
-    Gcalc_heap(size_t blk_size=8192) :
+    Gcalc_heap(size_t blk_size = 8192) :
         Gcalc_dyn_list(blk_size, sizeof(Info)), m_hook(&m_first), m_n_points(0) {}
     Info *new_point_info(double x, double y, gcalc_shape_info shape)
     {
-        Info *result= (Info *)new_item();
+        Info *result = (Info *)new_item();
+
         if (!result)
             return NULL;
-        *m_hook= result;
-        m_hook= &result->next;
+
+        *m_hook = result;
+        m_hook = &result->next;
         m_n_points++;
-        result->x= x;
-        result->y= y;
-        result->shape= shape;
+        result->x = x;
+        result->y = y;
+        result->shape = shape;
         return result;
     }
     void prepare_operation();
@@ -202,8 +206,8 @@ public:
     int m_last_shape_pos;
     Gcalc_shape_status()
     {
-        m_nshapes= 0;        // How many shapes have been collected
-        m_last_shape_pos= 0; // Last shape start position in function_buffer
+        m_nshapes = 0;       // How many shapes have been collected
+        m_last_shape_pos = 0; // Last shape start position in function_buffer
     }
 };
 
@@ -237,36 +241,36 @@ protected:
     void int_start_line()
     {
         DBUG_ASSERT(!m_shape_started);
-        m_shape_started= 1;
-        m_first= m_prev= NULL;
+        m_shape_started = 1;
+        m_first = m_prev = NULL;
     }
     void int_complete_line()
     {
-        DBUG_ASSERT(m_shape_started== 1);
+        DBUG_ASSERT(m_shape_started == 1);
         int_complete();
-        m_shape_started= 0;
+        m_shape_started = 0;
     }
     void int_start_ring()
     {
-        DBUG_ASSERT(m_shape_started== 2);
-        m_shape_started= 3;
-        m_first= m_prev= NULL;
+        DBUG_ASSERT(m_shape_started == 2);
+        m_shape_started = 3;
+        m_first = m_prev = NULL;
     }
     void int_complete_ring()
     {
-        DBUG_ASSERT(m_shape_started== 3);
+        DBUG_ASSERT(m_shape_started == 3);
         int_complete();
-        m_shape_started= 2;
+        m_shape_started = 2;
     }
     void int_start_poly()
     {
         DBUG_ASSERT(!m_shape_started);
-        m_shape_started= 2;
+        m_shape_started = 2;
     }
     void int_complete_poly()
     {
-        DBUG_ASSERT(m_shape_started== 2);
-        m_shape_started= 0;
+        DBUG_ASSERT(m_shape_started == 2);
+        m_shape_started = 0;
     }
     bool line_started()
     {
@@ -277,18 +281,18 @@ public:
         m_shape_started(0), m_heap(heap) {}
 
     /* Transformation event methods */
-    virtual int single_point(Gcalc_shape_status *st, double x, double y)=0;
-    virtual int start_line(Gcalc_shape_status *st)=0;
-    virtual int complete_line(Gcalc_shape_status *st)=0;
-    virtual int start_poly(Gcalc_shape_status *st)=0;
-    virtual int complete_poly(Gcalc_shape_status *st)=0;
-    virtual int start_ring(Gcalc_shape_status *st)=0;
-    virtual int complete_ring(Gcalc_shape_status *st)=0;
-    virtual int add_point(Gcalc_shape_status *st, double x, double y)=0;
-    virtual int start_collection(Gcalc_shape_status *st, int nshapes)= 0;
-    virtual int complete_collection(Gcalc_shape_status *st)= 0;
+    virtual int single_point(Gcalc_shape_status *st, double x, double y) = 0;
+    virtual int start_line(Gcalc_shape_status *st) = 0;
+    virtual int complete_line(Gcalc_shape_status *st) = 0;
+    virtual int start_poly(Gcalc_shape_status *st) = 0;
+    virtual int complete_poly(Gcalc_shape_status *st) = 0;
+    virtual int start_ring(Gcalc_shape_status *st) = 0;
+    virtual int complete_ring(Gcalc_shape_status *st) = 0;
+    virtual int add_point(Gcalc_shape_status *st, double x, double y) = 0;
+    virtual int start_collection(Gcalc_shape_status *st, int nshapes) = 0;
+    virtual int complete_collection(Gcalc_shape_status *st) = 0;
     virtual int collection_add_item(Gcalc_shape_status *st_collection,
-                                    Gcalc_shape_status *st_item)= 0;
+                                    Gcalc_shape_status *st_item) = 0;
     int start_simple_poly(Gcalc_shape_status *st)
     {
         return start_poly(st) || start_ring(st);
@@ -324,17 +328,17 @@ public:
 
 enum Gcalc_scan_events
 {
-    scev_point= 1,         /* Just a new point in thread */
-    scev_thread= 2,        /* Start of the new thread */
-    scev_two_threads= 4,   /* A couple of new threads started */
-    scev_intersection= 8,  /* Intersection happened */
-    scev_end= 16,          /* Single thread finished */
-    scev_two_ends= 32,     /* A couple of threads finished */
-    scev_single_point= 64  /* Got single point */
+    scev_point = 1,        /* Just a new point in thread */
+    scev_thread = 2,       /* Start of the new thread */
+    scev_two_threads = 4,  /* A couple of new threads started */
+    scev_intersection = 8, /* Intersection happened */
+    scev_end = 16,         /* Single thread finished */
+    scev_two_ends = 32,    /* A couple of threads finished */
+    scev_single_point = 64 /* Got single point */
 };
 
 #ifndef DBUG_OFF
-const char *Gcalc_scan_event_name(enum Gcalc_scan_events event);
+    const char *Gcalc_scan_event_name(enum Gcalc_scan_events event);
 #endif
 
 typedef int sc_thread_id;
@@ -386,11 +390,11 @@ public:
         /* copies all but 'next' 'x' and 'precursor' */
         void copy_core(const point *from)
         {
-            dx_dy= from->dx_dy;
-            horiz_dir= from->horiz_dir;
-            pi= from->pi;
-            next_pi= from->next_pi;
-            thread= from->thread;
+            dx_dy = from->dx_dy;
+            horiz_dir = from->horiz_dir;
+            pi = from->pi;
+            next_pi = from->next_pi;
+            thread = from->thread;
         }
 #ifndef DBUG_OFF
         inline void dbug_print_slice(double y, enum Gcalc_scan_events event) const;
@@ -411,7 +415,7 @@ public:
     };
 
 public:
-    Gcalc_scan_iterator(size_t blk_size= 8192);
+    Gcalc_scan_iterator(size_t blk_size = 8192);
 
     void init(Gcalc_heap *points); /* Iterator can be reused */
     void reset();
@@ -530,9 +534,11 @@ public:
     }
     const Gcalc_scan_iterator::point *rb() const
     {
-        const Gcalc_scan_iterator::point *result= sp0;
-        while ((result= result->c_get_next())->is_bottom())
+        const Gcalc_scan_iterator::point *result = sp0;
+
+        while ((result = result->c_get_next())->is_bottom())
         {}
+
         return result;
     }
     const Gcalc_scan_iterator::point *rt() const
@@ -542,8 +548,8 @@ public:
 
     void operator++()
     {
-        sp0= rb();
-        sp1= rt();
+        sp0 = rb();
+        sp1 = rt();
     }
 };
 
@@ -569,7 +575,7 @@ public:
     }
     inline void operator++()
     {
-        sp= sp->c_get_next();
+        sp = sp->c_get_next();
     }
     inline const Gcalc_scan_iterator::point *point() const
     {

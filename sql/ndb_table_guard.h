@@ -44,23 +44,26 @@ public:
         DBUG_ENTER("Ndb_table_guard::init");
         /* must call reinit() if already initialized */
         DBUG_ASSERT(m_ndbtab == NULL);
-        m_ndbtab= m_dict->getTableGlobal(tabname);
-        m_invalidate= 0;
+        m_ndbtab = m_dict->getTableGlobal(tabname);
+        m_invalidate = 0;
         DBUG_PRINT("info", ("m_ndbtab: %p", m_ndbtab));
         DBUG_VOID_RETURN;
     }
-    void reinit(const char *tabname= 0)
+    void reinit(const char *tabname = 0)
     {
         DBUG_ENTER("Ndb_table_guard::reinit");
+
         if (m_ndbtab) {
             DBUG_PRINT("info", ("m_ndbtab: %p  m_invalidate: %d",
                                 m_ndbtab, m_invalidate));
             m_dict->removeTableGlobal(*m_ndbtab, m_invalidate);
-            m_ndbtab= NULL;
-            m_invalidate= 0;
+            m_ndbtab = NULL;
+            m_invalidate = 0;
         }
+
         if (tabname)
             init(tabname);
+
         DBUG_PRINT("info", ("m_ndbtab: %p", m_ndbtab));
         DBUG_VOID_RETURN;
     }
@@ -70,12 +73,12 @@ public:
     }
     void invalidate()
     {
-        m_invalidate= 1;
+        m_invalidate = 1;
     }
     const NdbDictionary::Table *release()
     {
         DBUG_ENTER("Ndb_table_guard::release");
-        const NdbDictionary::Table *tmp= m_ndbtab;
+        const NdbDictionary::Table *tmp = m_ndbtab;
         DBUG_PRINT("info", ("m_ndbtab: %p", m_ndbtab));
         m_ndbtab = 0;
         DBUG_RETURN(tmp);

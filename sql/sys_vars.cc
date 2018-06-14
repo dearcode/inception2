@@ -54,7 +54,7 @@
 #include "hostname.h"                           // host_cache_size
 #include "sql_show.h"                           // opt_ignore_db_dirs
 
-TYPELIB bool_typelib= { array_elements(bool_values)-1, "", bool_values, 0 };
+TYPELIB bool_typelib = { array_elements(bool_values) - 1, "", bool_values, 0 };
 
 /*
   This forward declaration is needed because including sql_base.h
@@ -111,16 +111,17 @@ static Sys_var_dbug Sys_dbug(
     ON_CHECK(0));
 #endif
 
-static bool
-check_max_allowed_packet(sys_var *self, THD *thd,  set_var *var)
+static bool check_max_allowed_packet(sys_var *self, THD *thd,  set_var *var)
 {
     longlong val;
-    val= var->save_result.ulonglong_value;
+    val = var->save_result.ulonglong_value;
+
     if (val < (longlong) global_system_variables.net_buffer_length) {
         push_warning_printf(thd, Sql_condition::WARN_LEVEL_WARN,
                             WARN_OPTION_BELOW_LIMIT, ER(WARN_OPTION_BELOW_LIMIT),
                             "max_allowed_packet", "net_buffer_length");
     }
+
     return false;
 }
 
@@ -160,16 +161,17 @@ static Sys_var_ulong Sys_max_connect_errors(
     VALID_RANGE(1, ULONG_MAX), DEFAULT(100),
     BLOCK_SIZE(1));
 
-static bool
-check_net_buffer_length(sys_var *self, THD *thd,  set_var *var)
+static bool check_net_buffer_length(sys_var *self, THD *thd,  set_var *var)
 {
     longlong val;
-    val= var->save_result.ulonglong_value;
+    val = var->save_result.ulonglong_value;
+
     if (val > (longlong) global_system_variables.max_allowed_packet) {
         push_warning_printf(thd, Sql_condition::WARN_LEVEL_WARN,
                             WARN_OPTION_BELOW_LIMIT, ER(WARN_OPTION_BELOW_LIMIT),
                             "max_allowed_packet", "net_buffer_length");
     }
+
     return false;
 }
 
@@ -177,13 +179,14 @@ static Sys_var_ulong Sys_net_buffer_length(
     "net_buffer_length",
     "Buffer length for TCP/IP and socket communication",
     SESSION_VAR(net_buffer_length), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1024, 1024*1024), DEFAULT(16384), BLOCK_SIZE(1024),
+    VALID_RANGE(1024, 1024 * 1024), DEFAULT(16384), BLOCK_SIZE(1024),
     NO_MUTEX_GUARD, NOT_IN_BINLOG, ON_CHECK(check_net_buffer_length));
 
 static bool fix_net_read_timeout(sys_var *self, THD *thd, enum_var_type type)
 {
     if (type != OPT_GLOBAL)
         my_net_set_read_timeout(&thd->net, thd->variables.net_read_timeout);
+
     return false;
 }
 static Sys_var_ulong Sys_net_read_timeout(
@@ -199,6 +202,7 @@ static bool fix_net_write_timeout(sys_var *self, THD *thd, enum_var_type type)
 {
     if (type != OPT_GLOBAL)
         my_net_set_write_timeout(&thd->net, thd->variables.net_write_timeout);
+
     return false;
 }
 static Sys_var_ulong Sys_net_write_timeout(
@@ -250,6 +254,7 @@ static bool fix_thd_mem_root(sys_var *self, THD *thd, enum_var_type type)
         reset_root_defaults(thd->mem_root,
                             thd->variables.query_alloc_block_size,
                             thd->variables.query_prealloc_size);
+
     return false;
 }
 static Sys_var_ulong Sys_query_alloc_block_size(
@@ -277,10 +282,10 @@ static Sys_var_charptr Sys_socket(
 static Sys_var_ulong Sys_thread_stack(
     "thread_stack", "The stack size for each thread",
     READ_ONLY GLOBAL_VAR(my_thread_stack_size), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(128*1024, ULONG_MAX), DEFAULT(DEFAULT_THREAD_STACK),
+    VALID_RANGE(128 * 1024, ULONG_MAX), DEFAULT(DEFAULT_THREAD_STACK),
     BLOCK_SIZE(1024));
 
-static const char *thread_handling_names[]= {
+static const char *thread_handling_names[] = {
     "one-thread-per-connection", "no-threads", "loaded-dynamically",
     0
 };
@@ -292,9 +297,9 @@ static Sys_var_enum Sys_thread_handling(
     thread_handling_names, DEFAULT(0));
 
 #if defined(HAVE_OPENSSL) && !defined(EMBEDDED_LIBRARY)
-#define SSL_OPT(X) CMD_LINE(REQUIRED_ARG,X)
+    #define SSL_OPT(X) CMD_LINE(REQUIRED_ARG,X)
 #else
-#define SSL_OPT(X) NO_CMD_LINE
+    #define SSL_OPT(X) NO_CMD_LINE
 #endif
 
 static bool check_log_path(sys_var *self, THD *thd, set_var *var)
@@ -312,7 +317,7 @@ static bool check_log_path(sys_var *self, THD *thd, set_var *var)
     }
 
     char path[FN_REFLEN];
-    size_t path_length= unpack_filename(path, var->save_result.string_value.str);
+    size_t path_length = unpack_filename(path, var->save_result.string_value.str);
 
     if (!path_length)
         return true;
@@ -329,6 +334,7 @@ static bool check_log_path(sys_var *self, THD *thd, set_var *var)
     if (my_stat(path, &f_stat, MYF(0))) {
         if (!MY_S_ISREG(f_stat.st_mode) || !(f_stat.st_mode & MY_S_IWRITE))
             return true; // not a regular writable file
+
         return false;
     }
 
@@ -343,30 +349,34 @@ static bool check_log_path(sys_var *self, THD *thd, set_var *var)
     if (!path_length) // no path is good path (remember, relative to datadir)
         return false;
 
-    if (my_access(path, (F_OK|W_OK)))
+    if (my_access(path, (F_OK | W_OK)))
         return true; // directory is not writable
 
     return false;
 }
-static bool fix_log(char** logname, const char* default_logname,
-                    const char*ext, bool enabled, void (*reopen)(char*))
+static bool fix_log(char **logname, const char *default_logname,
+                    const char *ext, bool enabled, void (*reopen)(char *))
 {
     if (!*logname) { // SET ... = DEFAULT
         char buff[FN_REFLEN];
-        *logname= my_strdup(make_log_name(buff, default_logname, ext),
-                            MYF(MY_FAE+MY_WME));
+        *logname = my_strdup(make_log_name(buff, default_logname, ext),
+                             MYF(MY_FAE + MY_WME));
+
         if (!*logname)
             return true;
     }
+
     logger.lock_exclusive();
     mysql_mutex_unlock(&LOCK_global_system_variables);
+
     if (enabled)
         reopen(*logname);
+
     logger.unlock();
     mysql_mutex_lock(&LOCK_global_system_variables);
     return false;
 }
-static void reopen_general_log(char* name)
+static void reopen_general_log(char *name)
 {
     logger.get_log_file_handler()->close(0);
     logger.get_log_file_handler()->open_query_log(name);
@@ -430,7 +440,7 @@ static Sys_var_ulong Sys_net_wait_timeout(
     "The number of seconds the server waits for activity on a "
     "connection before closing it",
     SESSION_VAR(net_wait_timeout), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, IF_WIN(INT_MAX32/1000, LONG_TIMEOUT)),
+    VALID_RANGE(1, IF_WIN(INT_MAX32 / 1000, LONG_TIMEOUT)),
     DEFAULT(NET_WAIT_TIMEOUT), BLOCK_SIZE(1));
 
 static Sys_var_charptr Sys_date_format(
@@ -696,17 +706,19 @@ static Sys_var_mybool Sys_inception_enable_not_innodb(
 
 static bool check_charset(sys_var *self, THD *thd, set_var *var)
 {
-    char*   charset;
-    char*   strToken;
+    char   *charset;
+    char   *strToken;
     int     ret;
+
     if (!var->value)
         return false;
 
     if (var->save_result.string_value.length > 256)
         return true;
 
-    charset = (char*)my_malloc(var->save_result.string_value.length + 1, MY_ZEROFILL);
+    charset = (char *)my_malloc(var->save_result.string_value.length + 1, MY_ZEROFILL);
     strcpy(charset, var->save_result.string_value.str);
+
     if ((strToken = strtok(charset, ",")) == NULL) {
         ret = false;
         goto err;
@@ -715,7 +727,8 @@ static bool check_charset(sys_var *self, THD *thd, set_var *var)
     while(strToken) {
         if (get_charset_number(strToken, MY_CS_COMPILED) == 0)
             return true;
-        strToken=strtok(NULL, ",");
+
+        strToken = strtok(NULL, ",");
     }
 
 err:
@@ -849,7 +862,7 @@ static Sys_var_ulong Sys_inception_osc_min_table_size(
     "inception_osc_min_table_size",
     "when table is larger then this value, then use osc, size is measure by Mega",
     SESSION_VAR(inception_osc_min_table_size), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(0, 1024*1024), DEFAULT(16), BLOCK_SIZE(1));
+    VALID_RANGE(0, 1024 * 1024), DEFAULT(16), BLOCK_SIZE(1));
 
 static Sys_var_charptr Sys_inception_osc_bin_dir(
     "inception_osc_bin_dir", "home directory for pt-online-schema-change",
@@ -866,7 +879,7 @@ static Sys_var_ulong Sys_inception_osc_critical_connected(
     "If not given, the tool determines a threshold by examining the "
     "current value at startup and doubling it",
     SESSION_VAR(inception_osc_critical_connected), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, 1024*1024), DEFAULT(1000), BLOCK_SIZE(1));
+    VALID_RANGE(1, 1024 * 1024), DEFAULT(1000), BLOCK_SIZE(1));
 
 static Sys_var_ulong Sys_inception_osc_critical_running(
     "inception_osc_critical_thread_running",
@@ -877,7 +890,7 @@ static Sys_var_ulong Sys_inception_osc_critical_running(
     "If not given, the tool determines a threshold by examining the "
     "current value at startup and doubling it",
     SESSION_VAR(inception_osc_critical_running), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, 1024*1024), DEFAULT(80), BLOCK_SIZE(1));
+    VALID_RANGE(1, 1024 * 1024), DEFAULT(80), BLOCK_SIZE(1));
 
 static Sys_var_ulong Sys_inception_osc_max_connected(
     "inception_osc_max_thread_connected",
@@ -887,7 +900,7 @@ static Sys_var_ulong Sys_inception_osc_max_connected(
     "(or :MAX_VALUE) can follow each variable. If not given, the tool "
     "determines a threshold by examining the current value and increasing it by 20%.",
     SESSION_VAR(inception_osc_max_connected), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, 1024*1024), DEFAULT(1000), BLOCK_SIZE(1));
+    VALID_RANGE(1, 1024 * 1024), DEFAULT(1000), BLOCK_SIZE(1));
 
 static Sys_var_ulong Sys_inception_osc_max_running(
     "inception_osc_max_thread_running",
@@ -897,7 +910,7 @@ static Sys_var_ulong Sys_inception_osc_max_running(
     "(or :MAX_VALUE) can follow each variable. If not given, the tool "
     "determines a threshold by examining the current value and increasing it by 20%.",
     SESSION_VAR(inception_osc_max_running), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, 1024*1024), DEFAULT(80), BLOCK_SIZE(1));
+    VALID_RANGE(1, 1024 * 1024), DEFAULT(80), BLOCK_SIZE(1));
 
 static Sys_var_double Sys_inception_osc_chunk_time(
     "inception_osc_chunk_time",
@@ -922,7 +935,7 @@ static Sys_var_double Sys_inception_osc_max_lag(
     "inception_osc_max_lag",
     "Pause the data copy until all replicas’ lag is less than this value..",
     SESSION_VAR(inception_osc_max_lag),
-    CMD_LINE(REQUIRED_ARG), VALID_RANGE(0, 1024*1024), DEFAULT(3),
+    CMD_LINE(REQUIRED_ARG), VALID_RANGE(0, 1024 * 1024), DEFAULT(3),
     NO_MUTEX_GUARD, NOT_IN_BINLOG, ON_CHECK(0));
 
 static Sys_var_ulong Sys_inception_osc_chunk_size(
@@ -934,7 +947,7 @@ static Sys_var_ulong Sys_inception_osc_chunk_size(
     "explicitly, however, then it disables the dynamic adjustment behavior and tries "
     "to make all chunks exactly the specified number of rows.",
     SESSION_VAR(inception_osc_chunk_size), CMD_LINE(REQUIRED_ARG),
-    VALID_RANGE(1, 1024*1024), DEFAULT(1000), BLOCK_SIZE(1));
+    VALID_RANGE(1, 1024 * 1024), DEFAULT(1000), BLOCK_SIZE(1));
 
 static Sys_var_double Sys_inception_osc_chunk_size_limit(
     "inception_osc_chunk_size_limit",
@@ -944,7 +957,7 @@ static Sys_var_double Sys_inception_osc_chunk_size_limit(
     "The tool uses <EXPLAIN> to estimate how many rows are in the chunk. If that estimate"
     "exceeds the desired chunk size times the limit, then the tool skips the chunk.",
     SESSION_VAR(inception_osc_chunk_size_limit),
-    CMD_LINE(REQUIRED_ARG), VALID_RANGE(0, 1024*1024), DEFAULT(4),
+    CMD_LINE(REQUIRED_ARG), VALID_RANGE(0, 1024 * 1024), DEFAULT(4),
     NO_MUTEX_GUARD, NOT_IN_BINLOG, ON_CHECK(0));
 
 static Sys_var_mybool Sys_inception_osc_drop_new_table(
@@ -1011,7 +1024,7 @@ static Sys_var_mybool Sys_inception_osc_check_alter(
     SESSION_VAR(inception_osc_check_alter),
     CMD_LINE(OPT_ARG), DEFAULT(TRUE));
 
-const char *osc_alter_foreign_keys_method[]=
+const char *osc_alter_foreign_keys_method[] =
 {"auto", "none", "rebuild_constraints", "drop_swap", NullS};
 
 static Sys_var_enum Sys_inception_alter_foreign_keys_method(
@@ -1021,7 +1034,7 @@ static Sys_var_enum Sys_inception_alter_foreign_keys_method(
     osc_alter_foreign_keys_method, DEFAULT(alter_foreign_keys_method_none),
     NO_MUTEX_GUARD, NOT_IN_BINLOG);
 
-const char *osc_recursion_method[]= {"processlist", "hosts", "none", NullS};
+const char *osc_recursion_method[] = {"processlist", "hosts", "none", NullS};
 static Sys_var_enum Sys_inception_osc_recursion_method(
     "inception_osc_recursion_method",
     "Preferred recursion method used to find slaves.",

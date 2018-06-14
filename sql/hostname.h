@@ -100,12 +100,12 @@ public:
     void sum_connect_errors()
     {
         /* Current (historical) behavior: */
-        m_connect= m_handshake;
+        m_connect = m_handshake;
     }
 
     void clear_connect_errors()
     {
-        m_connect= 0;
+        m_connect = 0;
     }
 };
 
@@ -127,7 +127,7 @@ class Host_entry : public hash_filo_element
 public:
     Host_entry *next()
     {
-        return (Host_entry*) hash_filo_element::next();
+        return (Host_entry *) hash_filo_element::next();
     }
 
     /**
@@ -158,8 +158,9 @@ public:
     void set_error_timestamps(ulonglong now)
     {
         if (m_first_error_seen == 0)
-            m_first_error_seen= now;
-        m_last_error_seen= now;
+            m_first_error_seen = now;
+
+        m_last_error_seen = now;
     }
 };
 

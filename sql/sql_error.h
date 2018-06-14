@@ -48,7 +48,7 @@ public:
       Get the MESSAGE_TEXT of this condition.
       @return the message text.
     */
-    const char* get_message_text() const;
+    const char *get_message_text() const;
 
     /**
       Get the MESSAGE_OCTET_LENGTH of this condition.
@@ -60,7 +60,7 @@ public:
       Get the SQLSTATE of this condition.
       @return the sql state.
     */
-    const char* get_sqlstate() const
+    const char *get_sqlstate() const
     {
         return m_returned_sqlstate;
     }
@@ -143,19 +143,19 @@ private:
       @param level the error level for this condition.
       @param MyFlags additional flags.
     */
-    void set(uint sql_errno, const char* sqlstate,
+    void set(uint sql_errno, const char *sqlstate,
              Sql_condition::enum_warning_level level,
-             const char* msg);
+             const char *msg);
 
     /**
       Set the condition message test.
       @param str Message text, expressed in the character set derived from
       the server --language option
     */
-    void set_builtin_message_text(const char* str);
+    void set_builtin_message_text(const char *str);
 
     /** Set the SQLSTATE of this condition. */
-    void set_sqlstate(const char* sqlstate);
+    void set_sqlstate(const char *sqlstate);
 
     /** Set the CLASS_ORIGIN of this condition. */
     void set_class_origin();
@@ -209,7 +209,7 @@ private:
       SQL RETURNED_SQLSTATE condition item.
       This member is always NUL terminated.
     */
-    char m_returned_sqlstate[SQLSTATE_LENGTH+1];
+    char m_returned_sqlstate[SQLSTATE_LENGTH + 1];
 
     /** Severity (error, warning, note) of this condition. */
     Sql_condition::enum_warning_level m_level;
@@ -298,7 +298,7 @@ public:
 
 private:
     Warning_info(const Warning_info &rhs); /* Not implemented */
-    Warning_info& operator=(const Warning_info &rhs); /* Not implemented */
+    Warning_info &operator=(const Warning_info &rhs); /* Not implemented */
 
     /**
       Checks if Warning_info contains SQL-condition with the given message.
@@ -356,7 +356,7 @@ private:
     */
     void reset_for_next_command()
     {
-        m_current_statement_warn_count= 0;
+        m_current_statement_warn_count = 0;
     }
 
     /**
@@ -442,7 +442,7 @@ private:
     /** Set id of the warning information area. */
     void id(ulonglong id)
     {
-        m_warn_id= id;
+        m_warn_id = id;
     }
 
     /** Do we have any errors and warnings that we can *show*? */
@@ -460,7 +460,7 @@ private:
     /** Reset the current row counter. Start counting from the first row. */
     void reset_current_row_for_warning()
     {
-        m_current_row_for_warning= 1;
+        m_current_row_for_warning = 1;
     }
 
     /** Return the current counter value. */
@@ -492,9 +492,9 @@ private:
     */
     Sql_condition *push_warning(THD *thd,
                                 uint sql_errno,
-                                const char* sqlstate,
+                                const char *sqlstate,
                                 Sql_condition::enum_warning_level level,
-                                const char* msg);
+                                const char *msg);
 
     /**
       Add a new SQL-condition to the current list and increment the respective
@@ -520,7 +520,7 @@ private:
     */
     void set_read_only(bool read_only)
     {
-        m_read_only= read_only;
+        m_read_only = read_only;
     }
 
     /**
@@ -550,7 +550,7 @@ private:
     */
     void set_error_condition(const Sql_condition *error_condition)
     {
-        m_error_condition= error_condition;
+        m_error_condition = error_condition;
     }
 
     /**
@@ -561,7 +561,7 @@ private:
     */
     void clear_error_condition()
     {
-        m_error_condition= NULL;
+        m_error_condition = NULL;
     }
 
     // for:
@@ -580,35 +580,35 @@ class ErrConvString
 public:
     ErrConvString(String *str)
     {
-        buf_length= err_conv(err_buffer, sizeof(err_buffer), str->ptr(),
-                             str->length(), str->charset());
+        buf_length = err_conv(err_buffer, sizeof(err_buffer), str->ptr(),
+                              str->length(), str->charset());
     }
 
-    ErrConvString(const char *str, const CHARSET_INFO* cs)
+    ErrConvString(const char *str, const CHARSET_INFO *cs)
     {
-        buf_length= err_conv(err_buffer, sizeof(err_buffer), str, strlen(str), cs);
+        buf_length = err_conv(err_buffer, sizeof(err_buffer), str, strlen(str), cs);
     }
 
     ErrConvString(const char *str, uint length)
     {
-        buf_length= err_conv(err_buffer, sizeof(err_buffer), str, length,
-                             &my_charset_latin1);
+        buf_length = err_conv(err_buffer, sizeof(err_buffer), str, length,
+                              &my_charset_latin1);
     }
 
-    ErrConvString(const char *str, uint length, const CHARSET_INFO* cs)
+    ErrConvString(const char *str, uint length, const CHARSET_INFO *cs)
     {
-        buf_length= err_conv(err_buffer, sizeof(err_buffer), str, length, cs);
+        buf_length = err_conv(err_buffer, sizeof(err_buffer), str, length, cs);
     }
 
     ErrConvString(longlong nr)
     {
-        buf_length= my_snprintf(err_buffer, sizeof(err_buffer), "%lld", nr);
+        buf_length = my_snprintf(err_buffer, sizeof(err_buffer), "%lld", nr);
     }
 
     ErrConvString(longlong nr, bool unsigned_flag)
     {
-        buf_length= longlong10_to_str(nr, err_buffer, unsigned_flag ? 10 : -10) -
-                    err_buffer;
+        buf_length = longlong10_to_str(nr, err_buffer, unsigned_flag ? 10 : -10) -
+                     err_buffer;
     }
 
     ErrConvString(double nr);
@@ -654,7 +654,7 @@ public:
     enum enum_diagnostics_status
     {
         /** The area is cleared at start of a statement. */
-        DA_EMPTY= 0,
+        DA_EMPTY = 0,
         /** Set whenever one calls my_ok(). */
         DA_OK,
         /** Set whenever one calls my_eof(). */
@@ -667,7 +667,7 @@ public:
 
     void set_overwrite_status(bool can_overwrite_status)
     {
-        m_can_overwrite_status= can_overwrite_status;
+        m_can_overwrite_status = can_overwrite_status;
     }
 
     bool is_sent() const
@@ -677,7 +677,7 @@ public:
 
     void set_is_sent(bool is_sent)
     {
-        m_is_sent= is_sent;
+        m_is_sent = is_sent;
     }
 
     void set_ok_status(ulonglong affected_rows,
@@ -739,7 +739,7 @@ public:
         return m_sql_errno;
     }
 
-    const char* get_sqlstate() const
+    const char *get_sqlstate() const
     {
         DBUG_ASSERT(m_status == DA_ERROR);
         return m_sqlstate;
@@ -889,9 +889,9 @@ public:
 
     Sql_condition *push_warning(THD *thd,
                                 uint sql_errno,
-                                const char* sqlstate,
+                                const char *sqlstate,
                                 Sql_condition::enum_warning_level level,
-                                const char* msg)
+                                const char *msg)
     {
         return get_warning_info()->push_warning(thd,
                                                 sql_errno, sqlstate, level, msg);
@@ -956,7 +956,7 @@ private:
     */
     uint m_sql_errno;
 
-    char m_sqlstate[SQLSTATE_LENGTH+1];
+    char m_sqlstate[SQLSTATE_LENGTH + 1];
 
     /**
       The number of rows affected by the last statement. This is

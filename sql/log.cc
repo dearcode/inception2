@@ -41,7 +41,7 @@
 #include <m_ctype.h>				// For test_if_number
 
 #ifdef _WIN32
-#include "message.h"
+    #include "message.h"
 #endif
 
 using std::min;
@@ -116,7 +116,7 @@ const TABLE_FIELD_TYPE slow_query_log_table_fields[SQLT_FIELD_COUNT] = {
 };
 
 static const TABLE_FIELD_DEF
-slow_query_log_table_def= {SQLT_FIELD_COUNT, slow_query_log_table_fields};
+slow_query_log_table_def = {SQLT_FIELD_COUNT, slow_query_log_table_fields};
 
 class Slow_query_log_table_intact : public Table_check_intact
 {
@@ -168,7 +168,7 @@ const TABLE_FIELD_TYPE general_log_table_fields[GLT_FIELD_COUNT] = {
 };
 
 static const TABLE_FIELD_DEF
-general_log_table_def= {GLT_FIELD_COUNT, general_log_table_fields};
+general_log_table_def = {GLT_FIELD_COUNT, general_log_table_fields};
 
 class General_log_table_intact : public Table_check_intact
 {
@@ -201,37 +201,46 @@ static bool test_if_number(const char *str,
 */
 uint purge_log_get_error_code(int res)
 {
-    uint errcode= 0;
+    uint errcode = 0;
 
     switch (res)  {
     case 0:
         break;
+
     case LOG_INFO_EOF:
-        errcode= ER_UNKNOWN_TARGET_BINLOG;
+        errcode = ER_UNKNOWN_TARGET_BINLOG;
         break;
+
     case LOG_INFO_IO:
-        errcode= ER_IO_ERR_LOG_INDEX_READ;
+        errcode = ER_IO_ERR_LOG_INDEX_READ;
         break;
+
     case LOG_INFO_INVALID:
-        errcode= ER_BINLOG_PURGE_PROHIBITED;
+        errcode = ER_BINLOG_PURGE_PROHIBITED;
         break;
+
     case LOG_INFO_SEEK:
-        errcode= ER_FSEEK_FAIL;
+        errcode = ER_FSEEK_FAIL;
         break;
+
     case LOG_INFO_MEM:
-        errcode= ER_OUT_OF_RESOURCES;
+        errcode = ER_OUT_OF_RESOURCES;
         break;
+
     case LOG_INFO_FATAL:
-        errcode= ER_BINLOG_PURGE_FATAL_ERR;
+        errcode = ER_BINLOG_PURGE_FATAL_ERR;
         break;
+
     case LOG_INFO_IN_USE:
-        errcode= ER_LOG_IN_USE;
+        errcode = ER_LOG_IN_USE;
         break;
+
     case LOG_INFO_EMFILE:
-        errcode= ER_BINLOG_PURGE_EMFILE;
+        errcode = ER_BINLOG_PURGE_EMFILE;
         break;
+
     default:
-        errcode= ER_LOG_PURGE_UNKNOWN_ERR;
+        errcode = ER_LOG_PURGE_UNKNOWN_ERR;
         break;
     }
 
@@ -251,33 +260,32 @@ class Silence_log_table_errors : public Internal_error_handler
 public:
     Silence_log_table_errors()
     {
-        m_message[0]= '\0';
+        m_message[0] = '\0';
     }
 
     virtual ~Silence_log_table_errors() {}
 
     virtual bool handle_condition(THD *thd,
                                   uint sql_errno,
-                                  const char* sql_state,
+                                  const char *sql_state,
                                   Sql_condition::enum_warning_level level,
-                                  const char* msg,
-                                  Sql_condition ** cond_hdl);
+                                  const char *msg,
+                                  Sql_condition **cond_hdl);
     const char *message() const
     {
         return m_message;
     }
 };
 
-bool
-Silence_log_table_errors::handle_condition(THD *,
+bool Silence_log_table_errors::handle_condition(THD *,
         uint,
-        const char*,
+        const char *,
         Sql_condition::enum_warning_level,
-        const char* msg,
-        Sql_condition ** cond_hdl)
+        const char *msg,
+        Sql_condition **cond_hdl)
 {
-    *cond_hdl= NULL;
-    strmake(m_message, msg, sizeof(m_message)-1);
+    *cond_hdl = NULL;
+    strmake(m_message, msg, sizeof(m_message) - 1);
     return TRUE;
 }
 
@@ -299,11 +307,11 @@ sql_print_message_func sql_print_message_handlers[3] = {
 
   @returns Pointer to new string containing the name.
 */
-char *make_log_name(char *buff, const char *name, const char* log_ext)
+char *make_log_name(char *buff, const char *name, const char *log_ext)
 {
-    strmake(buff, name, FN_REFLEN-5);
+    strmake(buff, name, FN_REFLEN - 5);
     return fn_format(buff, buff, mysql_real_data_home, log_ext,
-                     MYF(MY_UNPACK_FILENAME|MY_REPLACE_EXT));
+                     MYF(MY_UNPACK_FILENAME | MY_REPLACE_EXT));
 }
 
 /* Check if a given table is opened log table */
@@ -320,6 +328,7 @@ int check_if_log_table(size_t db_len, const char *db, size_t table_name_len,
                                       strcmp(table_name, "general_log"))) {
             if (!check_if_opened/* || logger.is_log_table_enabled(QUERY_LOG_GENERAL)*/)
                 return QUERY_LOG_GENERAL;
+
             return 0;
         }
 
@@ -328,9 +337,11 @@ int check_if_log_table(size_t db_len, const char *db, size_t table_name_len,
                                      strcmp(table_name, "slow_log"))) {
             if (!check_if_opened/* || logger.is_log_table_enabled(QUERY_LOG_SLOW)*/)
                 return QUERY_LOG_SLOW;
+
             return 0;
         }
     }
+
     return 0;
 }
 
@@ -347,7 +358,7 @@ Log_to_csv_event_handler::~Log_to_csv_event_handler()
 
 void Log_to_csv_event_handler::cleanup()
 {
-    logger.is_log_tables_initialized= FALSE;
+    logger.is_log_tables_initialized = FALSE;
 }
 
 /* log event handlers */
@@ -391,30 +402,26 @@ log_general(THD *thd, time_t event_time, const char *user_host,
 {
     TABLE_LIST table_list;
     TABLE *table;
-    bool result= TRUE;
-    bool need_close= FALSE;
-    bool need_pop= FALSE;
-    bool need_rnd_end= FALSE;
+    bool result = TRUE;
+    bool need_close = FALSE;
+    bool need_pop = FALSE;
+    bool need_rnd_end = FALSE;
     uint field_index;
     Silence_log_table_errors error_handler;
     Open_tables_backup open_tables_backup;
     ulonglong save_thd_options;
     bool save_time_zone_used;
-
     /*
       CSV uses TIME_to_timestamp() internally if table needs to be repaired
       which will set thd->time_zone_used
     */
-    save_time_zone_used= thd->time_zone_used;
-
-    save_thd_options= thd->variables.option_bits;
-    thd->variables.option_bits&= ~OPTION_BIN_LOG;
-
+    save_time_zone_used = thd->time_zone_used;
+    save_thd_options = thd->variables.option_bits;
+    thd->variables.option_bits &= ~OPTION_BIN_LOG;
     table_list.init_one_table(MYSQL_SCHEMA_NAME.str, MYSQL_SCHEMA_NAME.length,
                               GENERAL_LOG_NAME.str, GENERAL_LOG_NAME.length,
                               GENERAL_LOG_NAME.str,
                               TL_WRITE_CONCURRENT_INSERT);
-
     /*
       1) open_log_table generates an error if the
       table can not be opened or is corrupted.
@@ -427,12 +434,12 @@ log_general(THD *thd, time_t event_time, const char *user_host,
       Comment this 2 lines and run "cast.test" to see what's happening.
     */
     thd->push_internal_handler(& error_handler);
-    need_pop= TRUE;
+    need_pop = TRUE;
 
-    if (!(table= open_log_table(thd, &table_list, &open_tables_backup)))
+    if (!(table = open_log_table(thd, &table_list, &open_tables_backup)))
         goto err;
 
-    need_close= TRUE;
+    need_close = TRUE;
 
     if (glt_intact.check(table_list.table, &general_log_table_def))
         goto err;
@@ -441,10 +448,9 @@ log_general(THD *thd, time_t event_time, const char *user_host,
             table->file->ha_rnd_init(0))
         goto err;
 
-    need_rnd_end= TRUE;
-
+    need_rnd_end = TRUE;
     /* Honor next number columns if present */
-    table->next_number_field= table->found_next_number_field;
+    table->next_number_field = table->found_next_number_field;
 
     /*
       NOTE: we do not call restore_record() here, as all fields are
@@ -476,7 +482,8 @@ log_general(THD *thd, time_t event_time, const char *user_host,
       A positive return value in store() means truncation.
       Still logging a message in the log in this case.
     */
-    table->field[GLT_FIELD_ARGUMENT]->flags|= FIELDFLAG_HEX_ESCAPE;
+    table->field[GLT_FIELD_ARGUMENT]->flags |= FIELDFLAG_HEX_ESCAPE;
+
     if (table->field[GLT_FIELD_ARGUMENT]->store(sql_text, sql_text_len,
             client_cs) < 0)
         goto err;
@@ -489,19 +496,18 @@ log_general(THD *thd, time_t event_time, const char *user_host,
     table->field[GLT_FIELD_ARGUMENT]->set_notnull();
 
     /* Set any extra columns to their default values */
-    for (field_index= GLT_FIELD_COUNT ;
+    for (field_index = GLT_FIELD_COUNT ;
             field_index < table->s->fields ;
-            field_index++) {
+            field_index++)
         table->field[field_index]->set_default();
-    }
 
     /* log table entries are not replicated */
     if (table->file->ha_write_row(table->record[0]))
         goto err;
 
-    result= FALSE;
-
+    result = FALSE;
 err:
+
     if (result && !thd->killed)
         sql_print_error("Failed to write to mysql.general_log: %s",
                         error_handler.message());
@@ -510,13 +516,15 @@ err:
         table->file->ha_rnd_end();
         table->file->ha_release_auto_increment();
     }
+
     if (need_pop)
         thd->pop_internal_handler();
+
     if (need_close)
         close_log_table(thd, &open_tables_backup);
 
-    thd->variables.option_bits= save_thd_options;
-    thd->time_zone_used= save_time_zone_used;
+    thd->variables.option_bits = save_thd_options;
+    thd->time_zone_used = save_time_zone_used;
     return result;
 }
 
@@ -558,31 +566,29 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
 {
     TABLE_LIST table_list;
     TABLE *table;
-    bool result= TRUE;
-    bool need_close= FALSE;
-    bool need_rnd_end= FALSE;
+    bool result = TRUE;
+    bool need_close = FALSE;
+    bool need_rnd_end = FALSE;
     Silence_log_table_errors error_handler;
     Open_tables_backup open_tables_backup;
-    const CHARSET_INFO *client_cs= thd->variables.character_set_client;
+    const CHARSET_INFO *client_cs = thd->variables.character_set_client;
     bool save_time_zone_used;
     DBUG_ENTER("Log_to_csv_event_handler::log_slow");
-
     thd->push_internal_handler(& error_handler);
     /*
       CSV uses TIME_to_timestamp() internally if table needs to be repaired
       which will set thd->time_zone_used
     */
-    save_time_zone_used= thd->time_zone_used;
-
+    save_time_zone_used = thd->time_zone_used;
     table_list.init_one_table(MYSQL_SCHEMA_NAME.str, MYSQL_SCHEMA_NAME.length,
                               SLOW_LOG_NAME.str, SLOW_LOG_NAME.length,
                               SLOW_LOG_NAME.str,
                               TL_WRITE_CONCURRENT_INSERT);
 
-    if (!(table= open_log_table(thd, &table_list, &open_tables_backup)))
+    if (!(table = open_log_table(thd, &table_list, &open_tables_backup)))
         goto err;
 
-    need_close= TRUE;
+    need_close = TRUE;
 
     if (sqlt_intact.check(table_list.table, &slow_query_log_table_def))
         goto err;
@@ -591,56 +597,61 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
             table->file->ha_rnd_init(0))
         goto err;
 
-    need_rnd_end= TRUE;
-
+    need_rnd_end = TRUE;
     /* Honor next number columns if present */
-    table->next_number_field= table->found_next_number_field;
-
+    table->next_number_field = table->found_next_number_field;
     restore_record(table, s->default_values);    // Get empty record
-
     /* store the time and user values */
     DBUG_ASSERT(table->field[SQLT_FIELD_START_TIME]->type() == MYSQL_TYPE_TIMESTAMP);
     table->field[SQLT_FIELD_START_TIME]->store_timestamp(current_time);
+
     if (table->field[SQLT_FIELD_USER_HOST]->store(user_host, user_host_len,
             client_cs))
         goto err;
 
     if (query_start_arg) {
-        longlong query_time= (longlong) (query_utime/1000000);
-        longlong lock_time=  (longlong) (lock_utime/1000000);
+        longlong query_time = (longlong) (query_utime / 1000000);
+        longlong lock_time =  (longlong) (lock_utime / 1000000);
         /*
           A TIME field can not hold the full longlong range; query_time or
           lock_time may be truncated without warning here, if greater than
           839 hours (~35 days)
         */
         MYSQL_TIME t;
-        t.neg= 0;
-
+        t.neg = 0;
         /* fill in query_time field */
         calc_time_from_sec(&t, min<long>(query_time, (longlong) TIME_MAX_VALUE_SECONDS), 0);
+
         if (table->field[SQLT_FIELD_QUERY_TIME]->store_time(&t))
             goto err;
+
         /* lock_time */
         calc_time_from_sec(&t, min<long>(lock_time, (longlong) TIME_MAX_VALUE_SECONDS), 0);
+
         if (table->field[SQLT_FIELD_LOCK_TIME]->store_time(&t))
             goto err;
+
         /* rows_sent */
         if (table->field[SQLT_FIELD_ROWS_SENT]->store((longlong) thd->get_sent_row_count(), TRUE))
             goto err;
+
         /* rows_examined */
         if (table->field[SQLT_FIELD_ROWS_EXAMINED]->store((longlong) thd->get_examined_row_count(), TRUE))
             goto err;
+
     } else {
         table->field[SQLT_FIELD_QUERY_TIME]->set_null();
         table->field[SQLT_FIELD_LOCK_TIME]->set_null();
         table->field[SQLT_FIELD_ROWS_SENT]->set_null();
         table->field[SQLT_FIELD_ROWS_EXAMINED]->set_null();
     }
+
     /* fill database field */
     if (thd->db) {
         if (table->field[SQLT_FIELD_DATABASE]->store(thd->db, thd->db_length,
                 client_cs))
             goto err;
+
         table->field[SQLT_FIELD_DATABASE]->set_notnull();
     }
 
@@ -650,6 +661,7 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
                         thd->first_successful_insert_id_in_prev_stmt_for_binlog,
                         TRUE))
             goto err;
+
         table->field[SQLT_FIELD_LAST_INSERT_ID]->set_notnull();
     }
 
@@ -664,11 +676,13 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
                 field[SQLT_FIELD_INSERT_ID]->store((longlong)
                         thd->auto_inc_intervals_in_cur_stmt_for_binlog.minimum(), TRUE))
             goto err;
+
         table->field[SQLT_FIELD_INSERT_ID]->set_notnull();
     }
 
     if (table->field[SQLT_FIELD_SERVER_ID]->store((longlong) server_id, TRUE))
         goto err;
+
     table->field[SQLT_FIELD_SERVER_ID]->set_notnull();
 
     /*
@@ -688,8 +702,7 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
     if (table->file->ha_write_row(table->record[0]))
         goto err;
 
-    result= FALSE;
-
+    result = FALSE;
 err:
     thd->pop_internal_handler();
 
@@ -701,9 +714,11 @@ err:
         table->file->ha_rnd_end();
         table->file->ha_release_auto_increment();
     }
+
     if (need_close)
         close_log_table(thd, &open_tables_backup);
-    thd->time_zone_used= save_time_zone_used;
+
+    thd->time_zone_used = save_time_zone_used;
     DBUG_RETURN(result);
 }
 
@@ -715,26 +730,27 @@ activate_log(THD *thd, uint log_table_type)
     LEX_STRING *UNINIT_VAR(log_name);
     int result;
     Open_tables_backup open_tables_backup;
-
     DBUG_ENTER("Log_to_csv_event_handler::activate_log");
 
-    if (log_table_type == QUERY_LOG_GENERAL) {
-        log_name= &GENERAL_LOG_NAME;
-    } else {
-        DBUG_ASSERT(log_table_type == QUERY_LOG_SLOW);
+    if (log_table_type == QUERY_LOG_GENERAL)
+        log_name = &GENERAL_LOG_NAME;
 
-        log_name= &SLOW_LOG_NAME;
+    else {
+        DBUG_ASSERT(log_table_type == QUERY_LOG_SLOW);
+        log_name = &SLOW_LOG_NAME;
     }
+
     table_list.init_one_table(MYSQL_SCHEMA_NAME.str, MYSQL_SCHEMA_NAME.length,
                               log_name->str, log_name->length, log_name->str,
                               TL_WRITE_CONCURRENT_INSERT);
+    table = open_log_table(thd, &table_list, &open_tables_backup);
 
-    table= open_log_table(thd, &table_list, &open_tables_backup);
     if (table) {
-        result= 0;
+        result = 0;
         close_log_table(thd, &open_tables_backup);
+
     } else
-        result= 1;
+        result = 1;
 
     DBUG_RETURN(result);
 }
@@ -771,10 +787,10 @@ log_slow(THD *thd, time_t current_time, time_t query_start_arg,
 {
     Silence_log_table_errors error_handler;
     thd->push_internal_handler(&error_handler);
-    bool retval= mysql_slow_log.write(thd, current_time, query_start_arg,
-                                      user_host, user_host_len,
-                                      query_utime, lock_utime, is_command,
-                                      sql_text, sql_text_len);
+    bool retval = mysql_slow_log.write(thd, current_time, query_start_arg,
+                                       user_host, user_host_len,
+                                       query_utime, lock_utime, is_command,
+                                       sql_text, sql_text_len);
     thd->pop_internal_handler();
     return retval;
 }
@@ -794,9 +810,9 @@ log_general(THD *thd, time_t event_time, const char *user_host,
 {
     Silence_log_table_errors error_handler;
     thd->push_internal_handler(&error_handler);
-    bool retval= mysql_log.write(event_time, user_host, user_host_len,
-                                 thread_id, command_type, command_type_len,
-                                 sql_text, sql_text_len);
+    bool retval = mysql_log.write(event_time, user_host, user_host_len,
+                                  thread_id, command_type, command_type_len,
+                                  sql_text, sql_text_len);
     thd->pop_internal_handler();
     return retval;
 }
@@ -808,7 +824,7 @@ bool Log_to_file_event_handler::init()
         if (opt_log)
             mysql_log.open_query_log(opt_logname);
 
-        is_initialized= TRUE;
+        is_initialized = TRUE;
     }
 
     return FALSE;
@@ -826,6 +842,7 @@ void Log_to_file_event_handler::flush()
     /* reopen log files */
     if (opt_log)
         mysql_log.reopen_file();
+
     if (opt_slow_log)
         mysql_slow_log.reopen_file();
 }
@@ -849,12 +866,12 @@ void Log_to_file_event_handler::flush()
 bool LOGGER::error_log_print(enum loglevel level, const char *format,
                              va_list args)
 {
-    bool error= FALSE;
+    bool error = FALSE;
     Log_event_handler **current_handler;
 
     /* currently we don't need locking here as there is no error_log table */
-    for (current_handler= error_log_handler_list ; *current_handler ;)
-        error= (*current_handler++)->log_error(level, format, args) || error;
+    for (current_handler = error_log_handler_list ; *current_handler ;)
+        error = (*current_handler++)->log_error(level, format, args) || error;
 
     return error;
 }
@@ -866,7 +883,7 @@ bool LOGGER::error_log_print(enum loglevel level, const char *format,
 void LOGGER::init_base()
 {
     DBUG_ASSERT(inited == 0);
-    inited= 1;
+    inited = 1;
 
     /*
       Here we create file log handler. We don't do it for the table log handler
@@ -874,11 +891,10 @@ void LOGGER::init_base()
       which depends on the system variables (parsed later).
     */
     if (!file_log_handler)
-        file_log_handler= new Log_to_file_event_handler;
+        file_log_handler = new Log_to_file_event_handler;
 
     /* by default we use traditional error log */
     init_error_log(LOG_FILE);
-
     file_log_handler->init_pthread_objects();
     mysql_rwlock_init(key_rwlock_LOCK_logger, &LOCK_logger);
 }
@@ -918,8 +934,8 @@ void LOGGER::init_base()
 
 void LOGGER::init_error_log(uint error_log_printer)
 {
-    error_log_handler_list[0]= file_log_handler;
-    error_log_handler_list[1]= 0;
+    error_log_handler_list[0] = file_log_handler;
+    error_log_handler_list[1] = 0;
 }
 
 /* the parameters are unused for the log tables */
@@ -933,33 +949,29 @@ static int eventSource = 0;
 
 static void setup_windows_event_source()
 {
-    HKEY    hRegKey= NULL;
-    DWORD   dwError= 0;
+    HKEY    hRegKey = NULL;
+    DWORD   dwError = 0;
     TCHAR   szPath[MAX_PATH];
     DWORD dwTypes;
 
     if (eventSource)               // Ensure that we are only called once
         return;
-    eventSource= 1;
 
+    eventSource = 1;
     // Create the event source registry key
-    dwError= RegCreateKey(HKEY_LOCAL_MACHINE,
-                          "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\MySQL",
-                          &hRegKey);
-
+    dwError = RegCreateKey(HKEY_LOCAL_MACHINE,
+                           "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\MySQL",
+                           &hRegKey);
     /* Name of the PE module that contains the message resource */
     GetModuleFileName(NULL, szPath, MAX_PATH);
-
     /* Register EventMessageFile */
     dwError = RegSetValueEx(hRegKey, "EventMessageFile", 0, REG_EXPAND_SZ,
                             (PBYTE) szPath, (DWORD) (strlen(szPath) + 1));
-
     /* Register supported event types */
-    dwTypes= (EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE |
-              EVENTLOG_INFORMATION_TYPE);
-    dwError= RegSetValueEx(hRegKey, "TypesSupported", 0, REG_DWORD,
-                           (LPBYTE) &dwTypes, sizeof dwTypes);
-
+    dwTypes = (EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE |
+               EVENTLOG_INFORMATION_TYPE);
+    dwError = RegSetValueEx(hRegKey, "TypesSupported", 0, REG_DWORD,
+                            (LPBYTE) &dwTypes, sizeof dwTypes);
     RegCloseKey(hRegKey);
 }
 
@@ -985,32 +997,32 @@ static int find_uniq_filename(char *name)
     char                  buff[FN_REFLEN], ext_buf[FN_REFLEN];
     struct st_my_dir     *dir_info;
     reg1 struct fileinfo *file_info;
-    ulong                 max_found= 0, next= 0, number= 0;
+    ulong                 max_found = 0, next = 0, number = 0;
     size_t		buf_length, length;
     char			*start, *end;
-    int                   error= 0;
+    int                   error = 0;
     DBUG_ENTER("find_uniq_filename");
-
-    length= dirname_part(buff, name, &buf_length);
-    start=  name + length;
-    end=    strend(start);
-
-    *end='.';
-    length= (size_t) (end - start + 1);
+    length = dirname_part(buff, name, &buf_length);
+    start =  name + length;
+    end =    strend(start);
+    *end = '.';
+    length = (size_t) (end - start + 1);
 
     if ((DBUG_EVALUATE_IF("error_unique_log_filename", 1,
-                          !(dir_info= my_dir(buff,MYF(MY_DONT_SORT)))))) {
+                          !(dir_info = my_dir(buff, MYF(MY_DONT_SORT)))))) {
         // This shouldn't happen
-        strmov(end,".1");				// use name+1
+        strmov(end, ".1");				// use name+1
         DBUG_RETURN(1);
     }
-    file_info= dir_info->dir_entry;
-    for (i= dir_info->number_off_files ; i-- ; file_info++) {
+
+    file_info = dir_info->dir_entry;
+
+    for (i = dir_info->number_off_files ; i-- ; file_info++) {
         if (memcmp(file_info->name, start, length) == 0 &&
-                test_if_number(file_info->name+length, &number,0)) {
-            set_if_bigger(max_found,(ulong) number);
-        }
+                test_if_number(file_info->name + length, &number, 0))
+            set_if_bigger(max_found, (ulong) number);
     }
+
     my_dirend(dir_info);
 
     /* check if reached the maximum possible extension number */
@@ -1018,16 +1030,18 @@ static int find_uniq_filename(char *name)
         sql_print_error("Log filename extension number exhausted: %06lu. \
 Please fix this by archiving old logs and \
 updating the index files.", max_found);
-        error= 1;
+        error = 1;
         goto end;
     }
 
-    next= max_found + 1;
-    if (sprintf(ext_buf, "%06lu", next)<0) {
-        error= 1;
+    next = max_found + 1;
+
+    if (sprintf(ext_buf, "%06lu", next) < 0) {
+        error = 1;
         goto end;
     }
-    *end++='.';
+
+    *end++ = '.';
 
     /*
       Check if the generated extension size + the file name exceeds the
@@ -1038,12 +1052,12 @@ updating the index files.", max_found);
         sql_print_error("Log filename too large: %s%s (%zu). \
 Please fix this by archiving old logs and updating the \
 index files.", name, ext_buf, (strlen(ext_buf) + (end - name)));
-        error= 1;
+        error = 1;
         goto end;
     }
 
-    if (sprintf(end, "%06lu", next)<0) {
-        error= 1;
+    if (sprintf(end, "%06lu", next) < 0) {
+        error = 1;
         goto end;
     }
 
@@ -1062,9 +1076,9 @@ void MYSQL_LOG::init(enum_log_type log_type_arg,
                      enum cache_type io_cache_type_arg)
 {
     DBUG_ENTER("MYSQL_LOG::init");
-    log_type= log_type_arg;
-    io_cache_type= io_cache_type_arg;
-    DBUG_PRINT("info",("log_type: %d", log_type));
+    log_type = log_type_arg;
+    io_cache_type = io_cache_type_arg;
+    DBUG_PRINT("info", ("log_type: %d", log_type));
     DBUG_VOID_RETURN;
 }
 
@@ -1114,16 +1128,15 @@ bool MYSQL_LOG::open(
     const char *new_name, enum cache_type io_cache_type_arg)
 {
     char buff[FN_REFLEN];
-    File file= -1;
-    my_off_t pos= 0;
-    int open_flags= O_CREAT | O_BINARY;
+    File file = -1;
+    my_off_t pos = 0;
+    int open_flags = O_CREAT | O_BINARY;
     DBUG_ENTER("MYSQL_LOG::open");
     DBUG_PRINT("enter", ("log_type: %d", (int) log_type_arg));
+    write_error = 0;
 
-    write_error= 0;
-
-    if (!(name= my_strdup(log_name, MYF(MY_WME)))) {
-        name= (char *)log_name; // for the error message
+    if (!(name = my_strdup(log_name, MYF(MY_WME)))) {
+        name = (char *)log_name; // for the error message
         goto err;
     }
 
@@ -1136,21 +1149,20 @@ bool MYSQL_LOG::open(
     else
         open_flags |= O_WRONLY | (log_type == LOG_BIN ? 0 : O_APPEND);
 
-    db[0]= 0;
-
+    db[0] = 0;
 #ifdef HAVE_PSI_INTERFACE
     /* Keep the key for reopen */
-    m_log_file_key= log_file_key;
+    m_log_file_key = log_file_key;
 #endif
 
-    if ((file= mysql_file_open(log_file_key,
-                               log_file_name, open_flags,
-                               MYF(MY_WME | ME_WAITTANG))) < 0)
+    if ((file = mysql_file_open(log_file_key,
+                                log_file_name, open_flags,
+                                MYF(MY_WME | ME_WAITTANG))) < 0)
         goto err;
 
-    if ((pos= mysql_file_tell(file, MYF(MY_WME))) == MY_FILEPOS_ERROR) {
+    if ((pos = mysql_file_tell(file, MYF(MY_WME))) == MY_FILEPOS_ERROR) {
         if (my_errno == ESPIPE)
-            pos= 0;
+            pos = 0;
         else
             goto err;
     }
@@ -1162,41 +1174,43 @@ bool MYSQL_LOG::open(
 
     if (log_type == LOG_NORMAL) {
         char *end;
-        int len=my_snprintf(buff, sizeof(buff), "%s, Version: %s (%s). "
+        int len = my_snprintf(buff, sizeof(buff), "%s, Version: %s (%s). "
 #ifdef EMBEDDED_LIBRARY
-                            "embedded library\n",
-                            my_progname, server_version, MYSQL_COMPILATION_COMMENT
+                              "embedded library\n",
+                              my_progname, server_version, MYSQL_COMPILATION_COMMENT
 #elif _WIN32
-                            "started with:\nTCP Port: %d, Named Pipe: %s\n",
-                            my_progname, server_version, MYSQL_COMPILATION_COMMENT,
-                            mysqld_port, mysqld_unix_port
+                              "started with:\nTCP Port: %d, Named Pipe: %s\n",
+                              my_progname, server_version, MYSQL_COMPILATION_COMMENT,
+                              mysqld_port, mysqld_unix_port
 #else
-                            "started with:\nTcp port: %d  Unix socket: %s\n",
-                            my_progname, server_version, MYSQL_COMPILATION_COMMENT,
-                            mysqld_port, mysqld_unix_port
+                              "started with:\nTcp port: %d  Unix socket: %s\n",
+                              my_progname, server_version, MYSQL_COMPILATION_COMMENT,
+                              mysqld_port, mysqld_unix_port
 #endif
-                           );
-        end= strnmov(buff + len, "Time                 Id Command    Argument\n",
-                     sizeof(buff) - len);
-        if (my_b_write(&log_file, (uchar*) buff, (uint) (end-buff)) ||
+                             );
+        end = strnmov(buff + len, "Time                 Id Command    Argument\n",
+                      sizeof(buff) - len);
+
+        if (my_b_write(&log_file, (uchar *) buff, (uint) (end - buff)) ||
                 flush_io_cache(&log_file))
             goto err;
     }
 
-    log_state= LOG_OPENED;
+    log_state = LOG_OPENED;
     DBUG_RETURN(0);
-
 err:
     sql_print_error("Could not use %s for logging (error %d). \
 Turning logging off for the whole duration of the MySQL server process. \
 To turn it on again: fix the cause, \
 shutdown the MySQL server and restart it.", name, errno);
+
     if (file >= 0)
         mysql_file_close(file, MYF(0));
+
     end_io_cache(&log_file);
     my_free(name);
-    name= NULL;
-    log_state= LOG_CLOSED;
+    name = NULL;
+    log_state = LOG_CLOSED;
     DBUG_RETURN(1);
 }
 
@@ -1219,7 +1233,7 @@ MYSQL_LOG::MYSQL_LOG()
 void MYSQL_LOG::init_pthread_objects()
 {
     DBUG_ASSERT(inited == 0);
-    inited= 1;
+    inited = 1;
     mysql_mutex_init(m_key_LOCK_log, &LOCK_log, MY_MUTEX_INIT_SLOW);
 }
 
@@ -1241,28 +1255,29 @@ void MYSQL_LOG::close(uint exiting)
 {
     // One can't set log_type here!
     DBUG_ENTER("MYSQL_LOG::close");
-    DBUG_PRINT("enter",("exiting: %d", (int) exiting));
+    DBUG_PRINT("enter", ("exiting: %d", (int) exiting));
+
     if (log_state == LOG_OPENED) {
         end_io_cache(&log_file);
 
         if (mysql_file_sync(log_file.file, MYF(MY_WME)) && ! write_error) {
             char errbuf[MYSYS_STRERROR_SIZE];
-            write_error= 1;
+            write_error = 1;
             sql_print_error(ER_DEFAULT(ER_ERROR_ON_WRITE), name, errno,
                             my_strerror(errbuf, sizeof(errbuf), errno));
         }
 
         if (mysql_file_close(log_file.file, MYF(MY_WME)) && ! write_error) {
             char errbuf[MYSYS_STRERROR_SIZE];
-            write_error= 1;
+            write_error = 1;
             sql_print_error(ER_DEFAULT(ER_ERROR_ON_WRITE), name, errno,
                             my_strerror(errbuf, sizeof(errbuf), errno));
         }
     }
 
-    log_state= (exiting & LOG_CLOSE_TO_BE_OPENED) ? LOG_TO_BE_OPENED : LOG_CLOSED;
+    log_state = (exiting & LOG_CLOSE_TO_BE_OPENED) ? LOG_TO_BE_OPENED : LOG_CLOSED;
     my_free(name);
-    name= NULL;
+    name = NULL;
     DBUG_VOID_RETURN;
 }
 
@@ -1271,11 +1286,13 @@ void MYSQL_LOG::close(uint exiting)
 void MYSQL_LOG::cleanup()
 {
     DBUG_ENTER("cleanup");
+
     if (inited) {
-        inited= 0;
+        inited = 0;
         mysql_mutex_destroy(&LOCK_log);
         close(0);
     }
+
     DBUG_VOID_RETURN;
 }
 
@@ -1283,6 +1300,7 @@ void MYSQL_LOG::cleanup()
 int MYSQL_LOG::generate_new_name(char *new_name, const char *log_name)
 {
     fn_format(new_name, log_name, mysql_data_home, "", 4);
+
     if (log_type == LOG_BIN) {
         if (!fn_ext(log_name)[0]) {
             if (find_uniq_filename(new_name)) {
@@ -1293,6 +1311,7 @@ int MYSQL_LOG::generate_new_name(char *new_name, const char *log_name)
             }
         }
     }
+
     return 0;
 }
 
@@ -1312,32 +1331,27 @@ int MYSQL_LOG::generate_new_name(char *new_name, const char *log_name)
 void MYSQL_QUERY_LOG::reopen_file()
 {
     char *save_name;
-
     DBUG_ENTER("MYSQL_LOG::reopen_file");
+
     if (!is_open()) {
-        DBUG_PRINT("info",("log is closed"));
+        DBUG_PRINT("info", ("log is closed"));
         DBUG_VOID_RETURN;
     }
 
     mysql_mutex_lock(&LOCK_log);
-
-    save_name= name;
-    name= 0;				// Don't free name
+    save_name = name;
+    name = 0;				// Don't free name
     close(LOG_CLOSE_TO_BE_OPENED);
-
     /*
        Note that at this point, log_state != LOG_CLOSED (important for is_open()).
     */
-
     open(
 #ifdef HAVE_PSI_INTERFACE
         m_log_file_key,
 #endif
         save_name, log_type, 0, io_cache_type);
     my_free(save_name);
-
     mysql_mutex_unlock(&LOCK_log);
-
     DBUG_VOID_RETURN;
 }
 
@@ -1373,51 +1387,49 @@ bool MYSQL_QUERY_LOG::write(time_t event_time, const char *user_host,
                             const char *sql_text, uint sql_text_len)
 {
     char buff[32];
-    uint length= 0;
+    uint length = 0;
     char local_time_buff[MAX_TIME_SIZE];
     struct tm start;
-    uint time_buff_len= 0;
-
+    uint time_buff_len = 0;
     mysql_mutex_lock(&LOCK_log);
 
     /* Test if someone closed between the is_open test and lock */
     if (is_open()) {
         /* for testing output of timestamp and thread id */
-        DBUG_EXECUTE_IF("reset_log_last_time", last_time= 0;);
+        DBUG_EXECUTE_IF("reset_log_last_time", last_time = 0;);
 
         /* Note that my_b_write() assumes it knows the length for this */
         if (event_time != last_time) {
-            last_time= event_time;
-
+            last_time = event_time;
             localtime_r(&event_time, &start);
+            time_buff_len = my_snprintf(local_time_buff, MAX_TIME_SIZE,
+                                        "%02d%02d%02d %2d:%02d:%02d\t",
+                                        start.tm_year % 100, start.tm_mon + 1,
+                                        start.tm_mday, start.tm_hour,
+                                        start.tm_min, start.tm_sec);
 
-            time_buff_len= my_snprintf(local_time_buff, MAX_TIME_SIZE,
-                                       "%02d%02d%02d %2d:%02d:%02d\t",
-                                       start.tm_year % 100, start.tm_mon + 1,
-                                       start.tm_mday, start.tm_hour,
-                                       start.tm_min, start.tm_sec);
-
-            if (my_b_write(&log_file, (uchar*) local_time_buff, time_buff_len))
+            if (my_b_write(&log_file, (uchar *) local_time_buff, time_buff_len))
                 goto err;
-        } else if (my_b_write(&log_file, (uchar*) "\t\t",2) < 0)
+
+        } else if (my_b_write(&log_file, (uchar *) "\t\t", 2) < 0)
             goto err;
 
-        length= my_snprintf(buff, 32, "%5lu ", thread_id);
+        length = my_snprintf(buff, 32, "%5lu ", thread_id);
 
-        if (my_b_write(&log_file, (uchar*) buff, length))
+        if (my_b_write(&log_file, (uchar *) buff, length))
             goto err;
 
-        if (my_b_write(&log_file, (uchar*) command_type, command_type_len))
+        if (my_b_write(&log_file, (uchar *) command_type, command_type_len))
             goto err;
 
-        if (my_b_write(&log_file, (uchar*) "\t", 1))
+        if (my_b_write(&log_file, (uchar *) "\t", 1))
             goto err;
 
         /* sql_text */
-        if (my_b_write(&log_file, (uchar*) sql_text, sql_text_len))
+        if (my_b_write(&log_file, (uchar *) sql_text, sql_text_len))
             goto err;
 
-        if (my_b_write(&log_file, (uchar*) "\n\n", 2) ||
+        if (my_b_write(&log_file, (uchar *) "\n\n", 2) ||
                 flush_io_cache(&log_file))
             goto err;
     }
@@ -1428,10 +1440,11 @@ err:
 
     if (!write_error) {
         char errbuf[MYSYS_STRERROR_SIZE];
-        write_error= 1;
+        write_error = 1;
         sql_print_error(ER(ER_ERROR_ON_WRITE), name, errno,
                         my_strerror(errbuf, sizeof(errbuf), errno));
     }
+
     mysql_mutex_unlock(&LOCK_log);
     return TRUE;
 }
@@ -1472,9 +1485,8 @@ bool MYSQL_QUERY_LOG::write(THD *thd, time_t current_time,
                             ulonglong lock_utime, bool is_command,
                             const char *sql_text, uint sql_text_len)
 {
-    bool error= 0;
+    bool error = 0;
     DBUG_ENTER("MYSQL_QUERY_LOG::write");
-
     mysql_mutex_lock(&LOCK_log);
 
     if (!is_open()) {
@@ -1484,62 +1496,69 @@ bool MYSQL_QUERY_LOG::write(THD *thd, time_t current_time,
 
     if (is_open()) {
         // Safety agains reopen
-        int tmp_errno= 0;
+        int tmp_errno = 0;
         char buff[80], *end;
-        char query_time_buff[22+7], lock_time_buff[22+7];
+        char query_time_buff[22 + 7], lock_time_buff[22 + 7];
         uint buff_len;
-        end= buff;
+        end = buff;
 
         if (!(specialflag & SPECIAL_SHORT_LOG_FORMAT)) {
             if (current_time != last_time) {
-                last_time= current_time;
+                last_time = current_time;
                 struct tm start;
                 localtime_r(&current_time, &start);
-
-                buff_len= my_snprintf(buff, sizeof buff,
-                                      "# Time: %02d%02d%02d %2d:%02d:%02d\n",
-                                      start.tm_year % 100, start.tm_mon + 1,
-                                      start.tm_mday, start.tm_hour,
-                                      start.tm_min, start.tm_sec);
+                buff_len = my_snprintf(buff, sizeof buff,
+                                       "# Time: %02d%02d%02d %2d:%02d:%02d\n",
+                                       start.tm_year % 100, start.tm_mon + 1,
+                                       start.tm_mday, start.tm_hour,
+                                       start.tm_min, start.tm_sec);
 
                 /* Note that my_b_write() assumes it knows the length for this */
-                if (my_b_write(&log_file, (uchar*) buff, buff_len))
-                    tmp_errno= errno;
+                if (my_b_write(&log_file, (uchar *) buff, buff_len))
+                    tmp_errno = errno;
             }
-            buff_len= my_snprintf(buff, 32, "%5lu", thd->thread_id);
+
+            buff_len = my_snprintf(buff, 32, "%5lu", thd->thread_id);
+
             if (my_b_printf(&log_file, "# User@Host: %s  Id: %s\n", user_host, buff)
-                    == (uint) -1)
-                tmp_errno= errno;
+                    == (uint) - 1)
+                tmp_errno = errno;
         }
+
         /* For slow query log */
-        sprintf(query_time_buff, "%.6f", ulonglong2double(query_utime)/1000000.0);
-        sprintf(lock_time_buff,  "%.6f", ulonglong2double(lock_utime)/1000000.0);
+        sprintf(query_time_buff, "%.6f", ulonglong2double(query_utime) / 1000000.0);
+        sprintf(lock_time_buff,  "%.6f", ulonglong2double(lock_utime) / 1000000.0);
+
         if (my_b_printf(&log_file,
                         "# Query_time: %s  Lock_time: %s"
                         " Rows_sent: %lu  Rows_examined: %lu\n",
                         query_time_buff, lock_time_buff,
                         (ulong) thd->get_sent_row_count(),
-                        (ulong) thd->get_examined_row_count()) == (uint) -1)
-            tmp_errno= errno;
+                        (ulong) thd->get_examined_row_count()) == (uint) - 1)
+            tmp_errno = errno;
+
         if (thd->db && strcmp(thd->db, db)) {
             // Database changed
-            if (my_b_printf(&log_file,"use %s;\n",thd->db) == (uint) -1)
-                tmp_errno= errno;
-            strmov(db,thd->db);
+            if (my_b_printf(&log_file, "use %s;\n", thd->db) == (uint) - 1)
+                tmp_errno = errno;
+
+            strmov(db, thd->db);
         }
+
         if (thd->stmt_depends_on_first_successful_insert_id_in_prev_stmt) {
-            end=strmov(end, ",last_insert_id=");
-            end=longlong10_to_str((longlong)
-                                  thd->first_successful_insert_id_in_prev_stmt_for_binlog,
-                                  end, -10);
+            end = strmov(end, ",last_insert_id=");
+            end = longlong10_to_str((longlong)
+                                    thd->first_successful_insert_id_in_prev_stmt_for_binlog,
+                                    end, -10);
         }
+
         // Save value if we do an insert.
         if (thd->auto_inc_intervals_in_cur_stmt_for_binlog.nb_elements() > 0) {
             if (!(specialflag & SPECIAL_SHORT_LOG_FORMAT)) {
-                end=strmov(end,",insert_id=");
-                end=longlong10_to_str((longlong)
-                                      thd->auto_inc_intervals_in_cur_stmt_for_binlog.minimum(),
-                                      end, -10);
+                end = strmov(end, ",insert_id=");
+                end = longlong10_to_str((longlong)
+                                        thd->auto_inc_intervals_in_cur_stmt_for_binlog.minimum(),
+                                        end, -10);
             }
         }
 
@@ -1548,38 +1567,45 @@ bool MYSQL_QUERY_LOG::write(THD *thd, time_t current_time,
           checked the query start time or not. now we always write current
           timestamp to the slow log
         */
-        end= strmov(end, ",timestamp=");
-        end= int10_to_str((long) current_time, end, 10);
+        end = strmov(end, ",timestamp=");
+        end = int10_to_str((long) current_time, end, 10);
 
         if (end != buff) {
-            *end++=';';
-            *end='\n';
-            if (my_b_write(&log_file, (uchar*) "SET ", 4) ||
-                    my_b_write(&log_file, (uchar*) buff + 1, (uint) (end-buff)))
-                tmp_errno= errno;
+            *end++ = ';';
+            *end = '\n';
+
+            if (my_b_write(&log_file, (uchar *) "SET ", 4) ||
+                    my_b_write(&log_file, (uchar *) buff + 1, (uint) (end - buff)))
+                tmp_errno = errno;
         }
+
         if (is_command) {
-            end= strxmov(buff, "# administrator command: ", NullS);
-            buff_len= (ulong) (end - buff);
+            end = strxmov(buff, "# administrator command: ", NullS);
+            buff_len = (ulong) (end - buff);
             DBUG_EXECUTE_IF("simulate_slow_log_write_error",
             {DBUG_SET("+d,simulate_file_write_error");});
-            if(my_b_write(&log_file, (uchar*) buff, buff_len))
-                tmp_errno= errno;
+
+            if(my_b_write(&log_file, (uchar *) buff, buff_len))
+                tmp_errno = errno;
         }
-        if (my_b_write(&log_file, (uchar*) sql_text, sql_text_len) ||
-                my_b_write(&log_file, (uchar*) ";\n",2) ||
+
+        if (my_b_write(&log_file, (uchar *) sql_text, sql_text_len) ||
+                my_b_write(&log_file, (uchar *) ";\n", 2) ||
                 flush_io_cache(&log_file))
-            tmp_errno= errno;
+            tmp_errno = errno;
+
         if (tmp_errno) {
-            error= 1;
+            error = 1;
+
             if (! write_error) {
                 char errbuf[MYSYS_STRERROR_SIZE];
-                write_error= 1;
+                write_error = 1;
                 sql_print_error(ER(ER_ERROR_ON_WRITE), name, error,
                                 my_strerror(errbuf, sizeof(errbuf), errno));
             }
         }
     }
+
     mysql_mutex_unlock(&LOCK_log);
     DBUG_RETURN(error);
 }
@@ -1597,15 +1623,17 @@ const char *MYSQL_LOG::generate_name(const char *log_name,
     if (!log_name || !log_name[0]) {
         strmake(buff, pidfile_name, FN_REFLEN - strlen(suffix) - 1);
         return (const char *)
-               fn_format(buff, buff, "", suffix, MYF(MY_REPLACE_EXT|MY_REPLACE_DIR));
+               fn_format(buff, buff, "", suffix, MYF(MY_REPLACE_EXT | MY_REPLACE_DIR));
     }
+
     // get rid of extension if the log is binary to avoid problems
     if (strip_ext) {
-        char *p= fn_ext(log_name);
-        uint length= (uint) (p - log_name);
-        strmake(buff, log_name, min<size_t>(length, FN_REFLEN-1));
-        return (const char*)buff;
+        char *p = fn_ext(log_name);
+        uint length = (uint) (p - log_name);
+        strmake(buff, log_name, min<size_t>(length, FN_REFLEN - 1));
+        return (const char *)buff;
     }
+
     return log_name;
 }
 
@@ -1620,49 +1648,48 @@ bool general_log_print(THD *thd, enum enum_server_command command,
                        const char *format, ...)
 {
     va_list args;
-    uint error= 0;
-
+    uint error = 0;
 //   /* Print the message to the buffer if we want to log this king of commands */
 //   if (! logger.log_command(thd, command))
 //     return FALSE;
-
 //   va_start(args, format);
 //   error= logger.general_log_print(thd, command, format, args);
 //   va_end(args);
-
     return error;
 }
 
 void LOGGER::init_log_tables()
 {
     if (!table_log_handler)
-        table_log_handler= new Log_to_csv_event_handler;
+        table_log_handler = new Log_to_csv_event_handler;
 
     if (!is_log_tables_initialized &&
             !table_log_handler->init() && !file_log_handler->init())
-        is_log_tables_initialized= TRUE;
+        is_log_tables_initialized = TRUE;
 }
 
 void LOGGER::init_general_log(uint general_log_printer)
 {
     if (general_log_printer & LOG_NONE) {
-        general_log_handler_list[0]= 0;
+        general_log_handler_list[0] = 0;
         return;
     }
 
     switch (general_log_printer) {
     case LOG_FILE:
-        general_log_handler_list[0]= file_log_handler;
-        general_log_handler_list[1]= 0;
+        general_log_handler_list[0] = file_log_handler;
+        general_log_handler_list[1] = 0;
         break;
+
     case LOG_TABLE:
-        general_log_handler_list[0]= table_log_handler;
-        general_log_handler_list[1]= 0;
+        general_log_handler_list[0] = table_log_handler;
+        general_log_handler_list[1] = 0;
         break;
+
     case LOG_TABLE|LOG_FILE:
-        general_log_handler_list[0]= file_log_handler;
-        general_log_handler_list[1]= table_log_handler;
-        general_log_handler_list[2]= 0;
+        general_log_handler_list[0] = file_log_handler;
+        general_log_handler_list[1] = table_log_handler;
+        general_log_handler_list[2] = 0;
         break;
     }
 }
@@ -1673,28 +1700,22 @@ int LOGGER::set_handlers(uint error_log_printer,
 {
     /* error log table is not supported yet */
     DBUG_ASSERT(error_log_printer < LOG_TABLE);
-
     init_log_tables();
-
     lock_exclusive();
-
     init_error_log(error_log_printer);
     init_general_log(general_log_printer);
-
     unlock();
-
     return 0;
 }
 
 bool LOGGER::general_log_write(THD *thd, enum enum_server_command command,
                                const char *query, uint query_length)
 {
-    bool error= FALSE;
-    Log_event_handler **current_handler= general_log_handler_list;
+    bool error = FALSE;
+    Log_event_handler **current_handler = general_log_handler_list;
     char user_host_buff[MAX_USER_HOST_SIZE + 1];
-    uint user_host_len= 0;
+    uint user_host_len = 0;
     time_t current_time;
-
     DBUG_ASSERT(thd);
 
     //begin及commit不会写日志
@@ -1703,26 +1724,27 @@ bool LOGGER::general_log_write(THD *thd, enum enum_server_command command,
         return false;
 
     lock_shared();
+
     if (!opt_log) {
         unlock();
         return 0;
     }
-    user_host_len= make_user_name(thd, user_host_buff);
 
-    current_time= my_time(0);
+    user_host_len = make_user_name(thd, user_host_buff);
+    current_time = my_time(0);
 
     while (*current_handler)
-        error|= (*current_handler++)->
-                log_general(thd, current_time, user_host_buff,
-                            user_host_len, thd->thread_id,
-                            command_name[(uint) command].str,
-                            command_name[(uint) command].length,
-                            query, query_length,
-                            //sql_with_charset.ptr(), sql_with_charset.length(),
-                            //thd->variables.character_set_client
-                            thd->query_charset()) || error;
-    unlock();
+        error |= (*current_handler++)->
+                 log_general(thd, current_time, user_host_buff,
+                             user_host_len, thd->thread_id,
+                             command_name[(uint) command].str,
+                             command_name[(uint) command].length,
+                             query, query_length,
+                             //sql_with_charset.ptr(), sql_with_charset.length(),
+                             //thd->variables.character_set_client
+                             thd->query_charset()) || error;
 
+    unlock();
     return error;
 }
 
@@ -1731,7 +1753,6 @@ bool general_log_write(THD *thd, enum enum_server_command command,
 {
     /* Write the message to the log if we want to log this king of commands */
     return logger.general_log_write(thd, command, query, query_length);
-
     return FALSE;
 }
 
@@ -1758,27 +1779,33 @@ static bool test_if_number(register const char *str,
     reg2 int flag;
     const char *start;
     DBUG_ENTER("test_if_number");
+    flag = 0;
+    start = str;
 
-    flag=0;
-    start=str;
     while (*str++ == ' ') ;
+
     if (*--str == '-' || *str == '+')
         str++;
-    while (my_isdigit(files_charset_info,*str) ||
+
+    while (my_isdigit(files_charset_info, *str) ||
             (allow_wildcards && (*str == wild_many || *str == wild_one))) {
-        flag=1;
+        flag = 1;
         str++;
     }
+
     if (*str == '.') {
         for (str++ ;
-                my_isdigit(files_charset_info,*str) ||
+                my_isdigit(files_charset_info, *str) ||
                 (allow_wildcards && (*str == wild_many || *str == wild_one)) ;
-                str++, flag=1) ;
+                str++, flag = 1) ;
     }
+
     if (*str != 0 || flag == 0)
         DBUG_RETURN(0);
+
     if (res)
-        *res=atol(start);
+        *res = atol(start);
+
     DBUG_RETURN(1);			/* Number ok */
 } /* test_if_number */
 
@@ -1786,7 +1813,7 @@ static bool test_if_number(register const char *str,
 void sql_perror(const char *message)
 {
 #ifdef HAVE_STRERROR
-    sql_print_error("%s: %s",message, strerror(errno));
+    sql_print_error("%s: %s", message, strerror(errno));
 #else
     perror(message);
 #endif
@@ -1834,28 +1861,30 @@ static void print_buffer_to_nt_eventlog(enum loglevel level, char *buff,
                                         size_t length, size_t buffLen)
 {
     HANDLE event;
-    char   *buffptr= buff;
+    char   *buffptr = buff;
     DBUG_ENTER("print_buffer_to_nt_eventlog");
-
     /* Add ending CR/LF's to string, overwrite last chars if necessary */
-    strmov(buffptr+min(length, buffLen-5), "\r\n\r\n");
-
+    strmov(buffptr + min(length, buffLen - 5), "\r\n\r\n");
     setup_windows_event_source();
-    if ((event= RegisterEventSource(NULL,"MySQL"))) {
+
+    if ((event = RegisterEventSource(NULL, "MySQL"))) {
         switch (level) {
         case ERROR_LEVEL:
             ReportEvent(event, EVENTLOG_ERROR_TYPE, 0, MSG_DEFAULT, NULL, 1, 0,
-                        (LPCSTR*)&buffptr, NULL);
+                        (LPCSTR *)&buffptr, NULL);
             break;
+
         case WARNING_LEVEL:
             ReportEvent(event, EVENTLOG_WARNING_TYPE, 0, MSG_DEFAULT, NULL, 1, 0,
-                        (LPCSTR*) &buffptr, NULL);
+                        (LPCSTR *) &buffptr, NULL);
             break;
+
         case INFORMATION_LEVEL:
             ReportEvent(event, EVENTLOG_INFORMATION_TYPE, 0, MSG_DEFAULT, NULL, 1,
-                        0, (LPCSTR*) &buffptr, NULL);
+                        0, (LPCSTR *) &buffptr, NULL);
             break;
         }
+
         DeregisterEventSource(event);
     }
 
@@ -1872,14 +1901,11 @@ static void print_buffer_to_file(enum loglevel level, const char *buffer,
     struct tm tm_tmp;
     struct tm *start;
     DBUG_ENTER("print_buffer_to_file");
-    DBUG_PRINT("enter",("buffer: %s", buffer));
-
+    DBUG_PRINT("enter", ("buffer: %s", buffer));
     mysql_mutex_lock(&LOCK_error_log);
-
-    skr= my_time(0);
+    skr = my_time(0);
     localtime_r(&skr, &tm_tmp);
-    start=&tm_tmp;
-
+    start = &tm_tmp;
     fprintf(stderr, "%d-%02d-%02d %02d:%02d:%02d %lu [%s] %.*s\n",
             start->tm_year + 1900,
             start->tm_mon + 1,
@@ -1891,9 +1917,7 @@ static void print_buffer_to_file(enum loglevel level, const char *buffer,
             (level == ERROR_LEVEL ? "ERROR" : level == WARNING_LEVEL ?
              "Warning" : "Note"),
             (int) length, buffer);
-
     fflush(stderr);
-
     mysql_mutex_unlock(&LOCK_error_log);
     DBUG_VOID_RETURN;
 }
@@ -1919,14 +1943,11 @@ int vprint_msg_to_log(enum loglevel level, const char *format, va_list args)
     char   buff[1024];
     size_t length;
     DBUG_ENTER("vprint_msg_to_log");
-
-    length= my_vsnprintf(buff, sizeof(buff), format, args);
+    length = my_vsnprintf(buff, sizeof(buff), format, args);
     print_buffer_to_file(level, buff, length);
-
 #ifdef _WIN32
     print_buffer_to_nt_eventlog(level, buff, length, sizeof(buff));
 #endif
-
     DBUG_RETURN(0);
 }
 #endif /* EMBEDDED_LIBRARY */
@@ -1936,11 +1957,9 @@ void sql_print_error(const char *format, ...)
 {
     va_list args;
     DBUG_ENTER("sql_print_error");
-
     va_start(args, format);
     error_log_print(ERROR_LEVEL, format, args);
     va_end(args);
-
     DBUG_VOID_RETURN;
 }
 
@@ -1949,11 +1968,9 @@ void sql_print_warning(const char *format, ...)
 {
     va_list args;
     DBUG_ENTER("sql_print_warning");
-
     va_start(args, format);
     error_log_print(WARNING_LEVEL, format, args);
     va_end(args);
-
     DBUG_VOID_RETURN;
 }
 
@@ -1962,11 +1979,9 @@ void sql_print_information(const char *format, ...)
 {
     va_list args;
     DBUG_ENTER("sql_print_information");
-
     va_start(args, format);
     error_log_print(INFORMATION_LEVEL, format, args);
     va_end(args);
-
     DBUG_VOID_RETURN;
 }
 
@@ -1980,19 +1995,21 @@ int my_plugin_log_message(MYSQL_PLUGIN *plugin_ptr, plugin_log_level level,
     loglevel lvl;
     struct st_plugin_int *plugin = static_cast<st_plugin_int *> (*plugin_ptr);
     va_list args;
-
     DBUG_ASSERT(level >= MY_ERROR_LEVEL || level <= MY_INFORMATION_LEVEL);
 
     switch (level) {
     case MY_ERROR_LEVEL:
-        lvl= ERROR_LEVEL;
+        lvl = ERROR_LEVEL;
         break;
+
     case MY_WARNING_LEVEL:
-        lvl= WARNING_LEVEL;
+        lvl = WARNING_LEVEL;
         break;
+
     case MY_INFORMATION_LEVEL:
-        lvl= INFORMATION_LEVEL;
+        lvl = INFORMATION_LEVEL;
         break;
+
     default:
         return 1;
     }
@@ -2000,7 +2017,7 @@ int my_plugin_log_message(MYSQL_PLUGIN *plugin_ptr, plugin_log_level level,
     va_start(args, format);
     snprintf(format2, sizeof (format2) - 1, "Plugin %.*s reported: '%s'",
              (int) plugin->name.length, plugin->name.str, format);
-    ret= error_log_print(lvl, format2, args);
+    ret = error_log_print(lvl, format2, args);
     va_end(args);
     return ret;
 }

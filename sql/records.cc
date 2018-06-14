@@ -70,22 +70,23 @@ bool init_read_record_idx(READ_RECORD *info, THD *thd, TABLE *table,
     int error;
     empty_record(table);
     memset(info, 0, sizeof(*info));
-    info->thd= thd;
-    info->table= table;
-    info->record= table->record[0];
-    info->print_error= print_error;
-    info->unlock_row= rr_unlock_row;
+    info->thd = thd;
+    info->table = table;
+    info->record = table->record[0];
+    info->print_error = print_error;
+    info->unlock_row = rr_unlock_row;
+    table->status = 0;			/* And it's always found */
 
-    table->status=0;			/* And it's always found */
     if (!table->file->inited &&
-            (error= table->file->ha_index_init(idx, 1))) {
+            (error = table->file->ha_index_init(idx, 1))) {
         if (print_error)
             table->file->print_error(error, MYF(0));
+
         return true;
     }
 
     /* read_record will be changed to rr_index in rr_index_first */
-    info->read_record= reverse ? rr_index_last : rr_index_first;
+    info->read_record = reverse ? rr_index_last : rr_index_first;
     return false;
 }
 
@@ -178,58 +179,62 @@ bool init_read_record_idx(READ_RECORD *info, THD *thd, TABLE *table,
   @retval true   error
   @retval false  success
 */
-bool init_read_record(READ_RECORD *info,THD *thd, TABLE *table,
+bool init_read_record(READ_RECORD *info, THD *thd, TABLE *table,
                       SQL_SELECT *select,
                       int use_record_cache, bool print_error,
                       bool disable_rr_cache)
 {
-    int error= 0;
+    int error = 0;
     IO_CACHE *tempfile;
     DBUG_ENTER("init_read_record");
-
     memset(info, 0, sizeof(*info));
-    info->thd=thd;
-    info->table=table;
-    info->forms= &info->table;		/* Only one table */
+    info->thd = thd;
+    info->table = table;
+    info->forms = &info->table;		/* Only one table */
 
     if (table->s->tmp_table == NON_TRANSACTIONAL_TMP_TABLE &&
             !table->sort.addon_field)
         (void) table->file->extra(HA_EXTRA_MMAP);
 
     if (table->sort.addon_field) {
-        info->rec_buf= table->sort.addon_buf;
-        info->ref_length= table->sort.addon_length;
+        info->rec_buf = table->sort.addon_buf;
+        info->ref_length = table->sort.addon_length;
+
     } else {
         empty_record(table);
-        info->record= table->record[0];
-        info->ref_length= table->file->ref_length;
+        info->record = table->record[0];
+        info->ref_length = table->file->ref_length;
     }
-    info->select=select;
-    info->print_error=print_error;
-    info->unlock_row= rr_unlock_row;
-    info->ignore_not_found_rows= 0;
-    table->status=0;			/* And it's always found */
+
+    info->select = select;
+    info->print_error = print_error;
+    info->unlock_row = rr_unlock_row;
+    info->ignore_not_found_rows = 0;
+    table->status = 0;			/* And it's always found */
 
     if (select && my_b_inited(&select->file))
-        tempfile= &select->file;
+        tempfile = &select->file;
     else if (select && select->quick && select->quick->clustered_pk_range()) {
         /*
           In case of QUICK_INDEX_MERGE_SELECT with clustered pk range we have to
           use its own access method(i.e QUICK_INDEX_MERGE_SELECT::get_next()) as
           sort file does not contain rowids which satisfy clustered pk range.
         */
-        tempfile= 0;
+        tempfile = 0;
+
     } else
-        tempfile= table->sort.io_cache;
+        tempfile = table->sort.io_cache;
+
     if (tempfile && my_b_inited(tempfile)) { // Test if ref-records was used
-        DBUG_PRINT("info",("using rr_from_tempfile"));
-        info->read_record= (table->sort.addon_field ?
-                            rr_unpack_from_tempfile : rr_from_tempfile);
-        info->io_cache=tempfile;
-        reinit_io_cache(info->io_cache,READ_CACHE,0L,0,0);
-        info->ref_pos=table->file->ref;
+        DBUG_PRINT("info", ("using rr_from_tempfile"));
+        info->read_record = (table->sort.addon_field ?
+                             rr_unpack_from_tempfile : rr_from_tempfile);
+        info->io_cache = tempfile;
+        reinit_io_cache(info->io_cache, READ_CACHE, 0L, 0, 0);
+        info->ref_pos = table->file->ref;
+
         if (!table->file->inited &&
-                (error= table->file->ha_rnd_init(0)))
+                (error = table->file->ha_rnd_init(0)))
             goto err;
 
         /*
@@ -243,35 +248,43 @@ bool init_read_record(READ_RECORD *info,THD *thd, TABLE *table,
                 !(table->file->ha_table_flags() & HA_FAST_KEY_READ) &&
                 (table->db_stat & HA_READ_ONLY ||
                  table->reginfo.lock_type <= TL_READ_NO_INSERT) &&
-                (ulonglong) table->s->reclength* (table->file->stats.records+
+                (ulonglong) table->s->reclength * (table->file->stats.records +
                         table->file->stats.deleted) >
                 (ulonglong) MIN_FILE_LENGTH_TO_USE_ROW_CACHE &&
-                info->io_cache->end_of_file/info->ref_length * table->s->reclength >
+                info->io_cache->end_of_file / info->ref_length * table->s->reclength >
                 (my_off_t) MIN_ROWS_TO_USE_TABLE_CACHE &&
                 !table->s->blob_fields &&
                 info->ref_length <= MAX_REFLENGTH) {
             if (init_rr_cache(thd, info))
                 DBUG_RETURN(true);
-            DBUG_PRINT("info",("using rr_from_cache"));
-            info->read_record=rr_from_cache;
+
+            DBUG_PRINT("info", ("using rr_from_cache"));
+            info->read_record = rr_from_cache;
         }
+
     } else if (select && select->quick) {
-        DBUG_PRINT("info",("using rr_quick"));
-        info->read_record=rr_quick;
+        DBUG_PRINT("info", ("using rr_quick"));
+        info->read_record = rr_quick;
+
     } else if (table->sort.record_pointers) {
-        DBUG_PRINT("info",("using record_pointers"));
-        if ((error= table->file->ha_rnd_init(0)))
+        DBUG_PRINT("info", ("using record_pointers"));
+
+        if ((error = table->file->ha_rnd_init(0)))
             goto err;
-        info->cache_pos=table->sort.record_pointers;
-        info->cache_end=info->cache_pos+
-                        table->sort.found_records*info->ref_length;
-        info->read_record= (table->sort.addon_field ?
-                            rr_unpack_from_buffer : rr_from_pointers);
+
+        info->cache_pos = table->sort.record_pointers;
+        info->cache_end = info->cache_pos +
+                          table->sort.found_records * info->ref_length;
+        info->read_record = (table->sort.addon_field ?
+                             rr_unpack_from_buffer : rr_from_pointers);
+
     } else {
-        DBUG_PRINT("info",("using rr_sequential"));
-        info->read_record=rr_sequential;
-        if ((error= table->file->ha_rnd_init(1)))
+        DBUG_PRINT("info", ("using rr_sequential"));
+        info->read_record = rr_sequential;
+
+        if ((error = table->file->ha_rnd_init(1)))
             goto err;
+
         /* We can use record cache if we don't update dynamic length tables */
         if (!table->no_cache &&
                 (use_record_cache > 0 ||
@@ -282,6 +295,7 @@ bool init_read_record(READ_RECORD *info,THD *thd, TABLE *table,
             (void) table->file->extra_opt(HA_EXTRA_CACHE,
                                           thd->variables.read_buff_size);
     }
+
     /*
       Do condition pushdown for UPDATE/DELETE.
       TODO: Remove this from here as it causes two condition pushdown calls
@@ -294,10 +308,11 @@ bool init_read_record(READ_RECORD *info,THD *thd, TABLE *table,
         table->file->cond_push(select->cond);
 
     DBUG_RETURN(false);
-
 err:
+
     if (print_error)
         table->file->print_error(error, MYF(0));
+
     DBUG_RETURN(true);
 } /* init_read_record */
 
@@ -308,17 +323,20 @@ void end_read_record(READ_RECORD *info)
     /* free cache if used */
     if (info->cache) {
         my_free_lock(info->cache);
-        info->cache=0;
+        info->cache = 0;
     }
-    if (info->table && info->table->key_read) {
+
+    if (info->table && info->table->key_read)
         info->table->set_keyread(FALSE);
-    }
+
     if (info->table && info->table->is_created()) {
-        filesort_free_buffers(info->table,0);
+        filesort_free_buffers(info->table, 0);
         (void) info->table->file->extra(HA_EXTRA_NO_CACHE);
+
         if (info->read_record != rr_quick) // otherwise quick_range does it
             (void) info->table->file->ha_index_or_rnd_end();
-        info->table=0;
+
+        info->table = 0;
     }
 }
 
@@ -330,13 +348,15 @@ static int rr_handle_error(READ_RECORD *info, int error)
     }
 
     if (error == HA_ERR_END_OF_FILE)
-        error= -1;
+        error = -1;
     else {
         if (info->print_error)
             info->table->file->print_error(error, MYF(0));
+
         if (error < 0)                            // Fix negative BDB errno
-            error= 1;
+            error = 1;
     }
+
     return error;
 }
 
@@ -346,12 +366,14 @@ static int rr_handle_error(READ_RECORD *info, int error)
 static int rr_quick(READ_RECORD *info)
 {
     int tmp;
-    while ((tmp= info->select->quick->get_next())) {
+
+    while ((tmp = info->select->quick->get_next())) {
         if (info->thd->killed || (tmp != HA_ERR_RECORD_DELETED)) {
-            tmp= rr_handle_error(info, tmp);
+            tmp = rr_handle_error(info, tmp);
             break;
         }
     }
+
     return tmp;
 }
 
@@ -371,10 +393,12 @@ static int rr_quick(READ_RECORD *info)
 
 static int rr_index_first(READ_RECORD *info)
 {
-    int tmp= info->table->file->ha_index_first(info->record);
-    info->read_record= rr_index;
+    int tmp = info->table->file->ha_index_first(info->record);
+    info->read_record = rr_index;
+
     if (tmp)
-        tmp= rr_handle_error(info, tmp);
+        tmp = rr_handle_error(info, tmp);
+
     return tmp;
 }
 
@@ -394,10 +418,12 @@ static int rr_index_first(READ_RECORD *info)
 
 static int rr_index_last(READ_RECORD *info)
 {
-    int tmp= info->table->file->ha_index_last(info->record);
-    info->read_record= rr_index_desc;
+    int tmp = info->table->file->ha_index_last(info->record);
+    info->read_record = rr_index_desc;
+
     if (tmp)
-        tmp= rr_handle_error(info, tmp);
+        tmp = rr_handle_error(info, tmp);
+
     return tmp;
 }
 
@@ -420,9 +446,11 @@ static int rr_index_last(READ_RECORD *info)
 
 static int rr_index(READ_RECORD *info)
 {
-    int tmp= info->table->file->ha_index_next(info->record);
+    int tmp = info->table->file->ha_index_next(info->record);
+
     if (tmp)
-        tmp= rr_handle_error(info, tmp);
+        tmp = rr_handle_error(info, tmp);
+
     return tmp;
 }
 
@@ -445,9 +473,11 @@ static int rr_index(READ_RECORD *info)
 
 static int rr_index_desc(READ_RECORD *info)
 {
-    int tmp= info->table->file->ha_index_prev(info->record);
+    int tmp = info->table->file->ha_index_prev(info->record);
+
     if (tmp)
-        tmp= rr_handle_error(info, tmp);
+        tmp = rr_handle_error(info, tmp);
+
     return tmp;
 }
 
@@ -455,16 +485,18 @@ static int rr_index_desc(READ_RECORD *info)
 int rr_sequential(READ_RECORD *info)
 {
     int tmp;
-    while ((tmp=info->table->file->ha_rnd_next(info->record))) {
+
+    while ((tmp = info->table->file->ha_rnd_next(info->record))) {
         /*
           ha_rnd_next can return RECORD_DELETED for MyISAM when one thread is
           reading and another deleting without locks.
         */
         if (info->thd->killed || (tmp != HA_ERR_RECORD_DELETED)) {
-            tmp= rr_handle_error(info, tmp);
+            tmp = rr_handle_error(info, tmp);
             break;
         }
     }
+
     return tmp;
 }
 
@@ -472,18 +504,23 @@ int rr_sequential(READ_RECORD *info)
 static int rr_from_tempfile(READ_RECORD *info)
 {
     int tmp;
+
     for (;;) {
-        if (my_b_read(info->io_cache,info->ref_pos,info->ref_length))
+        if (my_b_read(info->io_cache, info->ref_pos, info->ref_length))
             return -1;					/* End of file */
-        if (!(tmp=info->table->file->ha_rnd_pos(info->record,info->ref_pos)))
+
+        if (!(tmp = info->table->file->ha_rnd_pos(info->record, info->ref_pos)))
             break;
+
         /* The following is extremely unlikely to happen */
         if (tmp == HA_ERR_RECORD_DELETED ||
                 (tmp == HA_ERR_KEY_NOT_FOUND && info->ignore_not_found_rows))
             continue;
-        tmp= rr_handle_error(info, tmp);
+
+        tmp = rr_handle_error(info, tmp);
         break;
     }
+
     return tmp;
 } /* rr_from_tempfile */
 
@@ -508,9 +545,9 @@ static int rr_unpack_from_tempfile(READ_RECORD *info)
 {
     if (my_b_read(info->io_cache, info->rec_buf, info->ref_length))
         return -1;
-    TABLE *table= info->table;
-    (*table->sort.unpack)(table->sort.addon_field, info->rec_buf);
 
+    TABLE *table = info->table;
+    (*table->sort.unpack)(table->sort.addon_field, info->rec_buf);
     return 0;
 }
 
@@ -522,19 +559,22 @@ static int rr_from_pointers(READ_RECORD *info)
     for (;;) {
         if (info->cache_pos == info->cache_end)
             return -1;					/* End of file */
-        cache_pos= info->cache_pos;
-        info->cache_pos+= info->ref_length;
 
-        if (!(tmp=info->table->file->ha_rnd_pos(info->record,cache_pos)))
+        cache_pos = info->cache_pos;
+        info->cache_pos += info->ref_length;
+
+        if (!(tmp = info->table->file->ha_rnd_pos(info->record, cache_pos)))
             break;
 
         /* The following is extremely unlikely to happen */
         if (tmp == HA_ERR_RECORD_DELETED ||
                 (tmp == HA_ERR_KEY_NOT_FOUND && info->ignore_not_found_rows))
             continue;
-        tmp= rr_handle_error(info, tmp);
+
+        tmp = rr_handle_error(info, tmp);
         break;
     }
+
     return tmp;
 }
 
@@ -558,10 +598,10 @@ static int rr_unpack_from_buffer(READ_RECORD *info)
 {
     if (info->cache_pos == info->cache_end)
         return -1;                      /* End of buffer */
-    TABLE *table= info->table;
-    (*table->sort.unpack)(table->sort.addon_field, info->cache_pos);
-    info->cache_pos+= info->ref_length;
 
+    TABLE *table = info->table;
+    (*table->sort.unpack)(table->sort.addon_field, info->cache_pos);
+    info->cache_pos += info->ref_length;
     return 0;
 }
 /* cacheing of records from a database */
@@ -570,35 +610,35 @@ static int init_rr_cache(THD *thd, READ_RECORD *info)
 {
     uint rec_cache_size;
     DBUG_ENTER("init_rr_cache");
+    info->struct_length = 3 + MAX_REFLENGTH;
+    info->reclength = ALIGN_SIZE(info->table->s->reclength + 1);
 
-    info->struct_length= 3+MAX_REFLENGTH;
-    info->reclength= ALIGN_SIZE(info->table->s->reclength+1);
     if (info->reclength < info->struct_length)
-        info->reclength= ALIGN_SIZE(info->struct_length);
+        info->reclength = ALIGN_SIZE(info->struct_length);
 
-    info->error_offset= info->table->s->reclength;
-    info->cache_records= (thd->variables.read_rnd_buff_size /
-                          (info->reclength+info->struct_length));
-    rec_cache_size= info->cache_records*info->reclength;
-    info->rec_cache_size= info->cache_records*info->ref_length;
+    info->error_offset = info->table->s->reclength;
+    info->cache_records = (thd->variables.read_rnd_buff_size /
+                           (info->reclength + info->struct_length));
+    rec_cache_size = info->cache_records * info->reclength;
+    info->rec_cache_size = info->cache_records * info->ref_length;
 
     // We have to allocate one more byte to use uint3korr (see comments for it)
     if (info->cache_records <= 2 ||
-            !(info->cache=(uchar*) my_malloc_lock(rec_cache_size+info->cache_records*
-                          info->struct_length+1,
-                          MYF(0))))
+            !(info->cache = (uchar *) my_malloc_lock(rec_cache_size + info->cache_records *
+                            info->struct_length + 1,
+                            MYF(0))))
         DBUG_RETURN(1);
 
-    DBUG_PRINT("info",("Allocated buffert for %d records",info->cache_records));
-    info->read_positions=info->cache+rec_cache_size;
-    info->cache_pos=info->cache_end=info->cache;
+    DBUG_PRINT("info", ("Allocated buffert for %d records", info->cache_records));
+    info->read_positions = info->cache + rec_cache_size;
+    info->cache_pos = info->cache_end = info->cache;
     DBUG_RETURN(0);
 } /* init_rr_cache */
 
 
 static int rr_cmp(const void *p_ref_length, const void *a, const void *b)
 {
-    size_t ref_length= *(static_cast<size_t*>(const_cast<void*>(p_ref_length)));
+    size_t ref_length = *(static_cast<size_t *>(const_cast<void *>(p_ref_length)));
     DBUG_ASSERT(ref_length <= MAX_REFLENGTH);
     return memcmp(a, b, ref_length);
 }
@@ -610,62 +650,73 @@ static int rr_from_cache(READ_RECORD *info)
     ulong length;
     my_off_t rest_of_file;
     int16 error;
-    uchar *position,*ref_position,*record_pos;
+    uchar *position, *ref_position, *record_pos;
     ulong record;
 
     for (;;) {
         if (info->cache_pos != info->cache_end) {
             if (info->cache_pos[info->error_offset]) {
-                shortget(error,info->cache_pos);
+                shortget(error, info->cache_pos);
+
                 if (info->print_error)
-                    info->table->file->print_error(error,MYF(0));
+                    info->table->file->print_error(error, MYF(0));
+
             } else {
-                error=0;
-                memcpy(info->record,info->cache_pos,
+                error = 0;
+                memcpy(info->record, info->cache_pos,
                        (size_t) info->table->s->reclength);
             }
-            info->cache_pos+=info->reclength;
+
+            info->cache_pos += info->reclength;
             return ((int) error);
         }
-        length=info->rec_cache_size;
-        rest_of_file=info->io_cache->end_of_file - my_b_tell(info->io_cache);
+
+        length = info->rec_cache_size;
+        rest_of_file = info->io_cache->end_of_file - my_b_tell(info->io_cache);
+
         if ((my_off_t) length > rest_of_file)
-            length= (ulong) rest_of_file;
-        if (!length || my_b_read(info->io_cache,info->cache,length)) {
-            DBUG_PRINT("info",("Found end of file"));
+            length = (ulong) rest_of_file;
+
+        if (!length || my_b_read(info->io_cache, info->cache, length)) {
+            DBUG_PRINT("info", ("Found end of file"));
             return -1;			/* End of file */
         }
 
-        length/=info->ref_length;
-        position=info->cache;
-        ref_position=info->read_positions;
-        for (i=0 ; i < length ; i++,position+=info->ref_length) {
-            memcpy(ref_position,position,(size_t) info->ref_length);
-            ref_position+=MAX_REFLENGTH;
-            int3store(ref_position,(long) i);
-            ref_position+=3;
+        length /= info->ref_length;
+        position = info->cache;
+        ref_position = info->read_positions;
+
+        for (i = 0 ; i < length ; i++, position += info->ref_length) {
+            memcpy(ref_position, position, (size_t) info->ref_length);
+            ref_position += MAX_REFLENGTH;
+            int3store(ref_position, (long) i);
+            ref_position += 3;
         }
-        size_t ref_length= info->ref_length;
+
+        size_t ref_length = info->ref_length;
         my_qsort2(info->read_positions, length, info->struct_length,
                   rr_cmp, &ref_length);
+        position = info->read_positions;
 
-        position=info->read_positions;
-        for (i=0 ; i < length ; i++) {
-            memcpy(info->ref_pos,position,(size_t) info->ref_length);
-            position+=MAX_REFLENGTH;
-            record=uint3korr(position);
-            position+=3;
-            record_pos=info->cache+record*info->reclength;
-            error= (int16) info->table->file->ha_rnd_pos(record_pos, info->ref_pos);
+        for (i = 0 ; i < length ; i++) {
+            memcpy(info->ref_pos, position, (size_t) info->ref_length);
+            position += MAX_REFLENGTH;
+            record = uint3korr(position);
+            position += 3;
+            record_pos = info->cache + record * info->reclength;
+            error = (int16) info->table->file->ha_rnd_pos(record_pos, info->ref_pos);
+
             if (error) {
-                record_pos[info->error_offset]=1;
-                shortstore(record_pos,error);
-                DBUG_PRINT("error",("Got error: %d:%d when reading row",
-                                    my_errno, (int) error));
+                record_pos[info->error_offset] = 1;
+                shortstore(record_pos, error);
+                DBUG_PRINT("error", ("Got error: %d:%d when reading row",
+                                     my_errno, (int) error));
+
             } else
-                record_pos[info->error_offset]=0;
+                record_pos[info->error_offset] = 0;
         }
-        info->cache_end=(info->cache_pos=info->cache)+length*info->reclength;
+
+        info->cache_end = (info->cache_pos = info->cache) + length * info->reclength;
     }
 } /* rr_from_cache */
 
@@ -677,7 +728,7 @@ static int rr_from_cache(READ_RECORD *info)
 
 void rr_unlock_row(st_join_table *tab)
 {
-    READ_RECORD *info= &tab->read_record;
+    READ_RECORD *info = &tab->read_record;
     info->table->file->unlock_row();
 }
 

@@ -23,13 +23,13 @@
 
 class MY_LOCALE;
 
-bool get_interval_value(Item *args,interval_type int_type,
+bool get_interval_value(Item *args, interval_type int_type,
                         String *str_value, INTERVAL *interval);
 
-class Item_func_period_add :public Item_int_func
+class Item_func_period_add : public Item_int_func
 {
 public:
-    Item_func_period_add(Item *a,Item *b) :Item_int_func(a,b) {}
+    Item_func_period_add(Item *a, Item *b) : Item_int_func(a, b) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -42,10 +42,10 @@ public:
 };
 
 
-class Item_func_period_diff :public Item_int_func
+class Item_func_period_diff : public Item_int_func
 {
 public:
-    Item_func_period_diff(Item *a,Item *b) :Item_int_func(a,b) {}
+    Item_func_period_diff(Item *a, Item *b) : Item_int_func(a, b) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -58,10 +58,10 @@ public:
 };
 
 
-class Item_func_to_days :public Item_int_func
+class Item_func_to_days : public Item_int_func
 {
 public:
-    Item_func_to_days(Item *a) :Item_int_func(a) {}
+    Item_func_to_days(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -70,7 +70,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(6);
-        maybe_null=1;
+        maybe_null = 1;
     }
     enum_monotonicity_info get_monotonicity_info() const;
     longlong val_int_endpoint(bool left_endp, bool *incl_endp);
@@ -85,10 +85,10 @@ public:
 };
 
 
-class Item_func_to_seconds :public Item_int_func
+class Item_func_to_seconds : public Item_int_func
 {
 public:
-    Item_func_to_seconds(Item *a) :Item_int_func(a) {}
+    Item_func_to_seconds(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -97,7 +97,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(6);
-        maybe_null=1;
+        maybe_null = 1;
     }
     enum_monotonicity_info get_monotonicity_info() const;
     longlong val_int_endpoint(bool left_endp, bool *incl_endp);
@@ -109,10 +109,10 @@ public:
     bool intro_version(uchar *int_arg)
     {
         using std::max;
-        int *input_version= (int*)int_arg;
+        int *input_version = (int *)int_arg;
         /* This function was introduced in 5.5 */
-        int output_version= max(*input_version, 50500);
-        *input_version= output_version;
+        int output_version = max(*input_version, 50500);
+        *input_version = output_version;
         return 0;
     }
 
@@ -124,10 +124,10 @@ public:
 };
 
 
-class Item_func_dayofmonth :public Item_int_func
+class Item_func_dayofmonth : public Item_int_func
 {
 public:
-    Item_func_dayofmonth(Item *a) :Item_int_func(a) {}
+    Item_func_dayofmonth(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -136,7 +136,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2); /* 1..31 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -152,10 +152,10 @@ public:
 /**
   TS-TODO: This should probably have Item_int_func as parent class.
 */
-class Item_func_month :public Item_func
+class Item_func_month : public Item_func
 {
 public:
-    Item_func_month(Item *a) :Item_func(a)
+    Item_func_month(Item *a) : Item_func(a)
     {
         collation.set_numeric();
     }
@@ -167,9 +167,11 @@ public:
     }
     String *val_str(String *str)
     {
-        longlong nr= val_int();
+        longlong nr = val_int();
+
         if (null_value)
             return 0;
+
         str->set(nr, collation.collation);
         return str;
     }
@@ -192,7 +194,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2);
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -205,11 +207,11 @@ public:
 };
 
 
-class Item_func_monthname :public Item_str_func
+class Item_func_monthname : public Item_str_func
 {
     MY_LOCALE *locale;
 public:
-    Item_func_monthname(Item *a) :Item_str_func(a) {}
+    Item_func_monthname(Item *a) : Item_str_func(a) {}
     const char *func_name() const
     {
         return "monthname";
@@ -227,10 +229,10 @@ public:
 };
 
 
-class Item_func_dayofyear :public Item_int_func
+class Item_func_dayofyear : public Item_int_func
 {
 public:
-    Item_func_dayofyear(Item *a) :Item_int_func(a) {}
+    Item_func_dayofyear(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -239,7 +241,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(3);
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -252,10 +254,10 @@ public:
 };
 
 
-class Item_func_hour :public Item_int_func
+class Item_func_hour : public Item_int_func
 {
 public:
-    Item_func_hour(Item *a) :Item_int_func(a) {}
+    Item_func_hour(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -264,7 +266,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2); /* 0..23 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -277,10 +279,10 @@ public:
 };
 
 
-class Item_func_minute :public Item_int_func
+class Item_func_minute : public Item_int_func
 {
 public:
-    Item_func_minute(Item *a) :Item_int_func(a) {}
+    Item_func_minute(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -289,7 +291,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2); /* 0..59 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -302,10 +304,10 @@ public:
 };
 
 
-class Item_func_quarter :public Item_int_func
+class Item_func_quarter : public Item_int_func
 {
 public:
-    Item_func_quarter(Item *a) :Item_int_func(a) {}
+    Item_func_quarter(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -314,7 +316,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(1); /* 1..4 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -327,10 +329,10 @@ public:
 };
 
 
-class Item_func_second :public Item_int_func
+class Item_func_second : public Item_int_func
 {
 public:
-    Item_func_second(Item *a) :Item_int_func(a) {}
+    Item_func_second(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -339,7 +341,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2); /* 0..59 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -352,10 +354,10 @@ public:
 };
 
 
-class Item_func_week :public Item_int_func
+class Item_func_week : public Item_int_func
 {
 public:
-    Item_func_week(Item *a,Item *b) :Item_int_func(a,b) {}
+    Item_func_week(Item *a, Item *b) : Item_int_func(a, b) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -364,14 +366,14 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(2); /* 0..54 */
-        maybe_null=1;
+        maybe_null = 1;
     }
 };
 
-class Item_func_yearweek :public Item_int_func
+class Item_func_yearweek : public Item_int_func
 {
 public:
-    Item_func_yearweek(Item *a,Item *b) :Item_int_func(a,b) {}
+    Item_func_yearweek(Item *a, Item *b) : Item_int_func(a, b) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -380,7 +382,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(6); /* YYYYWW */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -393,10 +395,10 @@ public:
 };
 
 
-class Item_func_year :public Item_int_func
+class Item_func_year : public Item_int_func
 {
 public:
-    Item_func_year(Item *a) :Item_int_func(a) {}
+    Item_func_year(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -407,7 +409,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(4); /* 9999 */
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -423,12 +425,12 @@ public:
 /**
   TS-TODO: This should probably have Item_int_func as parent class.
 */
-class Item_func_weekday :public Item_func
+class Item_func_weekday : public Item_func
 {
     bool odbc_type;
 public:
-    Item_func_weekday(Item *a,bool type_arg)
-        :Item_func(a), odbc_type(type_arg)
+    Item_func_weekday(Item *a, bool type_arg)
+        : Item_func(a), odbc_type(type_arg)
     {
         collation.set_numeric();
     }
@@ -463,7 +465,7 @@ public:
     void fix_length_and_dec()
     {
         fix_char_length(1);
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -480,11 +482,11 @@ public:
   In the current implementation funny things can happen:
   select dayname(now())+1 -> 4
 */
-class Item_func_dayname :public Item_func_weekday
+class Item_func_dayname : public Item_func_weekday
 {
     MY_LOCALE *locale;
 public:
-    Item_func_dayname(Item *a) :Item_func_weekday(a,0) {}
+    Item_func_dayname(Item *a) : Item_func_weekday(a, 0) {}
     const char *func_name() const
     {
         return "dayname";
@@ -513,18 +515,18 @@ public:
 /*
   Abstract class for functions returning "struct timeval".
 */
-class Item_timeval_func :public Item_func
+class Item_timeval_func : public Item_func
 {
 public:
-    Item_timeval_func() :Item_func() { }
-    Item_timeval_func(Item *a) :Item_func(a) { }
+    Item_timeval_func() : Item_func() { }
+    Item_timeval_func(Item *a) : Item_func(a) { }
     /**
       Return timestamp in "struct timeval" format.
       @param OUT tm The value is store here.
       @retval false On success
       @retval true  On error
     */
-    virtual bool val_timeval(struct timeval *tm)= 0;
+    virtual bool val_timeval(struct timeval *tm) = 0;
     longlong val_int();
     double val_real();
     String *val_str(String *str);
@@ -544,11 +546,11 @@ public:
 };
 
 
-class Item_func_unix_timestamp :public Item_timeval_func
+class Item_func_unix_timestamp : public Item_timeval_func
 {
 public:
-    Item_func_unix_timestamp() :Item_timeval_func() {}
-    Item_func_unix_timestamp(Item *a) :Item_timeval_func(a) {}
+    Item_func_unix_timestamp() : Item_timeval_func() {}
+    Item_func_unix_timestamp(Item *a) : Item_timeval_func(a) {}
     const char *func_name() const
     {
         return "unix_timestamp";
@@ -577,10 +579,10 @@ public:
 };
 
 
-class Item_func_time_to_sec :public Item_int_func
+class Item_func_time_to_sec : public Item_int_func
 {
 public:
-    Item_func_time_to_sec(Item *item) :Item_int_func(item) {}
+    Item_func_time_to_sec(Item *item) : Item_int_func(item) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -588,7 +590,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= TRUE;
+        maybe_null = TRUE;
         fix_char_length(10);
     }
     bool check_partition_func_processor(uchar *int_arg)
@@ -606,15 +608,15 @@ public:
   Abstract class for functions returning TIME, DATE, DATETIME types
   whose data type is known at constructor time.
 */
-class Item_temporal_func :public Item_func
+class Item_temporal_func : public Item_func
 {
 protected:
     bool check_precision();
 public:
-    Item_temporal_func() :Item_func() {}
-    Item_temporal_func(Item *a) :Item_func(a) {}
-    Item_temporal_func(Item *a, Item *b) :Item_func(a, b) {}
-    Item_temporal_func(Item *a, Item *b, Item *c) :Item_func(a, b, c) {}
+    Item_temporal_func() : Item_func() {}
+    Item_temporal_func(Item *a) : Item_func(a) {}
+    Item_temporal_func(Item *a, Item *b) : Item_func(a, b) {}
+    Item_temporal_func(Item *a, Item *b, Item *c) : Item_func(a, b, c) {}
     enum Item_result result_type () const
     {
         return STRING_RESULT;
@@ -644,7 +646,7 @@ public:
   Abstract class for functions returning TIME, DATE, DATETIME or string values,
   whose data type depends on parameters and is set at fix_field time.
 */
-class Item_temporal_hybrid_func :public Item_str_func
+class Item_temporal_hybrid_func : public Item_str_func
 {
 protected:
     sql_mode_t sql_mode; // sql_mode value is cached here in fix_length_and_dec()
@@ -657,10 +659,10 @@ protected:
       @retval    false       On success.
       @retval    true        On error.
     */
-    virtual bool val_datetime(MYSQL_TIME *ltime, uint fuzzy_date)= 0;
+    virtual bool val_datetime(MYSQL_TIME *ltime, uint fuzzy_date) = 0;
 
 public:
-    Item_temporal_hybrid_func(Item *a, Item *b) :Item_str_func(a, b),
+    Item_temporal_hybrid_func(Item *a, Item *b) : Item_str_func(a, b),
         sql_mode(0)
     { }
     enum Item_result result_type () const
@@ -720,14 +722,14 @@ public:
 /**
   Abstract class for functions returning DATE values.
 */
-class Item_date_func :public Item_temporal_func
+class Item_date_func : public Item_temporal_func
 {
 public:
-    Item_date_func() :Item_temporal_func()
+    Item_date_func() : Item_temporal_func()
     { }
-    Item_date_func(Item *a) :Item_temporal_func(a)
+    Item_date_func(Item *a) : Item_temporal_func(a)
     { }
-    Item_date_func(Item *a, Item *b) :Item_temporal_func(a, b)
+    Item_date_func(Item *a, Item *b) : Item_temporal_func(a, b)
     { }
     enum_field_types field_type() const
     {
@@ -770,23 +772,23 @@ public:
     // All date functions must implement get_date()
     // to avoid use of generic Item::get_date()
     // which converts to string and then parses the string as DATE.
-    virtual bool get_date(MYSQL_TIME *res, uint fuzzy_date)= 0;
+    virtual bool get_date(MYSQL_TIME *res, uint fuzzy_date) = 0;
 };
 
 
 /**
   Abstract class for functions returning DATETIME values.
 */
-class Item_datetime_func :public Item_temporal_func
+class Item_datetime_func : public Item_temporal_func
 {
 public:
-    Item_datetime_func() :Item_temporal_func()
+    Item_datetime_func() : Item_temporal_func()
     { }
-    Item_datetime_func(Item *a) :Item_temporal_func(a)
+    Item_datetime_func(Item *a) : Item_temporal_func(a)
     { }
-    Item_datetime_func(Item *a,Item *b) :Item_temporal_func(a,b)
+    Item_datetime_func(Item *a, Item *b) : Item_temporal_func(a, b)
     { }
-    Item_datetime_func(Item *a,Item *b, Item *c) :Item_temporal_func(a,b,c)
+    Item_datetime_func(Item *a, Item *b, Item *c) : Item_temporal_func(a, b, c)
     { }
     enum_field_types field_type() const
     {
@@ -821,20 +823,20 @@ public:
     // All datetime functions must implement get_date()
     // to avoid use of generic Item::get_date()
     // which converts to string and then parses the string as DATETIME.
-    virtual bool get_date(MYSQL_TIME *res, uint fuzzy_date)= 0;
+    virtual bool get_date(MYSQL_TIME *res, uint fuzzy_date) = 0;
 };
 
 
 /**
   Abstract class for functions returning TIME values.
 */
-class Item_time_func :public Item_temporal_func
+class Item_time_func : public Item_temporal_func
 {
 public:
-    Item_time_func() :Item_temporal_func() {}
-    Item_time_func(Item *a) :Item_temporal_func(a) {}
-    Item_time_func(Item *a,Item *b) :Item_temporal_func(a,b) {}
-    Item_time_func(Item *a, Item *b, Item *c) :Item_temporal_func(a, b,c) {}
+    Item_time_func() : Item_temporal_func() {}
+    Item_time_func(Item *a) : Item_temporal_func(a) {}
+    Item_time_func(Item *a, Item *b) : Item_temporal_func(a, b) {}
+    Item_time_func(Item *a, Item *b, Item *c) : Item_temporal_func(a, b, c) {}
     enum_field_types field_type() const
     {
         return MYSQL_TYPE_TIME;
@@ -868,7 +870,7 @@ public:
     // All time functions must implement get_time()
     // to avoid use of generic Item::get_time()
     // which converts to string and then parses the string as TIME.
-    virtual bool get_time(MYSQL_TIME *res)= 0;
+    virtual bool get_time(MYSQL_TIME *res) = 0;
 };
 
 
@@ -897,18 +899,18 @@ class MYSQL_TIME_cache
     */
     void reset_string()
     {
-        string_length= 0;
-        string_buff[0]= '\0';
+        string_length = 0;
+        string_buff[0] = '\0';
     }
     /**
       Reset all members.
     */
     void reset()
     {
-        time.time_type= MYSQL_TIMESTAMP_NONE;
-        time_packed= 0;
+        time.time_type = MYSQL_TIMESTAMP_NONE;
+        time_packed = 0;
         reset_string();
-        dec= 0;
+        dec = 0;
     }
     /**
       Store MYSQL_TIME representation into the given MYSQL_TIME variable.
@@ -916,7 +918,7 @@ class MYSQL_TIME_cache
     void get_TIME(MYSQL_TIME *ltime) const
     {
         DBUG_ASSERT(time.time_type != MYSQL_TIMESTAMP_NONE);
-        *ltime= time;
+        *ltime = time;
     }
 public:
 
@@ -1011,7 +1013,7 @@ public:
 /**
   DATE'2010-01-01'
 */
-class Item_date_literal :public Item_date_func
+class Item_date_literal : public Item_date_func
 {
     MYSQL_TIME_cache cached_time;
 public:
@@ -1019,11 +1021,11 @@ public:
       Constructor for Item_date_literal.
       @param ltime  DATE value.
     */
-    Item_date_literal(MYSQL_TIME *ltime) :Item_date_func()
+    Item_date_literal(MYSQL_TIME *ltime) : Item_date_func()
     {
         cached_time.set_date(ltime);
         fix_length_and_dec();
-        fixed= 1;
+        fixed = 1;
     }
     const char *func_name() const
     {
@@ -1069,7 +1071,7 @@ public:
     {
         // See Item_basic_const::cleanup()
         if (orig_name.is_set())
-            item_name= orig_name;
+            item_name = orig_name;
     }
     bool eq(const Item *item, bool binary_cmp) const;
 };
@@ -1078,7 +1080,7 @@ public:
 /**
   TIME'10:10:10'
 */
-class Item_time_literal :public Item_time_func
+class Item_time_literal : public Item_time_func
 {
     MYSQL_TIME_cache cached_time;
 public:
@@ -1087,12 +1089,12 @@ public:
       @param ltime    TIME value.
       @param dec_arg  number of fractional digits in ltime.
     */
-    Item_time_literal(MYSQL_TIME *ltime, uint dec_arg) :Item_time_func()
+    Item_time_literal(MYSQL_TIME *ltime, uint dec_arg) : Item_time_func()
     {
-        decimals= MY_MIN(dec_arg, DATETIME_MAX_DECIMALS);
+        decimals = MY_MIN(dec_arg, DATETIME_MAX_DECIMALS);
         cached_time.set_time(ltime, decimals);
         fix_length_and_dec();
-        fixed= 1;
+        fixed = 1;
     }
     const char *func_name() const
     {
@@ -1138,7 +1140,7 @@ public:
     {
         // See Item_basic_const::cleanup()
         if (orig_name.is_set())
-            item_name= orig_name;
+            item_name = orig_name;
     }
     bool eq(const Item *item, bool binary_cmp) const;
 };
@@ -1147,7 +1149,7 @@ public:
 /**
   TIMESTAMP'2001-01-01 10:20:30'
 */
-class Item_datetime_literal :public Item_datetime_func
+class Item_datetime_literal : public Item_datetime_func
 {
     MYSQL_TIME_cache cached_time;
 public:
@@ -1156,12 +1158,12 @@ public:
       @param ltime    DATETIME value.
       @param dec_arg  number of fractional digits in ltime.
     */
-    Item_datetime_literal(MYSQL_TIME *ltime, uint dec_arg) :Item_datetime_func()
+    Item_datetime_literal(MYSQL_TIME *ltime, uint dec_arg) : Item_datetime_func()
     {
-        decimals= MY_MIN(dec_arg, DATETIME_MAX_DECIMALS);
+        decimals = MY_MIN(dec_arg, DATETIME_MAX_DECIMALS);
         cached_time.set_datetime(ltime, decimals);
         fix_length_and_dec();
-        fixed= 1;
+        fixed = 1;
     }
     const char *func_name() const
     {
@@ -1207,7 +1209,7 @@ public:
     {
         // See Item_basic_const::cleanup()
         if (orig_name.is_set())
-            item_name= orig_name;
+            item_name = orig_name;
     }
     bool eq(const Item *item, bool binary_cmp) const;
 };
@@ -1215,20 +1217,20 @@ public:
 
 /* Abstract CURTIME function. Children should define what time zone is used */
 
-class Item_func_curtime :public Item_time_func
+class Item_func_curtime : public Item_time_func
 {
     MYSQL_TIME_cache cached_time; // Initialized in fix_length_and_dec
 protected:
     // Abstract method that defines which time zone is used for conversion.
-    virtual Time_zone *time_zone()= 0;
+    virtual Time_zone *time_zone() = 0;
 public:
     /**
       Constructor for Item_func_curtime.
       @param dec_arg  Number of fractional digits.
     */
-    Item_func_curtime(uint8 dec_arg) :Item_time_func()
+    Item_func_curtime(uint8 dec_arg) : Item_time_func()
     {
-        decimals= dec_arg;
+        decimals = dec_arg;
     }
     void fix_length_and_dec();
     longlong val_time_temporal()
@@ -1249,12 +1251,12 @@ public:
 };
 
 
-class Item_func_curtime_local :public Item_func_curtime
+class Item_func_curtime_local : public Item_func_curtime
 {
 protected:
     Time_zone *time_zone();
 public:
-    Item_func_curtime_local(uint8 dec_arg) :Item_func_curtime(dec_arg) {}
+    Item_func_curtime_local(uint8 dec_arg) : Item_func_curtime(dec_arg) {}
     const char *func_name() const
     {
         return "curtime";
@@ -1262,12 +1264,12 @@ public:
 };
 
 
-class Item_func_curtime_utc :public Item_func_curtime
+class Item_func_curtime_utc : public Item_func_curtime
 {
 protected:
     Time_zone *time_zone();
 public:
-    Item_func_curtime_utc(uint8 dec_arg) :Item_func_curtime(dec_arg) {}
+    Item_func_curtime_utc(uint8 dec_arg) : Item_func_curtime(dec_arg) {}
     const char *func_name() const
     {
         return "utc_time";
@@ -1277,13 +1279,13 @@ public:
 
 /* Abstract CURDATE function. See also Item_func_curtime. */
 
-class Item_func_curdate :public Item_date_func
+class Item_func_curdate : public Item_date_func
 {
     MYSQL_TIME_cache cached_time; // Initialized in fix_length_and_dec
 protected:
-    virtual Time_zone *time_zone()= 0;
+    virtual Time_zone *time_zone() = 0;
 public:
-    Item_func_curdate() :Item_date_func() {}
+    Item_func_curdate() : Item_date_func() {}
     void fix_length_and_dec();
     longlong val_date_temporal()
     {
@@ -1303,12 +1305,12 @@ public:
 };
 
 
-class Item_func_curdate_local :public Item_func_curdate
+class Item_func_curdate_local : public Item_func_curdate
 {
 protected:
     Time_zone *time_zone();
 public:
-    Item_func_curdate_local() :Item_func_curdate() {}
+    Item_func_curdate_local() : Item_func_curdate() {}
     const char *func_name() const
     {
         return "curdate";
@@ -1316,12 +1318,12 @@ public:
 };
 
 
-class Item_func_curdate_utc :public Item_func_curdate
+class Item_func_curdate_utc : public Item_func_curdate
 {
 protected:
     Time_zone *time_zone();
 public:
-    Item_func_curdate_utc() :Item_func_curdate() {}
+    Item_func_curdate_utc() : Item_func_curdate() {}
     const char *func_name() const
     {
         return "utc_date";
@@ -1331,19 +1333,19 @@ public:
 
 /* Abstract CURRENT_TIMESTAMP function. See also Item_func_curtime */
 
-class Item_func_now :public Item_datetime_func
+class Item_func_now : public Item_datetime_func
 {
     MYSQL_TIME_cache cached_time;
 protected:
-    virtual Time_zone *time_zone()= 0;
+    virtual Time_zone *time_zone() = 0;
 public:
     /**
       Constructor for Item_func_now.
       @param dec_arg  Number of fractional digits.
     */
-    Item_func_now(uint8 dec_arg) :Item_datetime_func()
+    Item_func_now(uint8 dec_arg) : Item_datetime_func()
     {
-        decimals= dec_arg;
+        decimals = dec_arg;
     }
     void fix_length_and_dec();
     type_conversion_status save_in_field(Field *to, bool no_conversions);
@@ -1365,7 +1367,7 @@ public:
 };
 
 
-class Item_func_now_local :public Item_func_now
+class Item_func_now_local : public Item_func_now
 {
 protected:
     Time_zone *time_zone();
@@ -1378,7 +1380,7 @@ public:
      */
     static void store_in(Field *field);
 
-    Item_func_now_local(uint8 dec_arg) :Item_func_now(dec_arg) {}
+    Item_func_now_local(uint8 dec_arg) : Item_func_now(dec_arg) {}
     const char *func_name() const
     {
         return "now";
@@ -1390,12 +1392,12 @@ public:
 };
 
 
-class Item_func_now_utc :public Item_func_now
+class Item_func_now_utc : public Item_func_now
 {
 protected:
     Time_zone *time_zone();
 public:
-    Item_func_now_utc(uint8 dec_arg) :Item_func_now(dec_arg) {}
+    Item_func_now_utc(uint8 dec_arg) : Item_func_now(dec_arg) {}
     const char *func_name() const
     {
         return "utc_timestamp";
@@ -1407,13 +1409,13 @@ public:
   This is like NOW(), but always uses the real current time, not the
   query_start(). This matches the Oracle behavior.
 */
-class Item_func_sysdate_local :public Item_datetime_func
+class Item_func_sysdate_local : public Item_datetime_func
 {
 public:
     Item_func_sysdate_local(uint8 dec_arg) :
         Item_datetime_func()
     {
-        decimals= dec_arg;
+        decimals = dec_arg;
     }
     bool const_item() const
     {
@@ -1437,10 +1439,10 @@ public:
 };
 
 
-class Item_func_from_days :public Item_date_func
+class Item_func_from_days : public Item_date_func
 {
 public:
-    Item_func_from_days(Item *a) :Item_date_func(a) {}
+    Item_func_from_days(Item *a) : Item_date_func(a) {}
     const char *func_name() const
     {
         return "from_days";
@@ -1457,14 +1459,14 @@ public:
 };
 
 
-class Item_func_date_format :public Item_str_func
+class Item_func_date_format : public Item_str_func
 {
     int fixed_length;
     const bool is_time_format;
     String value;
 public:
-    Item_func_date_format(Item *a,Item *b,bool is_time_format_arg)
-        :Item_str_func(a,b),is_time_format(is_time_format_arg) {}
+    Item_func_date_format(Item *a, Item *b, bool is_time_format_arg)
+        : Item_str_func(a, b), is_time_format(is_time_format_arg) {}
     String *val_str(String *str);
     const char *func_name() const
     {
@@ -1476,11 +1478,11 @@ public:
 };
 
 
-class Item_func_from_unixtime :public Item_datetime_func
+class Item_func_from_unixtime : public Item_datetime_func
 {
     THD *thd;
 public:
-    Item_func_from_unixtime(Item *a) :Item_datetime_func(a) {}
+    Item_func_from_unixtime(Item *a) : Item_datetime_func(a) {}
     const char *func_name() const
     {
         return "from_unixtime";
@@ -1504,7 +1506,7 @@ class Time_zone;
   tables can be used during this function calculation for loading time zone
   descriptions.
 */
-class Item_func_convert_tz :public Item_datetime_func
+class Item_func_convert_tz : public Item_datetime_func
 {
     /*
       If time zone parameters are constants we are caching objects that
@@ -1527,10 +1529,10 @@ public:
 };
 
 
-class Item_func_sec_to_time :public Item_time_func
+class Item_func_sec_to_time : public Item_time_func
 {
 public:
-    Item_func_sec_to_time(Item *item) :Item_time_func(item) {}
+    Item_func_sec_to_time(Item *item) : Item_time_func(item) {}
     double val_real()
     {
         DBUG_ASSERT(fixed == 1);
@@ -1538,7 +1540,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null=1;
+        maybe_null = 1;
         fix_length_and_dec_and_charset_datetime(MAX_TIME_WIDTH,
                                                 MY_MIN(args[0]->decimals,
                                                         DATETIME_MAX_DECIMALS));
@@ -1551,7 +1553,7 @@ public:
 };
 
 
-class Item_date_add_interval :public Item_temporal_hybrid_func
+class Item_date_add_interval : public Item_temporal_hybrid_func
 {
     String value;
     bool get_date_internal(MYSQL_TIME *res, uint fuzzy_date);
@@ -1562,9 +1564,9 @@ protected:
 public:
     const interval_type int_type; // keep it public
     const bool date_sub_interval; // keep it public
-    Item_date_add_interval(Item *a,Item *b,interval_type type_arg,bool neg_arg)
-        :Item_temporal_hybrid_func(a, b),
-         int_type(type_arg), date_sub_interval(neg_arg) {}
+    Item_date_add_interval(Item *a, Item *b, interval_type type_arg, bool neg_arg)
+        : Item_temporal_hybrid_func(a, b),
+          int_type(type_arg), date_sub_interval(neg_arg) {}
     const char *func_name() const
     {
         return "date_add_interval";
@@ -1575,13 +1577,13 @@ public:
 };
 
 
-class Item_extract :public Item_int_func
+class Item_extract : public Item_int_func
 {
     bool date_value;
 public:
     const interval_type int_type; // keep it public
     Item_extract(interval_type type_arg, Item *a)
-        :Item_int_func(a), int_type(type_arg) {}
+        : Item_int_func(a), int_type(type_arg) {}
     longlong val_int();
     enum Functype functype() const
     {
@@ -1605,14 +1607,17 @@ public:
         case INTERVAL_YEAR_MONTH:
         case INTERVAL_QUARTER:
         case INTERVAL_MONTH:
+
         /* case INTERVAL_WEEK: Not allowed as partitioning function, bug#57071 */
         case INTERVAL_DAY:
             return !has_date_args();
+
         case INTERVAL_DAY_HOUR:
         case INTERVAL_DAY_MINUTE:
         case INTERVAL_DAY_SECOND:
         case INTERVAL_DAY_MICROSECOND:
             return !has_datetime_args();
+
         case INTERVAL_HOUR:
         case INTERVAL_HOUR_MINUTE:
         case INTERVAL_HOUR_SECOND:
@@ -1624,6 +1629,7 @@ public:
         case INTERVAL_MINUTE_MICROSECOND:
         case INTERVAL_SECOND_MICROSECOND:
             return !has_time_args();
+
         default:
             /*
               INTERVAL_LAST is only an end marker,
@@ -1632,17 +1638,18 @@ public:
             */
             break;
         }
+
         return true;
     }
 };
 
 
-class Item_date_typecast :public Item_date_func
+class Item_date_typecast : public Item_date_func
 {
 public:
-    Item_date_typecast(Item *a) :Item_date_func(a)
+    Item_date_typecast(Item *a) : Item_date_func(a)
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
     void print(String *str, enum_query_type query_type);
     const char *func_name() const
@@ -1657,18 +1664,18 @@ public:
 };
 
 
-class Item_time_typecast :public Item_time_func
+class Item_time_typecast : public Item_time_func
 {
     bool detect_precision_from_arg;
 public:
     Item_time_typecast(Item *a): Item_time_func(a)
     {
-        detect_precision_from_arg= true;
+        detect_precision_from_arg = true;
     }
     Item_time_typecast(Item *a, uint8 dec_arg): Item_time_func(a)
     {
-        detect_precision_from_arg= false;
-        decimals= dec_arg;
+        detect_precision_from_arg = false;
+        decimals = dec_arg;
     }
     void print(String *str, enum_query_type query_type);
     const char *func_name() const
@@ -1682,7 +1689,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
         fix_length_and_dec_and_charset_datetime(MAX_TIME_WIDTH,
                                                 detect_precision_from_arg ?
                                                 args[0]->time_precision() :
@@ -1691,18 +1698,18 @@ public:
 };
 
 
-class Item_datetime_typecast :public Item_datetime_func
+class Item_datetime_typecast : public Item_datetime_func
 {
     bool detect_precision_from_arg;
 public:
-    Item_datetime_typecast(Item *a) :Item_datetime_func(a)
+    Item_datetime_typecast(Item *a) : Item_datetime_func(a)
     {
-        detect_precision_from_arg= true;
+        detect_precision_from_arg = true;
     }
-    Item_datetime_typecast(Item *a, uint8 dec_arg) :Item_datetime_func(a)
+    Item_datetime_typecast(Item *a, uint8 dec_arg) : Item_datetime_func(a)
     {
-        detect_precision_from_arg= false;
-        decimals= dec_arg;
+        detect_precision_from_arg = false;
+        decimals = dec_arg;
     }
     void print(String *str, enum_query_type query_type);
     const char *func_name() const
@@ -1715,22 +1722,22 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
+        maybe_null = 1;
         fix_length_and_dec_and_charset_datetime(MAX_DATETIME_WIDTH,
                                                 detect_precision_from_arg ?
-                                                args[0]->datetime_precision():
+                                                args[0]->datetime_precision() :
                                                 decimals);
     }
     bool get_date(MYSQL_TIME *res, uint fuzzy_date);
 };
 
 
-class Item_func_makedate :public Item_date_func
+class Item_func_makedate : public Item_date_func
 {
 public:
-    Item_func_makedate(Item *a, Item *b) :Item_date_func(a, b)
+    Item_func_makedate(Item *a, Item *b) : Item_date_func(a, b)
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
     const char *func_name() const
     {
@@ -1740,16 +1747,16 @@ public:
 };
 
 
-class Item_func_add_time :public Item_temporal_hybrid_func
+class Item_func_add_time : public Item_temporal_hybrid_func
 {
     const bool is_date;
     int sign;
     bool val_datetime(MYSQL_TIME *time, uint fuzzy_date);
 public:
     Item_func_add_time(Item *a, Item *b, bool type_arg, bool neg_arg)
-        :Item_temporal_hybrid_func(a, b), is_date(type_arg)
+        : Item_temporal_hybrid_func(a, b), is_date(type_arg)
     {
-        sign= neg_arg ? -1 : 1;
+        sign = neg_arg ? -1 : 1;
     }
     void fix_length_and_dec();
     void print(String *str, enum_query_type query_type);
@@ -1760,29 +1767,29 @@ public:
 };
 
 
-class Item_func_timediff :public Item_time_func
+class Item_func_timediff : public Item_time_func
 {
 public:
-    Item_func_timediff(Item *a, Item *b) :Item_time_func(a, b) {}
+    Item_func_timediff(Item *a, Item *b) : Item_time_func(a, b) {}
     const char *func_name() const
     {
         return "timediff";
     }
     void fix_length_and_dec()
     {
-        uint dec= MY_MAX(args[0]->time_precision(), args[1]->time_precision());
+        uint dec = MY_MAX(args[0]->time_precision(), args[1]->time_precision());
         fix_length_and_dec_and_charset_datetime(MAX_TIME_WIDTH, dec);
-        maybe_null= 1;
+        maybe_null = 1;
     }
     bool get_time(MYSQL_TIME *ltime);
 };
 
-class Item_func_maketime :public Item_time_func
+class Item_func_maketime : public Item_time_func
 {
 public:
-    Item_func_maketime(Item *a, Item *b, Item *c) :Item_time_func(a, b, c)
+    Item_func_maketime(Item *a, Item *b, Item *c) : Item_time_func(a, b, c)
     {
-        maybe_null= TRUE;
+        maybe_null = TRUE;
     }
     void fix_length_and_dec()
     {
@@ -1797,10 +1804,10 @@ public:
     bool get_time(MYSQL_TIME *ltime);
 };
 
-class Item_func_microsecond :public Item_int_func
+class Item_func_microsecond : public Item_int_func
 {
 public:
-    Item_func_microsecond(Item *a) :Item_int_func(a) {}
+    Item_func_microsecond(Item *a) : Item_int_func(a) {}
     longlong val_int();
     const char *func_name() const
     {
@@ -1808,7 +1815,7 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null=1;
+        maybe_null = 1;
     }
     bool check_partition_func_processor(uchar *int_arg)
     {
@@ -1821,12 +1828,12 @@ public:
 };
 
 
-class Item_func_timestamp_diff :public Item_int_func
+class Item_func_timestamp_diff : public Item_int_func
 {
     const interval_type int_type;
 public:
-    Item_func_timestamp_diff(Item *a,Item *b,interval_type type_arg)
-        :Item_int_func(a,b), int_type(type_arg) {}
+    Item_func_timestamp_diff(Item *a, Item *b, interval_type type_arg)
+        : Item_int_func(a, b), int_type(type_arg) {}
     const char *func_name() const
     {
         return "timestampdiff";
@@ -1834,7 +1841,7 @@ public:
     longlong val_int();
     void fix_length_and_dec()
     {
-        maybe_null=1;
+        maybe_null = 1;
     }
     virtual void print(String *str, enum_query_type query_type);
 };
@@ -1845,12 +1852,12 @@ enum date_time_format
     USA_FORMAT, JIS_FORMAT, ISO_FORMAT, EUR_FORMAT, INTERNAL_FORMAT
 };
 
-class Item_func_get_format :public Item_str_ascii_func
+class Item_func_get_format : public Item_str_ascii_func
 {
 public:
     const timestamp_type type; // keep it public
     Item_func_get_format(timestamp_type type_arg, Item *a)
-        :Item_str_ascii_func(a), type(type_arg)
+        : Item_str_ascii_func(a), type(type_arg)
     {}
     String *val_str_ascii(String *str);
     const char *func_name() const
@@ -1859,15 +1866,15 @@ public:
     }
     void fix_length_and_dec()
     {
-        maybe_null= 1;
-        decimals=0;
+        maybe_null = 1;
+        decimals = 0;
         fix_length_and_charset(17, default_charset());
     }
     virtual void print(String *str, enum_query_type query_type);
 };
 
 
-class Item_func_str_to_date :public Item_temporal_hybrid_func
+class Item_func_str_to_date : public Item_temporal_hybrid_func
 {
     timestamp_type cached_timestamp_type;
     bool const_item;
@@ -1876,7 +1883,7 @@ protected:
     bool val_datetime(MYSQL_TIME *ltime, uint fuzzy_date);
 public:
     Item_func_str_to_date(Item *a, Item *b)
-        :Item_temporal_hybrid_func(a, b), const_item(false)
+        : Item_temporal_hybrid_func(a, b), const_item(false)
     {}
     const char *func_name() const
     {
@@ -1886,12 +1893,12 @@ public:
 };
 
 
-class Item_func_last_day :public Item_date_func
+class Item_func_last_day : public Item_date_func
 {
 public:
-    Item_func_last_day(Item *a) :Item_date_func(a)
+    Item_func_last_day(Item *a) : Item_date_func(a)
     {
-        maybe_null= 1;
+        maybe_null = 1;
     }
     const char *func_name() const
     {

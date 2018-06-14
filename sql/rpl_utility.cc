@@ -36,8 +36,10 @@ static int compare(size_t a, size_t b)
 {
     if (a < b)
         return -1;
+
     if (b < a)
         return 1;
+
     return 0;
 }
 
@@ -60,8 +62,7 @@ static uint32 uint_max(int bits)
    @param metadata The metadata from the master for the field.
    @return Maximum length of the field in bytes.
  */
-static uint32
-max_display_length_for_field(enum_field_types sql_type, unsigned int metadata)
+static uint32 max_display_length_for_field(enum_field_types sql_type, unsigned int metadata)
 {
     DBUG_PRINT("debug", ("sql_type: %d, metadata: 0x%x", sql_type, metadata));
     DBUG_ASSERT(metadata >> 16 == 0);
@@ -81,7 +82,8 @@ max_display_length_for_field(enum_field_types sql_type, unsigned int metadata)
         return metadata & 0x00ff;
 
     case MYSQL_TYPE_STRING: {
-        uchar type= metadata >> 8;
+        uchar type = metadata >> 8;
+
         if (type == MYSQL_TYPE_SET || type == MYSQL_TYPE_ENUM)
             return metadata & 0xff;
         else
@@ -101,12 +103,12 @@ max_display_length_for_field(enum_field_types sql_type, unsigned int metadata)
 
     case MYSQL_TYPE_LONG:
         return 11;
-
 #ifdef HAVE_LONG_LONG
+
     case MYSQL_TYPE_LONGLONG:
         return 20;
-
 #endif
+
     case MYSQL_TYPE_NULL:
         return 0;
 
@@ -200,14 +202,14 @@ max_display_length_for_field(enum_field_types sql_type, unsigned int metadata)
 int compare_lengths(Field *field, enum_field_types source_type, uint16 metadata)
 {
     DBUG_ENTER("compare_lengths");
-    size_t const source_length=
+    size_t const source_length =
         max_display_length_for_field(source_type, metadata);
-    size_t const target_length= field->max_display_length();
+    size_t const target_length = field->max_display_length();
     DBUG_PRINT("debug", ("source_length: %lu, source_type: %u,"
                          " target_length: %lu, target_type: %u",
                          (unsigned long) source_length, source_type,
                          (unsigned long) target_length, field->real_type()));
-    int result= compare(source_length, target_length);
+    int result = compare(source_length, target_length);
     DBUG_PRINT("result", ("%d", result));
     DBUG_RETURN(result);
 }
@@ -227,14 +229,16 @@ uint32 table_def::calc_field_size(uint col, uchar *master_data) const
 
     switch (type(col)) {
     case MYSQL_TYPE_NEWDECIMAL:
-        length= my_decimal_get_binary_size(m_field_metadata[col] >> 8,
-                                           m_field_metadata[col] & 0xff);
+        length = my_decimal_get_binary_size(m_field_metadata[col] >> 8,
+                                            m_field_metadata[col] & 0xff);
         break;
+
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_FLOAT:
     case MYSQL_TYPE_DOUBLE:
-        length= m_field_metadata[col];
+        length = m_field_metadata[col];
         break;
+
     /*
       The cases for SET and ENUM are include for completeness, however
       both are mapped to type MYSQL_TYPE_STRING and their real types
@@ -243,65 +247,80 @@ uint32 table_def::calc_field_size(uint col, uchar *master_data) const
     case MYSQL_TYPE_SET:
     case MYSQL_TYPE_ENUM:
     case MYSQL_TYPE_STRING: {
-        uchar type= m_field_metadata[col] >> 8U;
+        uchar type = m_field_metadata[col] >> 8U;
+
         if ((type == MYSQL_TYPE_SET) || (type == MYSQL_TYPE_ENUM))
-            length= m_field_metadata[col] & 0x00ff;
+            length = m_field_metadata[col] & 0x00ff;
         else {
             /*
               We are reading the actual size from the master_data record
               because this field has the actual lengh stored in the first
               one or two bytes.
             */
-            length= max_display_length_for_field(MYSQL_TYPE_STRING, m_field_metadata[col]) > 255 ? 2 : 1;
-
+            length = max_display_length_for_field(MYSQL_TYPE_STRING, m_field_metadata[col]) > 255 ? 2 : 1;
             /* As in Field_string::unpack */
-            length+= ((length == 1) ? *master_data : uint2korr(master_data));
+            length += ((length == 1) ? *master_data : uint2korr(master_data));
         }
+
         break;
     }
+
     case MYSQL_TYPE_YEAR:
     case MYSQL_TYPE_TINY:
-        length= 1;
+        length = 1;
         break;
+
     case MYSQL_TYPE_SHORT:
-        length= 2;
+        length = 2;
         break;
+
     case MYSQL_TYPE_INT24:
-        length= 3;
+        length = 3;
         break;
+
     case MYSQL_TYPE_LONG:
-        length= 4;
+        length = 4;
         break;
 #ifdef HAVE_LONG_LONG
+
     case MYSQL_TYPE_LONGLONG:
-        length= 8;
+        length = 8;
         break;
 #endif
+
     case MYSQL_TYPE_NULL:
-        length= 0;
+        length = 0;
         break;
+
     case MYSQL_TYPE_NEWDATE:
-        length= 3;
+        length = 3;
         break;
+
     case MYSQL_TYPE_DATE:
     case MYSQL_TYPE_TIME:
-        length= 3;
+        length = 3;
         break;
+
     case MYSQL_TYPE_TIME2:
-        length= my_time_binary_length(m_field_metadata[col]);
+        length = my_time_binary_length(m_field_metadata[col]);
         break;
+
     case MYSQL_TYPE_TIMESTAMP:
-        length= 4;
+        length = 4;
         break;
+
     case MYSQL_TYPE_TIMESTAMP2:
-        length= my_timestamp_binary_length(m_field_metadata[col]);
+        length = my_timestamp_binary_length(m_field_metadata[col]);
         break;
+
     case MYSQL_TYPE_DATETIME:
-        length= 8;
+        length = 8;
         break;
+
     case MYSQL_TYPE_DATETIME2:
-        length= my_datetime_binary_length(m_field_metadata[col]);
+        length = my_datetime_binary_length(m_field_metadata[col]);
         break;
+
     case MYSQL_TYPE_BIT: {
         /*
           Decode the size of the bit field from the master.
@@ -310,17 +329,19 @@ uint32 table_def::calc_field_size(uint col, uchar *master_data) const
           If from_bit_len is not 0, add 1 to the length to account for accurate
           number of bytes needed.
         */
-        uint from_len= (m_field_metadata[col] >> 8U) & 0x00ff;
-        uint from_bit_len= m_field_metadata[col] & 0x00ff;
+        uint from_len = (m_field_metadata[col] >> 8U) & 0x00ff;
+        uint from_bit_len = m_field_metadata[col] & 0x00ff;
         DBUG_ASSERT(from_bit_len <= 7);
-        length= from_len + ((from_bit_len > 0) ? 1 : 0);
+        length = from_len + ((from_bit_len > 0) ? 1 : 0);
         break;
     }
+
     case MYSQL_TYPE_VARCHAR: {
-        length= m_field_metadata[col] > 255 ? 2 : 1; // c&p of Field_varstring::data_length()
-        length+= length == 1 ? (uint32) *master_data : uint2korr(master_data);
+        length = m_field_metadata[col] > 255 ? 2 : 1; // c&p of Field_varstring::data_length()
+        length += length == 1 ? (uint32) * master_data : uint2korr(master_data);
         break;
     }
+
     case MYSQL_TYPE_TINY_BLOB:
     case MYSQL_TYPE_MEDIUM_BLOB:
     case MYSQL_TYPE_LONG_BLOB:
@@ -335,8 +356,9 @@ uint32 table_def::calc_field_size(uint col, uchar *master_data) const
           always read the length in little-endian order.
         */
         Field_blob fb(m_field_metadata[col]);
-        length= fb.get_packed_size(master_data, TRUE);
+        length = fb.get_packed_size(master_data, TRUE);
 #else
+
         /*
           Compute the length of the data. We cannot use get_length() here
           since it is dependent on the specific table (and also checks the
@@ -345,29 +367,35 @@ uint32 table_def::calc_field_size(uint col, uchar *master_data) const
         */
         switch (m_field_metadata[col]) {
         case 1:
-            length= *master_data;
+            length = *master_data;
             break;
+
         case 2:
-            length= uint2korr(master_data);
+            length = uint2korr(master_data);
             break;
+
         case 3:
-            length= uint3korr(master_data);
+            length = uint3korr(master_data);
             break;
+
         case 4:
-            length= uint4korr(master_data);
+            length = uint4korr(master_data);
             break;
+
         default:
             DBUG_ASSERT(0);		// Should not come here
             break;
         }
 
-        length+= m_field_metadata[col];
+        length += m_field_metadata[col];
 #endif
         break;
     }
+
     default:
-        length= ~(uint32) 0;
+        length = ~(uint32) 0;
     }
+
     return length;
 }
 
@@ -439,37 +467,37 @@ static void show_sql_type(enum_field_types type, uint16 metadata, String *str,
 
     case MYSQL_TYPE_VAR_STRING:
     case MYSQL_TYPE_VARCHAR: {
-        const CHARSET_INFO *cs= str->charset();
-        uint32 length=
-            cs->cset->snprintf(cs, (char*) str->ptr(), str->alloced_length(),
+        const CHARSET_INFO *cs = str->charset();
+        uint32 length =
+            cs->cset->snprintf(cs, (char *) str->ptr(), str->alloced_length(),
                                "varchar(%u)", metadata);
         str->length(length);
     }
     break;
 
     case MYSQL_TYPE_BIT: {
-        const CHARSET_INFO *cs= str->charset();
-        int bit_length= 8 * (metadata >> 8) + (metadata & 0xFF);
-        uint32 length=
-            cs->cset->snprintf(cs, (char*) str->ptr(), str->alloced_length(),
+        const CHARSET_INFO *cs = str->charset();
+        int bit_length = 8 * (metadata >> 8) + (metadata & 0xFF);
+        uint32 length =
+            cs->cset->snprintf(cs, (char *) str->ptr(), str->alloced_length(),
                                "bit(%d)", bit_length);
         str->length(length);
     }
     break;
 
     case MYSQL_TYPE_DECIMAL: {
-        const CHARSET_INFO *cs= str->charset();
-        uint32 length=
-            cs->cset->snprintf(cs, (char*) str->ptr(), str->alloced_length(),
+        const CHARSET_INFO *cs = str->charset();
+        uint32 length =
+            cs->cset->snprintf(cs, (char *) str->ptr(), str->alloced_length(),
                                "decimal(%d,?)", metadata);
         str->length(length);
     }
     break;
 
     case MYSQL_TYPE_NEWDECIMAL: {
-        const CHARSET_INFO *cs= str->charset();
-        uint32 length=
-            cs->cset->snprintf(cs, (char*) str->ptr(), str->alloced_length(),
+        const CHARSET_INFO *cs = str->charset();
+        uint32 length =
+            cs->cset->snprintf(cs, (char *) str->ptr(), str->alloced_length(),
                                "decimal(%d,%d)", metadata >> 8, metadata & 0xff);
         str->length(length);
     }
@@ -484,6 +512,7 @@ static void show_sql_type(enum_field_types type, uint16 metadata, String *str,
         break;
 
     case MYSQL_TYPE_BLOB:
+
         /*
           Field::real_type() lies regarding the actual type of a BLOB, so
           it is necessary to check the pack length to figure out what kind
@@ -510,16 +539,17 @@ static void show_sql_type(enum_field_types type, uint16 metadata, String *str,
             DBUG_ASSERT(0);
             break;
         }
+
         break;
 
     case MYSQL_TYPE_STRING: {
         /*
           This is taken from Field_string::unpack.
         */
-        const CHARSET_INFO *cs= str->charset();
-        uint bytes= (((metadata >> 4) & 0x300) ^ 0x300) + (metadata & 0x00ff);
-        uint32 length=
-            cs->cset->snprintf(cs, (char*) str->ptr(), str->alloced_length(),
+        const CHARSET_INFO *cs = str->charset();
+        uint bytes = (((metadata >> 4) & 0x300) ^ 0x300) + (metadata & 0x00ff);
+        uint32 length =
+            cs->cset->snprintf(cs, (char *) str->ptr(), str->alloced_length(),
                                "char(%d)", bytes / field_cs->mbmaxlen);
         str->length(length);
     }
@@ -532,6 +562,7 @@ static void show_sql_type(enum_field_types type, uint16 metadata, String *str,
     default:
         str->set_ascii(STRING_WITH_LEN("<unknown type>"));
     }
+
     DBUG_VOID_RETURN;
 }
 
@@ -547,15 +578,14 @@ bool is_conversion_ok(int order, Relay_log_info *rli)
 {
     DBUG_ENTER("is_conversion_ok");
     bool allow_non_lossy, allow_lossy;
-
     allow_non_lossy = slave_type_conversions_options &
                       (ULL(1) << SLAVE_TYPE_CONVERSIONS_ALL_NON_LOSSY);
-    allow_lossy= slave_type_conversions_options &
-                 (ULL(1) << SLAVE_TYPE_CONVERSIONS_ALL_LOSSY);
-
+    allow_lossy = slave_type_conversions_options &
+                  (ULL(1) << SLAVE_TYPE_CONVERSIONS_ALL_LOSSY);
     DBUG_PRINT("enter", ("order: %d, flags:%s%s", order,
                          allow_non_lossy ? " ALL_NON_LOSSY" : "",
                          allow_lossy ? " ALL_LOSSY" : ""));
+
     if (order < 0 && !allow_non_lossy) {
         /* !!! Add error message saying that non-lossy conversions need to be allowed. */
         DBUG_RETURN(false);
@@ -601,13 +631,13 @@ bool is_conversion_ok(int order, Relay_log_info *rli)
    settings, @c false if conversion is not possible according to the
    current setting.
  */
-static bool
-can_convert_field_to(Field *field,
-                     enum_field_types source_type, uint16 metadata,
-                     Relay_log_info *rli, uint16 mflags,
-                     int *order_var)
+static bool can_convert_field_to(Field *field,
+                                 enum_field_types source_type, uint16 metadata,
+                                 Relay_log_info *rli, uint16 mflags,
+                                 int *order_var)
 {
     DBUG_ENTER("can_convert_field_to");
+
     /*
       If the real type is the same, we need to check the metadata to
       decide if conversions are allowed.
@@ -620,12 +650,13 @@ can_convert_field_to(Field *field,
               metadata. In either case, conversion can be done but no
               conversion table is necessary.
              */
-            *order_var= 0;
+            *order_var = 0;
             DBUG_RETURN(true);
         }
 
-        *order_var= -1;
+        *order_var = -1;
         DBUG_RETURN(true);
+
     } else if (metadata == 0 &&
                ((field->real_type() == MYSQL_TYPE_TIMESTAMP2 &&
                  source_type == MYSQL_TYPE_TIMESTAMP) ||
@@ -639,13 +670,15 @@ can_convert_field_to(Field *field,
           from old TIME, TIMESTAMP, DATETIME
           to new TIME(0), TIMESTAMP(0), DATETIME(0).
         */
-        *order_var= -1;
+        *order_var = -1;
         DBUG_RETURN(true);
+
     } else {
         //这里只要有不同的类型，就转换，但是需要以binlog里面的内容为主
-        *order_var= -1;
+        *order_var = -1;
         DBUG_RETURN(true);
     }
+
     DBUG_RETURN(false);                                 // To keep GCC happy
 }
 
@@ -678,31 +711,32 @@ can_convert_field_to(Field *field,
   @retval false Master table is not compatible with slave table.
 */
 
-bool
-table_def::compatible_with(THD *thd, Relay_log_info *rli,
-                           table_info_t *table, TABLE **conv_table_var,
-                           MEM_ROOT *mem_root /*default = NULL*/) const
+bool table_def::compatible_with(THD *thd, Relay_log_info *rli,
+                                table_info_t *table, TABLE **conv_table_var,
+                                MEM_ROOT *mem_root /*default = NULL*/) const
 {
     if (mem_root == NULL)
-        mem_root= thd->mem_root;
+        mem_root = thd->mem_root;
 
-    field_info_t* field_info;
-    int col=0;
+    field_info_t *field_info;
+    int col = 0;
     /*
        We only check the initial columns for the tables.
        */
-    TABLE *tmp_table= NULL;
-
+    TABLE *tmp_table = NULL;
     field_info = LIST_GET_FIRST(table->field_lst);
+
     while(field_info) {
-        Field *const field= field_info->field;
-        int order=0;
+        Field *const field = field_info->field;
+        int order = 0;
+
         if (field == NULL || can_convert_field_to(field, type(col),
                 field_metadata(col), rli, m_flags, &order)) {
             DBUG_ASSERT(order >= -1 && order <= 1);
 
             if (!field)
-                order=-1;
+                order = -1;
+
             /*
               If order is not 0, a conversion is required, so we need to set
               up the conversion table.
@@ -712,26 +746,28 @@ table_def::compatible_with(THD *thd, Relay_log_info *rli,
                   This will create the full table with all fields. This is
                   necessary to ge the correct field lengths for the record.
                 */
-                tmp_table= create_conversion_table(thd, rli, table, mem_root);
+                tmp_table = create_conversion_table(thd, rli, table, mem_root);
+
                 if (tmp_table == NULL)
                     return false;
+
                 /*
                   Clear all fields up to, but not including, this column.
                 */
-                for (unsigned int i= 0; i < col; ++i)
-                    tmp_table->field[i]= NULL;
+                for (unsigned int i = 0; i < col; ++i)
+                    tmp_table->field[i] = NULL;
             }
 
             //if not need to convert, then set this column to null
             if (order == 0 && tmp_table != NULL)
-                tmp_table->field[col]= NULL;
+                tmp_table->field[col] = NULL;
         }
 
         col++;
         field_info = LIST_GET_NEXT(link, field_info);
     }
 
-    *conv_table_var= tmp_table;
+    *conv_table_var = tmp_table;
     return true;
 }
 
@@ -745,47 +781,52 @@ table_def::compatible_with(THD *thd, Relay_log_info *rli,
   conversion table.
  */
 
-TABLE *
-table_def::create_conversion_table(
+TABLE *table_def::create_conversion_table(
     THD *thd,
     Relay_log_info *rli,
     table_info_t *target_table,
     MEM_ROOT *mem_root /*default = NULL*/
 ) const
 {
-    int col=0;
+    int col = 0;
     DBUG_ENTER("table_def::create_conversion_table");
-    if (mem_root == NULL)
-        mem_root= thd->mem_root;
 
-    field_info_t* field_info;
+    if (mem_root == NULL)
+        mem_root = thd->mem_root;
+
+    field_info_t *field_info;
     List<Create_field> field_list;
     /*
       At slave, columns may differ. So we should create
       min(columns@master, columns@slave) columns in the
       conversion table.
     */
-    DBUG_ASSERT(LIST_GET_LEN(target_table->field_lst)== size());
+    DBUG_ASSERT(LIST_GET_LEN(target_table->field_lst) == size());
     field_info = LIST_GET_FIRST(target_table->field_lst);
+
     while(field_info) {
-        Create_field *field_def=
-            (Create_field*) alloc_root(mem_root, sizeof(Create_field));
+        Create_field *field_def =
+            (Create_field *) alloc_root(mem_root, sizeof(Create_field));
+
         if (field_list.push_back(field_def))
             DBUG_RETURN(NULL);
 
-        uint decimals= 0;
-        TYPELIB* interval= NULL;
-        uint pack_length= 0;
-        uint32 max_length=
+        uint decimals = 0;
+        TYPELIB *interval = NULL;
+        uint pack_length = 0;
+        uint32 max_length =
             max_display_length_for_field(type(col), field_metadata(col));
+
         if (max_length == UINT_MAX)
             max_length = field_info->field_length;
+
         switch(type(col)) {
             int precision;
+
         case MYSQL_TYPE_ENUM:
         case MYSQL_TYPE_SET:
-            interval= static_cast<Field_enum*>(field_info->field)->typelib;
-            pack_length= field_metadata(col) & 0x00ff;
+            interval = static_cast<Field_enum *>(field_info->field)->typelib;
+            pack_length = field_metadata(col) & 0x00ff;
             break;
 
         case MYSQL_TYPE_NEWDECIMAL:
@@ -794,16 +835,16 @@ table_def::create_conversion_table(
               length that should be supplied to make_field, so we correct
               the length here.
              */
-            precision= field_metadata(col) >> 8;
-            decimals= field_metadata(col) & 0x00ff;
-            max_length=
+            precision = field_metadata(col) >> 8;
+            decimals = field_metadata(col) & 0x00ff;
+            max_length =
                 my_decimal_precision_to_length(precision, decimals, FALSE);
             break;
 
         case MYSQL_TYPE_DECIMAL:
-            precision= field_metadata(col);
-            decimals= static_cast<Field_num*>(field_info->field)->dec;
-            max_length= field_metadata(col);
+            precision = field_metadata(col);
+            decimals = static_cast<Field_num *>(field_info->field)->dec;
+            max_length = field_metadata(col);
             break;
 
         case MYSQL_TYPE_TINY_BLOB:
@@ -811,7 +852,7 @@ table_def::create_conversion_table(
         case MYSQL_TYPE_LONG_BLOB:
         case MYSQL_TYPE_BLOB:
         case MYSQL_TYPE_GEOMETRY:
-            pack_length= field_metadata(col) & 0x00ff;
+            pack_length = field_metadata(col) & 0x00ff;
             break;
 
         default:
@@ -824,14 +865,16 @@ table_def::create_conversion_table(
                                       TRUE,         // maybe_null
                                       FALSE,        // unsigned_flag
                                       pack_length);
+
         if (field_info->field)
-            field_def->charset= field_info->field->charset();
-        field_def->interval= interval;
+            field_def->charset = field_info->field->charset();
+
+        field_def->interval = interval;
         field_info = LIST_GET_NEXT(link, field_info);
         col++;
     }
 
-    TABLE *conv_table= create_virtual_tmp_table(thd, field_list, mem_root);
+    TABLE *conv_table = create_virtual_tmp_table(thd, field_list, mem_root);
     DBUG_RETURN(conv_table);
 }
 
@@ -844,19 +887,19 @@ table_def::table_def(unsigned char *types, ulong size,
       m_field_metadata(0), m_null_bits(0), m_flags(flags),
       m_memory(NULL)
 {
-    m_memory= (uchar *)my_multi_malloc(MYF(MY_WME),
-                                       &m_type, size,
-                                       &m_field_metadata,
-                                       size * sizeof(uint16),
-                                       &m_null_bits, (size + 7) / 8,
-                                       NULL);
-
+    m_memory = (uchar *)my_multi_malloc(MYF(MY_WME),
+                                        &m_type, size,
+                                        &m_field_metadata,
+                                        size * sizeof(uint16),
+                                        &m_null_bits, (size + 7) / 8,
+                                        NULL);
     memset(m_field_metadata, 0, size * sizeof(uint16));
 
     if (m_type)
         memcpy(m_type, types, size);
     else
-        m_size= 0;
+        m_size = 0;
+
     /*
       Extract the data from the table map into the field metadata array
       iff there is field metadata. The variable metadata_size will be
@@ -865,8 +908,9 @@ table_def::table_def(unsigned char *types, ulong size,
       there were no fields in the master that needed extra metadata.
     */
     if (m_size && metadata_size) {
-        int index= 0;
-        for (unsigned int i= 0; i < m_size; i++) {
+        int index = 0;
+
+        for (unsigned int i = 0; i < m_size; i++) {
             switch (binlog_type(i)) {
             case MYSQL_TYPE_TINY_BLOB:
             case MYSQL_TYPE_BLOB:
@@ -878,50 +922,57 @@ table_def::table_def(unsigned char *types, ulong size,
                 /*
                   These types store a single byte.
                 */
-                m_field_metadata[i]= field_metadata[index];
+                m_field_metadata[i] = field_metadata[index];
                 index++;
                 break;
             }
+
             case MYSQL_TYPE_SET:
             case MYSQL_TYPE_ENUM:
             case MYSQL_TYPE_STRING: {
-                uint16 x= field_metadata[index++] << 8U; // real_type
-                x+= field_metadata[index++];            // pack or field length
-                m_field_metadata[i]= x;
+                uint16 x = field_metadata[index++] << 8U; // real_type
+                x += field_metadata[index++];           // pack or field length
+                m_field_metadata[i] = x;
                 break;
             }
+
             case MYSQL_TYPE_BIT: {
-                uint16 x= field_metadata[index++];
+                uint16 x = field_metadata[index++];
                 x = x + (field_metadata[index++] << 8U);
-                m_field_metadata[i]= x;
+                m_field_metadata[i] = x;
                 break;
             }
+
             case MYSQL_TYPE_VARCHAR: {
                 /*
                   These types store two bytes.
                 */
-                char *ptr= (char *)&field_metadata[index];
-                m_field_metadata[i]= uint2korr(ptr);
-                index= index + 2;
+                char *ptr = (char *)&field_metadata[index];
+                m_field_metadata[i] = uint2korr(ptr);
+                index = index + 2;
                 break;
             }
+
             case MYSQL_TYPE_NEWDECIMAL: {
-                uint16 x= field_metadata[index++] << 8U; // precision
-                x+= field_metadata[index++];            // decimals
-                m_field_metadata[i]= x;
+                uint16 x = field_metadata[index++] << 8U; // precision
+                x += field_metadata[index++];           // decimals
+                m_field_metadata[i] = x;
                 break;
             }
+
             case MYSQL_TYPE_TIME2:
             case MYSQL_TYPE_DATETIME2:
             case MYSQL_TYPE_TIMESTAMP2:
-                m_field_metadata[i]= field_metadata[index++];
+                m_field_metadata[i] = field_metadata[index++];
                 break;
+
             default:
-                m_field_metadata[i]= 0;
+                m_field_metadata[i] = 0;
                 break;
             }
         }
     }
+
     if (m_size && null_bitmap)
         memcpy(m_null_bits, null_bitmap, (m_size + 7) / 8);
 }
@@ -931,8 +982,8 @@ table_def::~table_def()
 {
     my_free(m_memory);
 #ifndef DBUG_OFF
-    m_type= 0;
-    m_size= 0;
+    m_type = 0;
+    m_size = 0;
 #endif
 }
 
@@ -945,8 +996,8 @@ table_def::~table_def()
 */
 bool event_checksum_test(uchar *event_buf, ulong event_len, uint8 alg)
 {
-    bool res= FALSE;
-    uint16 flags= 0; // to store in FD's buffer flags orig value
+    bool res = FALSE;
+    uint16 flags = 0; // to store in FD's buffer flags orig value
 
     if (alg != BINLOG_CHECKSUM_ALG_OFF && alg != BINLOG_CHECKSUM_ALG_UNDEF) {
         ha_checksum incoming;
@@ -954,15 +1005,17 @@ bool event_checksum_test(uchar *event_buf, ulong event_len, uint8 alg)
 
         if (event_buf[EVENT_TYPE_OFFSET] == FORMAT_DESCRIPTION_EVENT) {
 #ifndef DBUG_OFF
-            int8 fd_alg= event_buf[event_len - BINLOG_CHECKSUM_LEN -
-                                             BINLOG_CHECKSUM_ALG_DESC_LEN];
+            int8 fd_alg = event_buf[event_len - BINLOG_CHECKSUM_LEN -
+                                              BINLOG_CHECKSUM_ALG_DESC_LEN];
 #endif
             /*
               FD event is checksummed and therefore verified w/o the binlog-in-use flag
             */
-            flags= uint2korr(event_buf + FLAGS_OFFSET);
+            flags = uint2korr(event_buf + FLAGS_OFFSET);
+
             if (flags & LOG_EVENT_BINLOG_IN_USE_F)
                 event_buf[FLAGS_OFFSET] &= ~LOG_EVENT_BINLOG_IN_USE_F;
+
             /*
                The only algorithm currently is CRC32. Zero indicates
                the binlog file is checksum-free *except* the FD-event.
@@ -974,18 +1027,22 @@ bool event_checksum_test(uchar *event_buf, ulong event_len, uint8 alg)
             */
             compile_time_assert(BINLOG_CHECKSUM_ALG_ENUM_END <= 0x80);
         }
-        incoming= uint4korr(event_buf + event_len - BINLOG_CHECKSUM_LEN);
-        computed= my_checksum(0L, NULL, 0);
+
+        incoming = uint4korr(event_buf + event_len - BINLOG_CHECKSUM_LEN);
+        computed = my_checksum(0L, NULL, 0);
         /* checksum the event content but the checksum part itself */
-        computed= my_checksum(computed, (const uchar*) event_buf,
-                              event_len - BINLOG_CHECKSUM_LEN);
+        computed = my_checksum(computed, (const uchar *) event_buf,
+                               event_len - BINLOG_CHECKSUM_LEN);
+
         if (flags != 0) {
             /* restoring the orig value of flags of FD */
             DBUG_ASSERT(event_buf[EVENT_TYPE_OFFSET] == FORMAT_DESCRIPTION_EVENT);
-            event_buf[FLAGS_OFFSET]= flags;
+            event_buf[FLAGS_OFFSET] = flags;
         }
-        res= !(computed == incoming);
+
+        res = !(computed == incoming);
     }
+
     return DBUG_EVALUATE_IF("simulate_checksum_test_failure", TRUE, res);
 }
 
@@ -997,31 +1054,31 @@ bool event_checksum_test(uchar *event_buf, ulong event_len, uint8 alg)
   Utility methods for handling row based operations.
  */
 
-static uchar*
-hash_slave_rows_get_key(const uchar *record,
-                        size_t *length,
-                        my_bool not_used __attribute__((unused)))
+static uchar *hash_slave_rows_get_key(const uchar *record,
+                                      size_t *length,
+                                      my_bool not_used __attribute__((unused)))
 {
     DBUG_ENTER("get_key");
-
-    HASH_ROW_ENTRY *entry=(HASH_ROW_ENTRY *) record;
-    HASH_ROW_PREAMBLE *preamble= entry->preamble;
-    *length= preamble->length;
-
-    DBUG_RETURN((uchar*) &preamble->hash_value);
+    HASH_ROW_ENTRY *entry = (HASH_ROW_ENTRY *) record;
+    HASH_ROW_PREAMBLE *preamble = entry->preamble;
+    *length = preamble->length;
+    DBUG_RETURN((uchar *) &preamble->hash_value);
 }
 
-static void
-hash_slave_rows_free_entry(HASH_ROW_ENTRY *entry)
+static void hash_slave_rows_free_entry(HASH_ROW_ENTRY *entry)
 {
     DBUG_ENTER("free_entry");
+
     if (entry) {
         if (entry->preamble)
             my_free(entry->preamble);
+
         if (entry->positions)
             my_free(entry->positions);
+
         my_free(entry);
     }
+
     DBUG_VOID_RETURN;
 }
 
@@ -1045,6 +1102,7 @@ bool Hash_slave_rows::init(void)
                      (my_hash_free_key) hash_slave_rows_free_entry,  /* freefunction pointer */
                      MYF(0)))                        /* flags */
         return true;
+
     return false;
 }
 
@@ -1061,14 +1119,13 @@ int Hash_slave_rows::size()
     return m_hash.records;
 }
 
-HASH_ROW_ENTRY* Hash_slave_rows::make_entry(const uchar* bi_start, const uchar* bi_ends,
-        const uchar* ai_start, const uchar* ai_ends)
+HASH_ROW_ENTRY *Hash_slave_rows::make_entry(const uchar *bi_start, const uchar *bi_ends,
+        const uchar *ai_start, const uchar *ai_ends)
 {
     DBUG_ENTER("Hash_slave_rows::make_entry");
-
-    HASH_ROW_ENTRY *entry= (HASH_ROW_ENTRY*) my_malloc(sizeof(HASH_ROW_ENTRY), MYF(0));
-    HASH_ROW_PREAMBLE *preamble= (HASH_ROW_PREAMBLE *) my_malloc(sizeof(HASH_ROW_PREAMBLE), MYF(0));
-    HASH_ROW_POS *pos= (HASH_ROW_POS *) my_malloc(sizeof(HASH_ROW_POS), MYF(0));
+    HASH_ROW_ENTRY *entry = (HASH_ROW_ENTRY *) my_malloc(sizeof(HASH_ROW_ENTRY), MYF(0));
+    HASH_ROW_PREAMBLE *preamble = (HASH_ROW_PREAMBLE *) my_malloc(sizeof(HASH_ROW_PREAMBLE), MYF(0));
+    HASH_ROW_POS *pos = (HASH_ROW_POS *) my_malloc(sizeof(HASH_ROW_POS), MYF(0));
 
     if (!entry || !preamble || !pos)
         goto err;
@@ -1076,91 +1133,82 @@ HASH_ROW_ENTRY* Hash_slave_rows::make_entry(const uchar* bi_start, const uchar* 
     /**
        Filling in the preamble.
      */
-    preamble->hash_value= 0;
-    preamble->length= sizeof(my_hash_value_type);
-    preamble->search_state= HASH_ROWS_POS_SEARCH_INVALID;
-    preamble->is_search_state_inited= false;
-
+    preamble->hash_value = 0;
+    preamble->length = sizeof(my_hash_value_type);
+    preamble->search_state = HASH_ROWS_POS_SEARCH_INVALID;
+    preamble->is_search_state_inited = false;
     /**
        Filling in the positions.
      */
-    pos->bi_start= (const uchar *) bi_start;
-    pos->bi_ends= (const uchar *) bi_ends;
-    pos->ai_start= (const uchar *) ai_start;
-    pos->ai_ends= (const uchar *) ai_ends;
-
+    pos->bi_start = (const uchar *) bi_start;
+    pos->bi_ends = (const uchar *) bi_ends;
+    pos->ai_start = (const uchar *) ai_start;
+    pos->ai_ends = (const uchar *) ai_ends;
     /**
       Filling in the entry
      */
-    entry->preamble= preamble;
-    entry->positions= pos;
-
+    entry->preamble = preamble;
+    entry->positions = pos;
     DBUG_RETURN(entry);
-
 err:
+
     if (entry)
         my_free(entry);
+
     if (preamble)
         my_free(entry);
+
     if (pos)
         my_free(pos);
+
     DBUG_RETURN(NULL);
 }
 
-bool
-Hash_slave_rows::put(TABLE *table,
-                     MY_BITMAP *cols,
-                     HASH_ROW_ENTRY* entry)
+bool Hash_slave_rows::put(TABLE *table,
+                          MY_BITMAP *cols,
+                          HASH_ROW_ENTRY *entry)
 {
-
     DBUG_ENTER("Hash_slave_rows::put");
-
-    HASH_ROW_PREAMBLE* preamble= entry->preamble;
-
+    HASH_ROW_PREAMBLE *preamble = entry->preamble;
     /**
        Skip blobs and BIT fields from key calculation.
        Handle X bits.
        Handle nulled fields.
        Handled fields not signaled.
     */
-    preamble->hash_value= make_hash_key(table, cols);
-
+    preamble->hash_value = make_hash_key(table, cols);
     my_hash_insert(&m_hash, (uchar *) entry);
     DBUG_PRINT("debug", ("Added record to hash with key=%u", preamble->hash_value));
     DBUG_RETURN(false);
 }
 
-HASH_ROW_ENTRY*
-Hash_slave_rows::get(TABLE *table, MY_BITMAP *cols)
+HASH_ROW_ENTRY *Hash_slave_rows::get(TABLE *table, MY_BITMAP *cols)
 {
     DBUG_ENTER("Hash_slave_rows::get");
     HASH_SEARCH_STATE state;
     my_hash_value_type key;
-    HASH_ROW_ENTRY *entry= NULL;
-
-    key= make_hash_key(table, cols);
-
+    HASH_ROW_ENTRY *entry = NULL;
+    key = make_hash_key(table, cols);
     DBUG_PRINT("debug", ("Looking for record with key=%u in the hash.", key));
+    entry = (HASH_ROW_ENTRY *) my_hash_first(&m_hash,
+            (const uchar *) &key,
+            sizeof(my_hash_value_type),
+            &state);
 
-    entry= (HASH_ROW_ENTRY*) my_hash_first(&m_hash,
-                                           (const uchar*) &key,
-                                           sizeof(my_hash_value_type),
-                                           &state);
     if (entry) {
         DBUG_PRINT("debug", ("Found record with key=%u in the hash.", key));
-
         /**
            Save the search state in case we need to go through entries for
            the given key.
         */
-        entry->preamble->search_state= state;
-        entry->preamble->is_search_state_inited= true;
+        entry->preamble->search_state = state;
+        entry->preamble->is_search_state_inited = true;
     }
 
     DBUG_RETURN(entry);
 }
 
-bool Hash_slave_rows::next(HASH_ROW_ENTRY** entry)
+bool Hash_slave_rows::next(HASH_ROW_ENTRY **entry)
 {
     DBUG_ENTER("Hash_slave_rows::next");
     DBUG_ASSERT(*entry);
@@ -1168,72 +1216,67 @@ bool Hash_slave_rows::next(HASH_ROW_ENTRY** entry)
     if (*entry == NULL)
         DBUG_RETURN(true);
 
-    HASH_ROW_PREAMBLE *preamble= (*entry)->preamble;
+    HASH_ROW_PREAMBLE *preamble = (*entry)->preamble;
 
     if (!preamble->is_search_state_inited)
         DBUG_RETURN(true);
 
-    my_hash_value_type key= preamble->hash_value;
-    HASH_SEARCH_STATE state= preamble->search_state;
-
+    my_hash_value_type key = preamble->hash_value;
+    HASH_SEARCH_STATE state = preamble->search_state;
     /*
       Invalidate search for current preamble, because it is going to be
       used in the search below (and search state is used in a
       one-time-only basis).
      */
-    preamble->search_state= HASH_ROWS_POS_SEARCH_INVALID;
-    preamble->is_search_state_inited= false;
-
+    preamble->search_state = HASH_ROWS_POS_SEARCH_INVALID;
+    preamble->is_search_state_inited = false;
     DBUG_PRINT("debug", ("Looking for record with key=%u in the hash (next).", key));
-
     /**
        Do the actual search in the hash table.
      */
-    *entry= (HASH_ROW_ENTRY*) my_hash_next(&m_hash,
-                                           (const uchar*) &key,
-                                           sizeof(my_hash_value_type),
-                                           &state);
+    *entry = (HASH_ROW_ENTRY *) my_hash_next(&m_hash,
+             (const uchar *) &key,
+             sizeof(my_hash_value_type),
+             &state);
+
     if (*entry) {
         DBUG_PRINT("debug", ("Found record with key=%u in the hash (next).", key));
-        preamble= (*entry)->preamble;
-
+        preamble = (*entry)->preamble;
         /**
            Save the search state for next iteration (if any).
          */
-        preamble->search_state= state;
-        preamble->is_search_state_inited= true;
+        preamble->search_state = state;
+        preamble->is_search_state_inited = true;
     }
 
     DBUG_RETURN(false);
 }
 
-bool
-Hash_slave_rows::del(HASH_ROW_ENTRY *entry)
+bool Hash_slave_rows::del(HASH_ROW_ENTRY *entry)
 {
     DBUG_ENTER("Hash_slave_rows::del");
     DBUG_ASSERT(entry);
 
     if (my_hash_delete(&m_hash, (uchar *) entry))
         DBUG_RETURN(true);
+
     DBUG_RETURN(false);
 }
 
-my_hash_value_type
-Hash_slave_rows::make_hash_key(TABLE *table, MY_BITMAP *cols)
+my_hash_value_type Hash_slave_rows::make_hash_key(TABLE *table, MY_BITMAP *cols)
 {
     DBUG_ENTER("Hash_slave_rows::make_hash_key");
-    ha_checksum crc= 0L;
-
-    uchar *record= table->record[0];
-    uchar saved_x= 0, saved_filler= 0;
+    ha_checksum crc = 0L;
+    uchar *record = table->record[0];
+    uchar saved_x = 0, saved_filler = 0;
 
     if (table->s->null_bytes > 0) {
         /*
           If we have an X bit then we need to take care of it.
         */
         if (!(table->s->db_options_in_use & HA_OPTION_PACK_RECORD)) {
-            saved_x= record[0];
-            record[0]|= 1U;
+            saved_x = record[0];
+            record[0] |= 1U;
         }
 
         /*
@@ -1242,8 +1285,8 @@ Hash_slave_rows::make_hash_key(TABLE *table, MY_BITMAP *cols)
           Ie, the entire byte is used.
         */
         if (table->s->last_null_bit_pos > 0) {
-            saved_filler= record[table->s->null_bytes - 1];
-            record[table->s->null_bytes - 1]|=
+            saved_filler = record[table->s->null_bytes - 1];
+            record[table->s->null_bytes - 1] |=
                 256U - (1U << table->s->last_null_bit_pos);
         }
     }
@@ -1258,17 +1301,17 @@ Hash_slave_rows::make_hash_key(TABLE *table, MY_BITMAP *cols)
       was not marked completely.
      */
     if (bitmap_is_set_all(cols))
-        crc= my_checksum(crc, table->null_flags, table->s->null_bytes);
+        crc = my_checksum(crc, table->null_flags, table->s->null_bytes);
 
-    for (Field **ptr=table->field ;
+    for (Field **ptr = table->field ;
             *ptr && ((*ptr)->field_index < cols->n_bits);
             ptr++) {
-        Field *f= (*ptr);
+        Field *f = (*ptr);
 
         /* field is set in the read_set and is not a blob or a BIT */
         if (bitmap_is_set(cols, f->field_index) &&
                 (f->type() != MYSQL_TYPE_BLOB) && (f->type() != MYSQL_TYPE_BIT))
-            crc= my_checksum(crc, f->ptr, f->data_length());
+            crc = my_checksum(crc, f->ptr, f->data_length());
     }
 
     /*
@@ -1279,10 +1322,10 @@ Hash_slave_rows::make_hash_key(TABLE *table, MY_BITMAP *cols)
     */
     if (table->s->null_bytes > 0) {
         if (!(table->s->db_options_in_use & HA_OPTION_PACK_RECORD))
-            record[0]= saved_x;
+            record[0] = saved_x;
 
         if (table->s->last_null_bit_pos)
-            record[table->s->null_bytes - 1]= saved_filler;
+            record[table->s->null_bytes - 1] = saved_filler;
     }
 
     DBUG_PRINT("debug", ("Created key=%u", crc));
@@ -1306,9 +1349,9 @@ Deferred_log_events::~Deferred_log_events()
 
 int Deferred_log_events::add(Log_event *ev)
 {
-    last_added= ev;
-    insert_dynamic(&array, (uchar*) &ev);
-    ev->worker= NULL; // to mark event busy avoiding deletion
+    last_added = ev;
+    insert_dynamic(&array, (uchar *) &ev);
+    ev->worker = NULL; // to mark event busy avoiding deletion
     return 0;
 }
 
@@ -1319,17 +1362,17 @@ bool Deferred_log_events::is_empty()
 
 bool Deferred_log_events::execute(Relay_log_info *rli)
 {
-    bool res= false;
-
+    bool res = false;
     DBUG_ASSERT(rli->deferred_events_collecting);
+    rli->deferred_events_collecting = false;
 
-    rli->deferred_events_collecting= false;
-    for (uint i=  0; !res && i < array.elements; i++) {
-        Log_event *ev= (* (Log_event **)
-                        dynamic_array_ptr(&array, i));
-        res= ev->apply_event(rli);
+    for (uint i =  0; !res && i < array.elements; i++) {
+        Log_event *ev = (* (Log_event **)
+                         dynamic_array_ptr(&array, i));
+        res = ev->apply_event(rli);
     }
-    rli->deferred_events_collecting= true;
+
+    rli->deferred_events_collecting = true;
     return res;
 }
 
@@ -1340,12 +1383,14 @@ void Deferred_log_events::rewind()
       deferred because of slave side filtering.
     */
     if (!is_empty()) {
-        for (uint i=  0; i < array.elements; i++) {
-            Log_event *ev= *(Log_event **) dynamic_array_ptr(&array, i);
+        for (uint i =  0; i < array.elements; i++) {
+            Log_event *ev = *(Log_event **) dynamic_array_ptr(&array, i);
             delete ev;
         }
+
         if (array.elements > array.max_element)
             freeze_size(&array);
+
         reset_dynamic(&array);
     }
 }

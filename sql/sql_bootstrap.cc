@@ -26,15 +26,15 @@ int read_bootstrap_query(char *query, int *query_length,
     char line_buffer[MAX_BOOTSTRAP_LINE_SIZE];
     const char *line;
     int len;
-    int query_len= 0;
-    int fgets_error= 0;
-    *error= 0;
+    int query_len = 0;
+    int fgets_error = 0;
+    *error = 0;
 
     for ( ; ; ) {
-        line= (*fgets_fn)(line_buffer, sizeof(line_buffer), input, &fgets_error);
+        line = (*fgets_fn)(line_buffer, sizeof(line_buffer), input, &fgets_error);
 
         if (error)
-            *error= fgets_error;
+            *error = fgets_error;
 
         if (fgets_error != 0)
             return READ_BOOTSTRAP_ERROR;
@@ -42,7 +42,7 @@ int read_bootstrap_query(char *query, int *query_length,
         if (line == NULL)
             return (query_len == 0) ? READ_BOOTSTRAP_EOF : READ_BOOTSTRAP_ERROR;
 
-        len= strlen(line);
+        len = strlen(line);
 
         /*
           Remove trailing whitespace characters.
@@ -54,11 +54,12 @@ int read_bootstrap_query(char *query, int *query_length,
         */
         while (len && (isspace(line[len - 1])))
             len--;
+
         /*
           Cleanly end the string, so we don't have to test len > x
           all the time before reading line[x], in the code below.
         */
-        line_buffer[len]= '\0';
+        line_buffer[len] = '\0';
 
         /* Skip blank lines */
         if (len == 0)
@@ -81,13 +82,15 @@ int read_bootstrap_query(char *query, int *query_length,
            error message.
         */
         if (query_len + len + 1 >= MAX_BOOTSTRAP_QUERY_SIZE) {
-            int new_len= MAX_BOOTSTRAP_QUERY_SIZE - query_len - 1;
+            int new_len = MAX_BOOTSTRAP_QUERY_SIZE - query_len - 1;
+
             if ((new_len > 0) && (query_len < MAX_BOOTSTRAP_QUERY_SIZE)) {
                 memcpy(query + query_len, line, new_len);
-                query_len+= new_len;
+                query_len += new_len;
             }
-            query[query_len]= '\0';
-            *query_length= query_len;
+
+            query[query_len] = '\0';
+            *query_length = query_len;
             return READ_BOOTSTRAP_QUERY_SIZE;
         }
 
@@ -96,18 +99,19 @@ int read_bootstrap_query(char *query, int *query_length,
               Append a \n to the current line, if any,
               to preserve the intended presentation.
              */
-            query[query_len++]= '\n';
+            query[query_len++] = '\n';
         }
+
         memcpy(query + query_len, line, len);
-        query_len+= len;
+        query_len += len;
 
         if (line[len - 1] == ';') {
             /*
               The last line is terminated by ';'.
               Return the query found.
             */
-            query[query_len]= '\0';
-            *query_length= query_len;
+            query[query_len] = '\0';
+            *query_length = query_len;
             return READ_BOOTSTRAP_SUCCESS;
         }
     }

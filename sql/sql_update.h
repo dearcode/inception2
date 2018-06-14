@@ -27,8 +27,8 @@ typedef class st_select_lex_unit SELECT_LEX_UNIT;
 
 bool mysql_prepare_update(THD *thd, TABLE_LIST *table_list,
                           Item **conds, uint order_num, ORDER *order);
-int mysql_update(THD *thd,TABLE_LIST *tables,List<Item> &fields,
-                 List<Item> &values,Item *conds,
+int mysql_update(THD *thd, TABLE_LIST *tables, List<Item> &fields,
+                 List<Item> &values, Item *conds,
                  uint order_num, ORDER *order, ha_rows limit,
                  enum enum_duplicates handle_duplicates, bool ignore,
                  ha_rows *found_return, ha_rows *updated_return);

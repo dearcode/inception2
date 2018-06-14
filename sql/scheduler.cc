@@ -34,17 +34,15 @@ static bool no_threads_end(THD *thd, bool put_in_cache)
 {
     thd_release_resources(thd);
     dec_connection_count();
-
     // THD is an incomplete type here, so use destroy_thd() to delete it.
     mysql_mutex_lock(&LOCK_thread_count);
     remove_global_thread(thd);
     mysql_mutex_unlock(&LOCK_thread_count);
     destroy_thd(thd);
-
     return 1;                                     // Abort handle_one_connection
 }
 
-static scheduler_functions one_thread_scheduler_functions= {
+static scheduler_functions one_thread_scheduler_functions = {
     1,                                     // max_threads
     NULL,                                  // init
     init_new_connection_handler_thread,    // init_new_connection_thread
@@ -61,7 +59,7 @@ static scheduler_functions one_thread_scheduler_functions= {
 };
 
 #ifndef EMBEDDED_LIBRARY
-static scheduler_functions one_thread_per_connection_scheduler_functions= {
+static scheduler_functions one_thread_per_connection_scheduler_functions = {
     0,                                     // max_threads
     NULL,                                  // init
     init_new_connection_handler_thread,    // init_new_connection_thread
@@ -75,7 +73,7 @@ static scheduler_functions one_thread_per_connection_scheduler_functions= {
 #endif  // EMBEDDED_LIBRARY
 
 
-scheduler_functions *thread_scheduler= NULL;
+scheduler_functions *thread_scheduler = NULL;
 
 /** @internal
   Helper functions to allow mysys to call the thread scheduler when
@@ -132,8 +130,8 @@ static void scheduler_init()
 void one_thread_per_connection_scheduler()
 {
     scheduler_init();
-    one_thread_per_connection_scheduler_functions.max_threads= max_connections;
-    thread_scheduler= &one_thread_per_connection_scheduler_functions;
+    one_thread_per_connection_scheduler_functions.max_threads = max_connections;
+    thread_scheduler = &one_thread_per_connection_scheduler_functions;
 }
 #endif
 
@@ -144,7 +142,7 @@ void one_thread_per_connection_scheduler()
 void one_thread_scheduler()
 {
     scheduler_init();
-    thread_scheduler= &one_thread_scheduler_functions;
+    thread_scheduler = &one_thread_scheduler_functions;
 }
 
 
@@ -178,11 +176,11 @@ int my_thread_scheduler_set(scheduler_functions *scheduler)
     if (scheduler == NULL)
         return 1;
 
-    saved_thread_scheduler= thread_scheduler;
-    saved_thread_handling= thread_handling;
-    thread_scheduler= scheduler;
+    saved_thread_scheduler = thread_scheduler;
+    saved_thread_handling = thread_handling;
+    thread_scheduler = scheduler;
     // Scheduler loaded dynamically
-    thread_handling= SCHEDULER_TYPES_COUNT;
+    thread_handling = SCHEDULER_TYPES_COUNT;
     return 0;
 }
 
@@ -195,9 +193,9 @@ int my_thread_scheduler_reset()
     if (saved_thread_scheduler == NULL)
         return 1;
 
-    thread_scheduler= saved_thread_scheduler;
-    thread_handling= saved_thread_handling;
-    saved_thread_scheduler= 0;
+    thread_scheduler = saved_thread_scheduler;
+    thread_handling = saved_thread_handling;
+    saved_thread_scheduler = 0;
     return 0;
 }
 

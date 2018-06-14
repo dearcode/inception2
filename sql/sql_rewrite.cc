@@ -58,13 +58,16 @@ bool append_int(String *str, bool comma, const char *txt, size_t len,
 {
     if (cond) {
         String numbuf(42);
+
         if (comma)
             str->append(STRING_WITH_LEN(", "));
-        str->append(txt,len);
-        numbuf.set((longlong)val,&my_charset_bin);
+
+        str->append(txt, len);
+        numbuf.set((longlong)val, &my_charset_bin);
         str->append(numbuf);
         return true;
     }
+
     return comma;
 }
 
@@ -86,12 +89,14 @@ bool append_str(String *str, bool comma, const char *key, char *val)
     if (val) {
         if (comma)
             str->append(STRING_WITH_LEN(", "));
+
         str->append(key);
         str->append(STRING_WITH_LEN(" '"));
         str->append(val);
         str->append(STRING_WITH_LEN("'"));
         return true;
     }
+
     return comma;
 }
 
@@ -105,16 +110,16 @@ bool append_str(String *str, bool comma, const char *key, char *val)
 
 static void mysql_rewrite_grant(THD *thd, String *rlb)
 {
-    LEX        *lex= thd->lex;
-    TABLE_LIST *first_table= (TABLE_LIST*) lex->select_lex.table_list.first;
-    bool        comma= FALSE, comma_inner;
+    LEX        *lex = thd->lex;
+    TABLE_LIST *first_table = (TABLE_LIST *) lex->select_lex.table_list.first;
+    bool        comma = FALSE, comma_inner;
     String      cols(1024);
     int         c;
-
     rlb->append(STRING_WITH_LEN("GRANT "));
 
     if (lex->all_privileges)
         rlb->append(STRING_WITH_LEN("ALL PRIVILEGES"));
+
 //   else
 //   {
 //     ulong priv;
@@ -168,15 +173,17 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
 //     if (!comma)                                // no privs, default to USAGE
 //       rlb->append(STRING_WITH_LEN("USAGE"));
 //   }
-
     rlb->append(STRING_WITH_LEN(" ON "));
+
     switch(lex->type) {
     case TYPE_ENUM_PROCEDURE:
         rlb->append(STRING_WITH_LEN("PROCEDURE "));
         break;
+
     case TYPE_ENUM_FUNCTION:
         rlb->append(STRING_WITH_LEN("FUNCTION "));
         break;
+
     default:
         break;
     }
@@ -186,12 +193,14 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
         rlb->append(STRING_WITH_LEN("."));
         append_identifier(thd, rlb, first_table->table_name,
                           strlen(first_table->table_name));
+
     } else {
         if (lex->current_select->db)
             append_identifier(thd, rlb, lex->current_select->db,
                               strlen(lex->current_select->db));
         else
             rlb->append("*");
+
         rlb->append(STRING_WITH_LEN(".*"));
     }
 
@@ -199,18 +208,19 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
     {
         LEX_USER *user_name, *tmp_user_name;
         List_iterator <LEX_USER> user_list(lex->users_list);
-        bool comma= FALSE;
+        bool comma = FALSE;
 
-        while ((tmp_user_name= user_list++)) {
-            if ((user_name= get_current_user(thd, tmp_user_name))) {
+        while ((tmp_user_name = user_list++)) {
+            if ((user_name = get_current_user(thd, tmp_user_name))) {
                 //append_user(thd, rlb, user_name, comma, true);
-                comma= TRUE;
+                comma = TRUE;
             }
         }
     }
 
     if (lex->ssl_type != SSL_TYPE_NOT_SPECIFIED) {
         rlb->append(STRING_WITH_LEN(" REQUIRE"));
+
         switch (lex->ssl_type) {
         case SSL_TYPE_SPECIFIED:
             if (lex->x509_subject) {
@@ -218,24 +228,31 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
                 rlb->append(lex->x509_subject);
                 rlb->append(STRING_WITH_LEN("'"));
             }
+
             if (lex->x509_issuer) {
                 rlb->append(STRING_WITH_LEN(" ISSUER '"));
                 rlb->append(lex->x509_issuer);
                 rlb->append(STRING_WITH_LEN("'"));
             }
+
             if (lex->ssl_cipher) {
                 rlb->append(STRING_WITH_LEN(" CIPHER '"));
                 rlb->append(lex->ssl_cipher);
                 rlb->append(STRING_WITH_LEN("'"));
             }
+
             break;
+
         case SSL_TYPE_X509:
             rlb->append(STRING_WITH_LEN(" X509"));
             break;
+
         case SSL_TYPE_ANY:
             rlb->append(STRING_WITH_LEN(" SSL"));
             break;
+
         case SSL_TYPE_NOT_SPECIFIED:
+
         /* fall-thru */
         case SSL_TYPE_NONE:
             rlb->append(STRING_WITH_LEN(" NONE"));
@@ -245,21 +262,19 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
 
     if (lex->mqh.specified_limits || (lex->grant & GRANT_ACL)) {
         rlb->append(STRING_WITH_LEN(" WITH"));
+
         if (lex->grant & GRANT_ACL)
             rlb->append(STRING_WITH_LEN(" GRANT OPTION"));
 
         append_int(rlb, false, STRING_WITH_LEN(" MAX_QUERIES_PER_HOUR "),
                    lex->mqh.questions,
                    lex->mqh.specified_limits & USER_RESOURCES::QUERIES_PER_HOUR);
-
         append_int(rlb, false, STRING_WITH_LEN(" MAX_UPDATES_PER_HOUR "),
                    lex->mqh.updates,
                    lex->mqh.specified_limits & USER_RESOURCES::UPDATES_PER_HOUR);
-
         append_int(rlb, false, STRING_WITH_LEN(" MAX_CONNECTIONS_PER_HOUR "),
                    lex->mqh.conn_per_hour,
                    lex->mqh.specified_limits & USER_RESOURCES::CONNECTIONS_PER_HOUR);
-
         append_int(rlb, false, STRING_WITH_LEN(" MAX_USER_CONNECTIONS "),
                    lex->mqh.user_conn,
                    lex->mqh.specified_limits & USER_RESOURCES::USER_CONNECTIONS);
@@ -276,18 +291,17 @@ static void mysql_rewrite_grant(THD *thd, String *rlb)
 
 static void mysql_rewrite_set(THD *thd, String *rlb)
 {
-    LEX                              *lex= thd->lex;
+    LEX                              *lex = thd->lex;
     List_iterator_fast<set_var_base>  it(lex->var_list);
     set_var_base                     *var;
-    bool                              comma= FALSE;
-
+    bool                              comma = FALSE;
     rlb->append(STRING_WITH_LEN("SET "));
 
-    while ((var= it++)) {
+    while ((var = it++)) {
         if (comma)
             rlb->append(STRING_WITH_LEN(","));
         else
-            comma= TRUE;
+            comma = TRUE;
 
         var->print(thd, rlb);
     }
@@ -303,16 +317,16 @@ static void mysql_rewrite_set(THD *thd, String *rlb)
 
 static void mysql_rewrite_create_user(THD *thd, String *rlb)
 {
-    LEX                      *lex= thd->lex;
+    LEX                      *lex = thd->lex;
     LEX_USER                 *user_name, *tmp_user_name;
     List_iterator <LEX_USER>  user_list(lex->users_list);
-    bool                      comma= FALSE;
-
+    bool                      comma = FALSE;
     rlb->append(STRING_WITH_LEN("CREATE USER "));
-    while ((tmp_user_name= user_list++)) {
-        if ((user_name= get_current_user(thd, tmp_user_name))) {
+
+    while ((tmp_user_name = user_list++)) {
+        if ((user_name = get_current_user(thd, tmp_user_name))) {
             //append_user(thd, rlb, user_name, comma, TRUE);
-            comma= TRUE;
+            comma = TRUE;
         }
     }
 }
@@ -327,8 +341,7 @@ static void mysql_rewrite_create_user(THD *thd, String *rlb)
 
 static void mysql_rewrite_change_master(THD *thd, String *rlb)
 {
-    LEX *lex= thd->lex;
-
+    LEX *lex = thd->lex;
     rlb->append(STRING_WITH_LEN("CHANGE MASTER TO"));
 
     if (lex->mi.host) {
@@ -336,65 +349,78 @@ static void mysql_rewrite_change_master(THD *thd, String *rlb)
         rlb->append(lex->mi.host);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.user) {
         rlb->append(STRING_WITH_LEN(" MASTER_USER = '"));
         rlb->append(lex->mi.user);
         rlb->append(STRING_WITH_LEN("'"));
     }
-    if (lex->mi.password) {
+
+    if (lex->mi.password)
         rlb->append(STRING_WITH_LEN(" MASTER_PASSWORD = <secret>"));
-    }
+
     if (lex->mi.port) {
         rlb->append(STRING_WITH_LEN(" MASTER_PORT = "));
         rlb->append_ulonglong(lex->mi.port);
     }
+
     if (lex->mi.connect_retry) {
         rlb->append(STRING_WITH_LEN(" MASTER_CONNECT_RETRY = "));
         rlb->append_ulonglong(lex->mi.connect_retry);
     }
+
     if (lex->mi.ssl) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL = "));
         rlb->append(lex->mi.ssl == LEX_MASTER_INFO::LEX_MI_ENABLE ? "1" : "0");
     }
+
     if (lex->mi.ssl_ca) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_CA = '"));
         rlb->append(lex->mi.ssl_ca);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.ssl_capath) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_CAPATH = '"));
         rlb->append(lex->mi.ssl_capath);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.ssl_cert) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_CERT = '"));
         rlb->append(lex->mi.ssl_cert);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.ssl_cipher) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_CIPHER = '"));
         rlb->append(lex->mi.ssl_cipher);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.ssl_key) {
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_KEY = '"));
         rlb->append(lex->mi.ssl_key);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.log_file_name) {
         rlb->append(STRING_WITH_LEN(" MASTER_LOG_FILE = '"));
         rlb->append(lex->mi.log_file_name);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.pos) {
         rlb->append(STRING_WITH_LEN(" MASTER_LOG_POS = "));
         rlb->append_ulonglong(lex->mi.pos);
     }
+
     if (lex->mi.relay_log_name) {
         rlb->append(STRING_WITH_LEN(" RELAY_LOG_FILE = '"));
         rlb->append(lex->mi.relay_log_name);
         rlb->append(STRING_WITH_LEN("'"));
     }
+
     if (lex->mi.relay_log_pos) {
         rlb->append(STRING_WITH_LEN(" RELAY_LOG_POS = "));
         rlb->append_ulonglong(lex->mi.relay_log_pos);
@@ -404,22 +430,29 @@ static void mysql_rewrite_change_master(THD *thd, String *rlb)
         rlb->append(STRING_WITH_LEN(" MASTER_SSL_VERIFY_SERVER_CERT = "));
         rlb->append(lex->mi.ssl_verify_server_cert == LEX_MASTER_INFO::LEX_MI_ENABLE ? "1" : "0");
     }
+
     if (lex->mi.repl_ignore_server_ids_opt) {
-        bool first= TRUE;
+        bool first = TRUE;
         rlb->append(STRING_WITH_LEN(" IGNORE_SERVER_IDS = ( "));
-        for (uint i= 0; i < lex->mi.repl_ignore_server_ids.elements; i++) {
+
+        for (uint i = 0; i < lex->mi.repl_ignore_server_ids.elements; i++) {
             ulong s_id;
-            get_dynamic(&lex->mi.repl_ignore_server_ids, (uchar*) &s_id, i);
+            get_dynamic(&lex->mi.repl_ignore_server_ids, (uchar *) &s_id, i);
+
             if (first)
-                first= FALSE;
+                first = FALSE;
             else
                 rlb->append(STRING_WITH_LEN(", "));
+
             rlb->append_ulonglong(s_id);
         }
+
         rlb->append(STRING_WITH_LEN(" )"));
     }
+
     if (lex->mi.heartbeat_opt != LEX_MASTER_INFO::LEX_MI_UNCHANGED) {
         rlb->append(STRING_WITH_LEN(" MASTER_HEARTBEAT_PERIOD = "));
+
         if (lex->mi.heartbeat_opt == LEX_MASTER_INFO::LEX_MI_DISABLE)
             rlb->append(STRING_WITH_LEN("0"));
         else {
@@ -447,10 +480,8 @@ static void mysql_rewrite_change_master(THD *thd, String *rlb)
 
 static void mysql_rewrite_server_options(THD *thd, String *rlb)
 {
-    LEX *lex= thd->lex;
-
+    LEX *lex = thd->lex;
     rlb->append(STRING_WITH_LEN(" OPTIONS ( "));
-
     rlb->append(STRING_WITH_LEN("PASSWORD '<secret>'"));
     append_str(rlb, true, "USER", lex->server_options.username);
     append_str(rlb, true, "HOST", lex->server_options.host);
@@ -459,7 +490,6 @@ static void mysql_rewrite_server_options(THD *thd, String *rlb)
     append_str(rlb, true, "SOCKET", lex->server_options.socket);
     append_int(rlb, true, STRING_WITH_LEN("PORT "), lex->server_options.port,
                lex->server_options.port > 0);
-
     rlb->append(STRING_WITH_LEN(" )"));
 }
 
@@ -473,21 +503,18 @@ static void mysql_rewrite_server_options(THD *thd, String *rlb)
 
 static void mysql_rewrite_create_server(THD *thd, String *rlb)
 {
-    LEX *lex= thd->lex;
+    LEX *lex = thd->lex;
 
     if (!lex->server_options.password)
         return;
 
     rlb->append(STRING_WITH_LEN("CREATE SERVER "));
-
     rlb->append(lex->server_options.server_name ?
                 lex->server_options.server_name : "");
-
     rlb->append(STRING_WITH_LEN(" FOREIGN DATA WRAPPER '"));
     rlb->append(lex->server_options.scheme ?
                 lex->server_options.scheme : "");
     rlb->append(STRING_WITH_LEN("'"));
-
     mysql_rewrite_server_options(thd, rlb);
 }
 
@@ -501,16 +528,14 @@ static void mysql_rewrite_create_server(THD *thd, String *rlb)
 
 static void mysql_rewrite_alter_server(THD *thd, String *rlb)
 {
-    LEX *lex= thd->lex;
+    LEX *lex = thd->lex;
 
     if (!lex->server_options.password)
         return;
 
     rlb->append(STRING_WITH_LEN("ALTER SERVER "));
-
     rlb->append(lex->server_options.server_name ?
                 lex->server_options.server_name : "");
-
     mysql_rewrite_server_options(thd, rlb);
 }
 

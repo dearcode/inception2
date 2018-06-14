@@ -43,12 +43,12 @@ Slave_reporting_capability::Slave_reporting_capability(char const *thread_name)
   @return 1 as the positive and 0 as the negative verdict
 */
 int Slave_reporting_capability::has_temporary_error(THD *thd,
-        uint error_arg, bool* silent) const
+        uint error_arg, bool *silent) const
 {
     uint error;
     DBUG_ENTER("has_temporary_error");
-
     DBUG_EXECUTE_IF("all_errors_are_temporary_errors",
+
     if (thd->get_stmt_da()->is_error()) {
     thd->clear_error();
         my_error(ER_LOCK_DEADLOCK, MYF(0));
@@ -64,7 +64,7 @@ int Slave_reporting_capability::has_temporary_error(THD *thd,
     if (thd->is_fatal_error || !thd->is_error())
         DBUG_RETURN(0);
 
-    error= (error_arg == 0)? thd->get_stmt_da()->sql_errno() : error_arg;
+    error = (error_arg == 0) ? thd->get_stmt_da()->sql_errno() : error_arg;
 
     /*
       Temporary error codes:
@@ -79,32 +79,37 @@ int Slave_reporting_capability::has_temporary_error(THD *thd,
     /*
       currently temporary error set in ndbcluster
     */
-    Diagnostics_area::Sql_condition_iterator it=
+    Diagnostics_area::Sql_condition_iterator it =
         thd->get_stmt_da()->sql_conditions();
     const Sql_condition *err;
-    while ((err= it++)) {
+
+    while ((err = it++)) {
         DBUG_PRINT("info", ("has condition %d %s", err->get_sql_errno(),
                             err->get_message_text()));
+
         switch (err->get_sql_errno()) {
         case ER_GET_TEMPORARY_ERRMSG:
             DBUG_RETURN(1);
+
         case ER_SLAVE_SILENT_RETRY_TRANSACTION: {
             if (silent != NULL)
-                *silent= true;
+                *silent = true;
+
             DBUG_RETURN(1);
         }
+
         default:
             break;
         }
     }
+
     DBUG_RETURN(0);
 }
 #endif // EMBEDDED_LIBRARY
 
 
-void
-Slave_reporting_capability::report(loglevel level, int err_code,
-                                   const char *msg, ...) const
+void Slave_reporting_capability::report(loglevel level, int err_code,
+                                        const char *msg, ...) const
 {
     va_list args;
     va_start(args, msg);
@@ -112,57 +117,60 @@ Slave_reporting_capability::report(loglevel level, int err_code,
     va_end(args);
 }
 
-void
-Slave_reporting_capability::va_report(loglevel level, int err_code,
-                                      const char *msg, va_list args) const
+void Slave_reporting_capability::va_report(loglevel level, int err_code,
+        const char *msg, va_list args) const
 {
 #if !defined(EMBEDDED_LIBRARY)
-    THD *thd= current_thd;
+    THD *thd = current_thd;
     void (*report_function)(const char *, ...);
     char buff[MAX_SLAVE_ERRMSG];
-    char *pbuff= buff;
-    uint pbuffsize= sizeof(buff);
+    char *pbuff = buff;
+    uint pbuffsize = sizeof(buff);
 
     if (thd && level == ERROR_LEVEL && has_temporary_error(thd, err_code) &&
             !thd->transaction.all.cannot_safely_rollback())
-        level= WARNING_LEVEL;
+        level = WARNING_LEVEL;
 
     mysql_mutex_lock(&err_lock);
+
     switch (level) {
     case ERROR_LEVEL:
         /*
           It's an error, it must be reported in Last_error and Last_errno in SHOW
           SLAVE STATUS.
         */
-        pbuff= m_last_error.message;
-        pbuffsize= sizeof(m_last_error.message);
+        pbuff = m_last_error.message;
+        pbuffsize = sizeof(m_last_error.message);
         m_last_error.number = err_code;
         m_last_error.update_timestamp();
-        report_function= sql_print_error;
+        report_function = sql_print_error;
         break;
+
     case WARNING_LEVEL:
-        report_function= log_warnings?
-                         sql_print_warning : NULL;
+        report_function = log_warnings ?
+                          sql_print_warning : NULL;
         break;
+
     case INFORMATION_LEVEL:
-        report_function= log_warnings?
-                         sql_print_information : NULL;
+        report_function = log_warnings ?
+                          sql_print_information : NULL;
         break;
+
     default:
         DBUG_ASSERT(0);                            // should not come here
         return;          // don't crash production builds, just do nothing
     }
 
     my_vsnprintf(pbuff, pbuffsize, msg, args);
-
     mysql_mutex_unlock(&err_lock);
 
     /* If the msg string ends with '.', do not add a ',' it would be ugly */
     if (report_function)
         report_function("Slave %s: %s%s Error_code: %d",
                         m_thread_name, pbuff,
-                        (pbuff[0] && *(strend(pbuff)-1) == '.') ? "" : ",",
+                        (pbuff[0] && *(strend(pbuff) - 1) == '.') ? "" : ",",
                         err_code);
+
 #endif
 }
 

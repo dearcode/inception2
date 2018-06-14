@@ -49,7 +49,7 @@ typedef struct st_lock_param_type ALTER_PARTITION_PARAM_TYPE;
 */
 enum enum_resolution_type
 {
-    NOT_RESOLVED=0,
+    NOT_RESOLVED = 0,
     RESOLVED_IGNORING_ALIAS,
     RESOLVED_BEHIND_ALIAS,
     RESOLVED_WITH_NO_ALIAS,
@@ -57,15 +57,15 @@ enum enum_resolution_type
 };
 
 enum find_item_error_report_type
-{REPORT_ALL_ERRORS, REPORT_EXCEPT_NOT_FOUND,
- IGNORE_ERRORS, REPORT_EXCEPT_NON_UNIQUE,
- IGNORE_EXCEPT_NON_UNIQUE
+{   REPORT_ALL_ERRORS, REPORT_EXCEPT_NOT_FOUND,
+    IGNORE_ERRORS, REPORT_EXCEPT_NON_UNIQUE,
+    IGNORE_EXCEPT_NON_UNIQUE
 };
 
 enum enum_tdc_remove_table_type
-{TDC_RT_REMOVE_ALL, TDC_RT_REMOVE_NOT_OWN,
- TDC_RT_REMOVE_UNUSED,
- TDC_RT_REMOVE_NOT_OWN_KEEP_SHARE
+{   TDC_RT_REMOVE_ALL, TDC_RT_REMOVE_NOT_OWN,
+    TDC_RT_REMOVE_UNUSED,
+    TDC_RT_REMOVE_NOT_OWN_KEEP_SHARE
 };
 
 /* bits for last argument to remove_table_from_cache() */
@@ -165,7 +165,7 @@ bool rm_temporary_table(handlerton *base, const char *path);
 void close_tables_for_reopen(THD *thd, TABLE_LIST **tables,
                              const MDL_savepoint &start_of_statement_svp);
 TABLE_LIST *find_table_in_list(TABLE_LIST *table,
-                               TABLE_LIST *TABLE_LIST::*link,
+                               TABLE_LIST * TABLE_LIST::*link,
                                const char *db_name,
                                const char *table_name);
 TABLE *find_temporary_table(THD *thd, const char *db, const char *table_name);
@@ -191,7 +191,7 @@ int setup_wild(THD *thd, TABLE_LIST *tables, List<Item> &fields,
 bool setup_fields(THD *thd, Ref_ptr_array ref_pointer_array,
                   List<Item> &item, enum_mark_columns mark_used_columns,
                   List<Item> *sum_func_list, bool allow_sum_func);
-bool fill_record(THD * thd, List<Item> &fields, List<Item> &values,
+bool fill_record(THD *thd, List<Item> &fields, List<Item> &values,
                  bool ignore_errors, MY_BITMAP *bitmap);
 bool fill_record(THD *thd, Field **field, List<Item> &values,
                  bool ignore_errors, MY_BITMAP *bitmap);
@@ -216,9 +216,9 @@ find_field_in_table(THD *thd, TABLE *table, const char *name, uint length,
                     bool allow_rowid, uint *cached_field_index_ptr);
 Field *
 find_field_in_table_sef(TABLE *table, const char *name);
-Item ** find_item_in_list(Item *item, List<Item> &items, uint *counter,
-                          find_item_error_report_type report_error,
-                          enum_resolution_type *resolution);
+Item **find_item_in_list(Item *item, List<Item> &items, uint *counter,
+                         find_item_error_report_type report_error,
+                         enum_resolution_type *resolution);
 bool setup_tables(THD *thd, Name_resolution_context *context,
                   List<TABLE_LIST> *from_clause, TABLE_LIST *tables,
                   TABLE_LIST **leaves, bool select_insert);
@@ -240,8 +240,8 @@ void update_non_unique_table_error(TABLE_LIST *update,
                                    TABLE_LIST *duplicate);
 int setup_conds(THD *thd, TABLE_LIST *tables, TABLE_LIST *leaves,
                 Item **conds);
-int setup_ftfuncs(SELECT_LEX* select);
-int init_ftfuncs(THD *thd, SELECT_LEX* select, bool no_order);
+int setup_ftfuncs(SELECT_LEX *select);
+int init_ftfuncs(THD *thd, SELECT_LEX *select, bool no_order);
 bool lock_table_names(THD *thd, TABLE_LIST *table_list,
                       TABLE_LIST *table_list_end, ulong lock_wait_timeout,
                       uint flags);
@@ -267,7 +267,7 @@ int drop_temporary_table(THD *thd, TABLE_LIST *table_list, bool *is_trans);
 void close_temporary_table(THD *thd, TABLE *table, bool free_share,
                            bool delete_table);
 void close_temporary(TABLE *table, bool free_share, bool delete_table);
-bool rename_temporary_table(THD* thd, TABLE *table, const char *new_db,
+bool rename_temporary_table(THD *thd, TABLE *table, const char *new_db,
                             const char *table_name);
 bool open_temporary_tables(THD *thd, TABLE_LIST *tl_list);
 bool open_temporary_table(THD *thd, TABLE_LIST *tl);
@@ -321,21 +321,23 @@ extern HASH table_def_cache;
 
 inline void setup_table_map(TABLE *table, TABLE_LIST *table_list, uint tablenr)
 {
-    table->used_fields= 0;
-    table->const_table= 0;
-    table->null_row= 0;
-    table->status= STATUS_GARBAGE | STATUS_NOT_FOUND;
-    table->maybe_null= table_list->outer_join;
-    TABLE_LIST *embedding= table_list->embedding;
+    table->used_fields = 0;
+    table->const_table = 0;
+    table->null_row = 0;
+    table->status = STATUS_GARBAGE | STATUS_NOT_FOUND;
+    table->maybe_null = table_list->outer_join;
+    TABLE_LIST *embedding = table_list->embedding;
+
     while (!table->maybe_null && embedding) {
-        table->maybe_null= embedding->outer_join;
-        embedding= embedding->embedding;
+        table->maybe_null = embedding->outer_join;
+        embedding = embedding->embedding;
     }
-    table->tablenr= tablenr;
-    table->map= (table_map) 1 << tablenr;
-    table->force_index= table_list->force_index;
-    table->force_index_order= table->force_index_group= 0;
-    table->covering_keys= table->s->keys_for_keyread;
+
+    table->tablenr = tablenr;
+    table->map = (table_map) 1 << tablenr;
+    table->force_index = table_list->force_index;
+    table->force_index_order = table->force_index_group = 0;
+    table->covering_keys = table->s->keys_for_keyread;
     table->merge_keys.clear_all();
 }
 
@@ -363,10 +365,10 @@ inline bool setup_fields_with_no_wrap(THD *thd, Ref_ptr_array ref_pointer_array,
                                       bool allow_sum_func)
 {
     bool res;
-    thd->lex->select_lex.no_wrap_view_item= TRUE;
-    res= setup_fields(thd, ref_pointer_array, item, mark_used_columns,
-                      sum_func_list, allow_sum_func);
-    thd->lex->select_lex.no_wrap_view_item= FALSE;
+    thd->lex->select_lex.no_wrap_view_item = TRUE;
+    res = setup_fields(thd, ref_pointer_array, item, mark_used_columns,
+                       sum_func_list, allow_sum_func);
+    thd->lex->select_lex.no_wrap_view_item = FALSE;
     return res;
 }
 
@@ -387,7 +389,7 @@ public:
     virtual bool handle_table(THD *thd, Query_tables_list *prelocking_ctx,
                               TABLE_LIST *table_list, bool *need_prelocking) = 0;
     virtual bool handle_view(THD *thd, Query_tables_list *prelocking_ctx,
-                             TABLE_LIST *table_list, bool *need_prelocking)= 0;
+                             TABLE_LIST *table_list, bool *need_prelocking) = 0;
 };
 
 
@@ -445,11 +447,9 @@ public:
 };
 
 
-inline bool
-open_tables(THD *thd, TABLE_LIST **tables, uint *counter, uint flags)
+inline bool open_tables(THD *thd, TABLE_LIST **tables, uint *counter, uint flags)
 {
     DML_prelocking_strategy prelocking_strategy;
-
     return open_tables(thd, tables, counter, flags, &prelocking_strategy);
 }
 
@@ -458,7 +458,6 @@ inline TABLE *open_n_lock_single_table(THD *thd, TABLE_LIST *table_l,
                                        thr_lock_type lock_type, uint flags)
 {
     DML_prelocking_strategy prelocking_strategy;
-
     return open_n_lock_single_table(thd, table_l, lock_type, flags,
                                     &prelocking_strategy);
 }
@@ -469,7 +468,6 @@ inline bool open_and_lock_tables(THD *thd, TABLE_LIST *tables,
                                  bool derived, uint flags)
 {
     DML_prelocking_strategy prelocking_strategy;
-
     return open_and_lock_tables(thd, tables, derived, flags,
                                 &prelocking_strategy);
 }
@@ -485,7 +483,7 @@ class Open_table_context
 public:
     enum enum_open_table_action
     {
-        OT_NO_ACTION= 0,
+        OT_NO_ACTION = 0,
         OT_BACKOFF_AND_RETRY,
         OT_REOPEN_TABLES,
         OT_DISCOVER,
@@ -529,7 +527,7 @@ public:
     */
     void set_has_protection_against_grl()
     {
-        m_has_protection_against_grl= TRUE;
+        m_has_protection_against_grl = TRUE;
     }
 
     bool has_protection_against_grl() const
@@ -605,10 +603,10 @@ public:
 
     bool handle_condition(THD *thd,
                           uint sql_errno,
-                          const char* sqlstate,
+                          const char *sqlstate,
                           Sql_condition::enum_warning_level level,
-                          const char* msg,
-                          Sql_condition ** cond_hdl);
+                          const char *msg,
+                          Sql_condition **cond_hdl);
 
     /**
       Returns TRUE if one or more ER_NO_SUCH_TABLE errors have been

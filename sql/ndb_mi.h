@@ -31,7 +31,7 @@
   Accessors
 */
 uint32 ndb_mi_get_master_server_id();
-const char* ndb_mi_get_group_master_log_name();
+const char *ndb_mi_get_group_master_log_name();
 uint64 ndb_mi_get_group_master_log_pos();
 uint64 ndb_mi_get_future_event_relay_log_pos();
 uint64 ndb_mi_get_group_relay_log_pos();
@@ -41,7 +41,7 @@ uint32 ndb_mi_get_slave_run_id();
 /*
    Relay log info related functions
 */
-bool ndb_mi_get_in_relay_log_statement(class Relay_log_info* rli);
+bool ndb_mi_get_in_relay_log_statement(class Relay_log_info *rli);
 
 // #ifndef NDB_MI_H
 #endif

@@ -37,15 +37,18 @@ Mutex_cond_array::~Mutex_cond_array()
     //global_lock->assert_no_lock();
     // need to hold lock before calling get_max_sidno
     global_lock->rdlock();
-    int max_index= get_max_index();
-    for (int i= 0; i <= max_index; i++) {
-        Mutex_cond *mutex_cond= get_mutex_cond(i);
+    int max_index = get_max_index();
+
+    for (int i = 0; i <= max_index; i++) {
+        Mutex_cond *mutex_cond = get_mutex_cond(i);
+
         if (mutex_cond) {
             mysql_mutex_destroy(&mutex_cond->mutex);
             mysql_cond_destroy(&mutex_cond->cond);
             free(mutex_cond);
         }
     }
+
     delete_dynamic(&array);
     global_lock->unlock();
     DBUG_VOID_RETURN;
@@ -56,7 +59,7 @@ void Mutex_cond_array::enter_cond(THD *thd, int n, PSI_stage_info *stage,
                                   PSI_stage_info *old_stage) const
 {
     DBUG_ENTER("Mutex_cond_array::enter_cond");
-    Mutex_cond *mutex_cond= get_mutex_cond(n);
+    Mutex_cond *mutex_cond = get_mutex_cond(n);
     DBUG_VOID_RETURN;
 }
 
@@ -65,15 +68,19 @@ enum_return_status Mutex_cond_array::ensure_index(int n)
 {
     DBUG_ENTER("Mutex_cond_array::ensure_index");
     global_lock->assert_some_wrlock();
-    int max_index= get_max_index();
+    int max_index = get_max_index();
+
     if (n > max_index) {
         if (n > max_index) {
             if (allocate_dynamic(&array, n + 1))
                 goto error;
-            for (int i= max_index + 1; i <= n; i++) {
-                Mutex_cond *mutex_cond= (Mutex_cond *)my_malloc(sizeof(Mutex_cond), MYF(MY_WME));
+
+            for (int i = max_index + 1; i <= n; i++) {
+                Mutex_cond *mutex_cond = (Mutex_cond *)my_malloc(sizeof(Mutex_cond), MYF(MY_WME));
+
                 if (mutex_cond == NULL)
                     goto error;
+
                 mysql_mutex_init(key_gtid_ensure_index_mutex, &mutex_cond->mutex, NULL);
                 mysql_cond_init(key_gtid_ensure_index_cond, &mutex_cond->cond, NULL);
                 insert_dynamic(&array, &mutex_cond);
@@ -81,6 +88,7 @@ enum_return_status Mutex_cond_array::ensure_index(int n)
             }
         }
     }
+
     RETURN_OK;
 error:
     BINLOG_ERROR(("Out of memory."), (ER_OUT_OF_RESOURCES, MYF(0)));

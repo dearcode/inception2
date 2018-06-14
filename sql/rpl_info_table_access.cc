@@ -44,22 +44,20 @@
                                         stack
     @retval FALSE success
 */
-bool Rpl_info_table_access::open_table(THD* thd, const LEX_STRING dbstr,
+bool Rpl_info_table_access::open_table(THD *thd, const LEX_STRING dbstr,
                                        const LEX_STRING tbstr,
                                        uint max_num_field,
                                        enum thr_lock_type lock_type,
-                                       TABLE** table,
-                                       Open_tables_backup* backup)
+                                       TABLE **table,
+                                       Open_tables_backup *backup)
 {
     TABLE_LIST tables;
     Query_tables_list query_tables_list_backup;
-
-    uint flags= (MYSQL_OPEN_IGNORE_GLOBAL_READ_LOCK |
-                 MYSQL_LOCK_IGNORE_GLOBAL_READ_ONLY |
-                 MYSQL_OPEN_IGNORE_FLUSH |
-                 MYSQL_LOCK_IGNORE_TIMEOUT |
-                 MYSQL_LOCK_RPL_INFO_TABLE);
-
+    uint flags = (MYSQL_OPEN_IGNORE_GLOBAL_READ_LOCK |
+                  MYSQL_LOCK_IGNORE_GLOBAL_READ_ONLY |
+                  MYSQL_OPEN_IGNORE_FLUSH |
+                  MYSQL_LOCK_IGNORE_TIMEOUT |
+                  MYSQL_LOCK_RPL_INFO_TABLE);
     DBUG_ENTER("Rpl_info_table_access::open_table");
 
     /*
@@ -81,7 +79,6 @@ bool Rpl_info_table_access::open_table(THD* thd, const LEX_STRING dbstr,
     */
     thd->lex->reset_n_backup_query_tables_list(&query_tables_list_backup);
     thd->reset_n_backup_open_tables_state(backup);
-
     tables.init_one_table(dbstr.str, dbstr.length, tbstr.str, tbstr.length,
                           tbstr.str, lock_type);
 
@@ -111,8 +108,7 @@ bool Rpl_info_table_access::open_table(THD* thd, const LEX_STRING dbstr,
     }
 
     thd->lex->restore_backup_query_tables_list(&query_tables_list_backup);
-
-    *table= tables.table;
+    *table = tables.table;
     tables.table->use_all_columns();
     DBUG_RETURN(FALSE);
 }
@@ -139,12 +135,11 @@ bool Rpl_info_table_access::open_table(THD* thd, const LEX_STRING dbstr,
     @retval FALSE No error
     @retval TRUE  Failure
 */
-bool Rpl_info_table_access::close_table(THD *thd, TABLE* table,
+bool Rpl_info_table_access::close_table(THD *thd, TABLE *table,
                                         Open_tables_backup *backup,
                                         bool error)
 {
     Query_tables_list query_tables_list_backup;
-
     DBUG_ENTER("Rpl_info_table_access::close_table");
 
     if (table) {
@@ -159,6 +154,7 @@ bool Rpl_info_table_access::close_table(THD *thd, TABLE* table,
             else
                 ha_commit_trans(thd, TRUE);
         }
+
         /*
           In order not to break execution of current statement we have to
           backup/reset/restore Query_tables_list part of LEX, which is
@@ -190,9 +186,8 @@ bool Rpl_info_table_access::close_table(THD *thd, TABLE* table,
 enum enum_return_id Rpl_info_table_access::find_info(Rpl_info_values *field_values,
         TABLE *table)
 {
-    KEY* keyinfo= NULL;
+    KEY *keyinfo = NULL;
     uchar key[MAX_KEY_LENGTH];
-
     DBUG_ENTER("Rpl_info_table_access::find_info");
 
     /*
@@ -207,9 +202,10 @@ enum enum_return_id Rpl_info_table_access::find_info(Rpl_info_values *field_valu
         DBUG_RETURN(ERROR_ID);
     }
 
-    keyinfo= table->s->key_info + (uint) table->s->primary_key;
-    for (uint idx= 0; idx < keyinfo->user_defined_key_parts; idx++) {
-        uint fieldnr= keyinfo->key_part[idx].fieldnr - 1;
+    keyinfo = table->s->key_info + (uint) table->s->primary_key;
+
+    for (uint idx = 0; idx < keyinfo->user_defined_key_parts; idx++) {
+        uint fieldnr = keyinfo->key_part[idx].fieldnr - 1;
 
         /*
           The size of the field must be great to store data.
@@ -222,6 +218,7 @@ enum enum_return_id Rpl_info_table_access::find_info(Rpl_info_values *field_valu
                                      field_values->value[fieldnr].length(),
                                      &my_charset_bin);
     }
+
     key_copy(key, table->record[0], table->key_info, table->key_info->key_length);
 
     if (table->file->ha_index_read_idx_map(table->record[0], 0, key, HA_WHOLE_KEY,
@@ -248,43 +245,44 @@ enum enum_return_id Rpl_info_table_access::find_info(Rpl_info_values *field_valu
     @retval NOT_FOUND The row was not found.
     @retval ERROR     There was a failure.
 */
-enum enum_return_id Rpl_info_table_access::scan_info(TABLE* table,
+enum enum_return_id Rpl_info_table_access::scan_info(TABLE *table,
         uint instance)
 {
-    int error= 0;
-    uint counter= 0;
-    enum enum_return_id ret= NOT_FOUND_ID;
-
+    int error = 0;
+    uint counter = 0;
+    enum enum_return_id ret = NOT_FOUND_ID;
     DBUG_ENTER("Rpl_info_table_access::scan_info");
 
-    if ((error= table->file->ha_rnd_init(TRUE)))
+    if ((error = table->file->ha_rnd_init(TRUE)))
         DBUG_RETURN(ERROR_ID);
 
     do {
-        error= table->file->ha_rnd_next(table->record[0]);
+        error = table->file->ha_rnd_next(table->record[0]);
+
         switch (error) {
         case 0:
             counter++;
+
             if (counter == instance) {
-                ret= FOUND_ID;
-                error= HA_ERR_END_OF_FILE;
+                ret = FOUND_ID;
+                error = HA_ERR_END_OF_FILE;
             }
+
             break;
 
         case HA_ERR_END_OF_FILE:
-            ret= NOT_FOUND_ID;
+            ret = NOT_FOUND_ID;
             break;
 
         default:
             DBUG_PRINT("info", ("Failed to get next record"
                                 " (ha_rnd_next returns %d)", error));
-            ret= ERROR_ID;
+            ret = ERROR_ID;
             break;
         }
     } while (!error);
 
     table->file->ha_rnd_end();
-
     DBUG_RETURN(ret);
 }
 
@@ -304,25 +302,25 @@ enum enum_return_id Rpl_info_table_access::scan_info(TABLE* table,
     @retval false No error
     @retval true  Failure
 */
-bool Rpl_info_table_access::count_info(TABLE* table, uint* counter)
+bool Rpl_info_table_access::count_info(TABLE *table, uint *counter)
 {
-    bool end= false;
-    int error= 0;
-
+    bool end = false;
+    int error = 0;
     DBUG_ENTER("Rpl_info_table_access::count_info");
 
-    if ((error= table->file->ha_rnd_init(true)))
+    if ((error = table->file->ha_rnd_init(true)))
         DBUG_RETURN(true);
 
     do {
-        error= table->file->ha_rnd_next(table->record[0]);
+        error = table->file->ha_rnd_next(table->record[0]);
+
         switch (error) {
         case 0:
             (*counter)++;
             break;
 
         case HA_ERR_END_OF_FILE:
-            end= true;
+            end = true;
             break;
 
         default:
@@ -333,7 +331,6 @@ bool Rpl_info_table_access::count_info(TABLE* table, uint* counter)
     } while (!error);
 
     table->file->ha_rnd_end();
-
     DBUG_RETURN(end ? false : true);
 }
 
@@ -356,8 +353,8 @@ bool Rpl_info_table_access::load_info_values(uint max_num_field, Field **fields,
     DBUG_ENTER("Rpl_info_table_access::load_info_values");
     char buff[MAX_FIELD_WIDTH];
     String str(buff, sizeof(buff), &my_charset_bin);
+    uint field_idx = 0;
 
-    uint field_idx= 0;
     while (field_idx < max_num_field) {
         fields[field_idx]->val_str(&str);
         field_values->value[field_idx].copy(str.c_ptr_safe(), str.length(),
@@ -385,7 +382,7 @@ bool Rpl_info_table_access::store_info_values(uint max_num_field, Field **fields
         Rpl_info_values *field_values)
 {
     DBUG_ENTER("Rpl_info_table_access::store_info_values");
-    uint field_idx= 0;
+    uint field_idx = 0;
 
     while (field_idx < max_num_field) {
         fields[field_idx]->set_notnull();
@@ -397,6 +394,7 @@ bool Rpl_info_table_access::store_info_values(uint max_num_field, Field **fields
                      fields[field_idx]->field_name);
             DBUG_RETURN(TRUE);
         }
+
         field_idx++;
     }
 
@@ -413,17 +411,18 @@ bool Rpl_info_table_access::store_info_values(uint max_num_field, Field **fields
 */
 THD *Rpl_info_table_access::create_thd()
 {
-    THD *thd= NULL;
-    saved_current_thd= current_thd;
+    THD *thd = NULL;
+    saved_current_thd = current_thd;
 
     if (!current_thd) {
-        thd= new THD;
-        thd->thread_stack= (char*) &thd;
+        thd = new THD;
+        thd->thread_stack = (char *) &thd;
         thd->store_globals();
         thd->security_ctx->skip_grants();
-        thd->system_thread= SYSTEM_THREAD_INFO_REPOSITORY;
+        thd->system_thread = SYSTEM_THREAD_INFO_REPOSITORY;
+
     } else
-        thd= current_thd;
+        thd = current_thd;
 
     return(thd);
 }

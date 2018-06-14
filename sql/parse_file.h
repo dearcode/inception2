@@ -58,8 +58,8 @@ class Unknown_key_hook
 public:
     Unknown_key_hook() {}                       /* Remove gcc warning */
     virtual ~Unknown_key_hook() {}              /* Remove gcc warning */
-    virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
-                                        MEM_ROOT *mem_root, const char *end)= 0;
+    virtual bool process_unknown_string(const char *&unknown_key, uchar *base,
+                                        MEM_ROOT *mem_root, const char *end) = 0;
 };
 
 
@@ -69,14 +69,14 @@ class File_parser_dummy_hook: public Unknown_key_hook
 {
 public:
     File_parser_dummy_hook() {}                 /* Remove gcc warning */
-    virtual bool process_unknown_string(const char *&unknown_key, uchar* base,
+    virtual bool process_unknown_string(const char *&unknown_key, uchar *base,
                                         MEM_ROOT *mem_root, const char *end);
 };
 
 extern File_parser_dummy_hook file_parser_dummy_hook;
 
 bool get_file_options_ulllist(const char *&ptr, const char *end,
-                              const char *line, uchar* base,
+                              const char *line, uchar *base,
                               File_option *parameter,
                               MEM_ROOT *mem_root);
 
@@ -91,7 +91,7 @@ File_parser *sql_parse_prepare(const LEX_STRING *file_name,
 my_bool
 sql_create_definition_file(const LEX_STRING *dir, const  LEX_STRING *file_name,
                            const LEX_STRING *type,
-                           uchar* base, File_option *parameters);
+                           uchar *base, File_option *parameters);
 my_bool rename_in_schema_file(THD *thd,
                               const char *schema, const char *old_name,
                               const char *new_db, const char *new_name);
@@ -102,10 +102,10 @@ class File_parser: public Sql_alloc
     LEX_STRING file_type;
     my_bool content_ok;
 public:
-    File_parser() :start(0), end(0), content_ok(0)
+    File_parser() : start(0), end(0), content_ok(0)
     {
-        file_type.str= 0;
-        file_type.length= 0;
+        file_type.str = 0;
+        file_type.length = 0;
     }
 
     my_bool ok()
@@ -116,7 +116,7 @@ public:
     {
         return &file_type;
     }
-    my_bool parse(uchar* base, MEM_ROOT *mem_root,
+    my_bool parse(uchar *base, MEM_ROOT *mem_root,
                   struct File_option *parameters, uint required,
                   Unknown_key_hook *hook) const;
 

@@ -99,7 +99,7 @@ public:
 
     void set_allowed_mem_size(size_t a)
     {
-        allowed_mem_size= a;
+        allowed_mem_size = a;
     }
 };
 
@@ -143,7 +143,7 @@ public:
     void set_allowed_mem_size(size_t size);
 
     /// @sa Opt_trace_context::set_query()
-    void set_query(const char* query, size_t length,
+    void set_query(const char *query, size_t length,
                    const CHARSET_INFO *charset);
 
     /* Below, functions for filling the statement's trace */
@@ -286,7 +286,7 @@ private:
 
 namespace {
 /// opening and closing symbols for arrays ([])and objects ({})
-const char brackets[]= { '[', '{', ']', '}' };
+const char brackets[] = { '[', '{', ']', '}' };
 inline char opening_bracket(bool requires_key)
 {
     return brackets[requires_key];
@@ -303,19 +303,19 @@ void Opt_trace_struct::do_construct(Opt_trace_context *ctx,
                                     const char *key,
                                     Opt_trace_context::feature_value feature)
 {
-    saved_key= key;
-    requires_key= requires_key_arg;
-
+    saved_key = key;
+    requires_key = requires_key_arg;
     DBUG_PRINT("opt", ("%s: starting struct", key));
-    stmt= ctx->get_current_stmt_in_gen();
+    stmt = ctx->get_current_stmt_in_gen();
 #ifndef DBUG_OFF
-    previous_key[0]= 0;
+    previous_key[0] = 0;
 #endif
-    has_disabled_I_S= !ctx->feature_enabled(feature);
-    empty= true;
+    has_disabled_I_S = !ctx->feature_enabled(feature);
+    empty = true;
+
     if (likely(!stmt->open_struct(key, this, has_disabled_I_S,
                                   opening_bracket(requires_key))))
-        started= true;
+        started = true;
 }
 
 
@@ -325,7 +325,7 @@ void Opt_trace_struct::do_destruct()
     DBUG_ASSERT(started);
     stmt->close_struct(saved_key, has_disabled_I_S,
                        closing_bracket(requires_key));
-    started= false;
+    started = false;
 }
 
 
@@ -336,7 +336,7 @@ void Opt_trace_struct::do_destruct()
    In a 20-table plan search (as in BUG#50595), the execution time was
    decreased from 2.6 to 2.0 seconds thanks to this inlined-if trick.
 */
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, const char *val,
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, const char *val,
         size_t val_length,
         bool escape)
 {
@@ -348,22 +348,22 @@ Opt_trace_struct& Opt_trace_struct::do_add(const char *key, const char *val,
 
 namespace {
 /// human-readable names for boolean values
-LEX_CSTRING bool_as_text[]= { { STRING_WITH_LEN("false") },
+LEX_CSTRING bool_as_text[] = { { STRING_WITH_LEN("false") },
     { STRING_WITH_LEN("true") }
 };
 }
 
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, bool val)
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, bool val)
 {
     DBUG_ASSERT(started);
     DBUG_PRINT("opt", ("%s: %d", key, (int)val));
-    const LEX_CSTRING *text= &bool_as_text[val];
+    const LEX_CSTRING *text = &bool_as_text[val];
     stmt->add(key, text->str, text->length, false, false);
     return *this;
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, longlong val)
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, longlong val)
 {
     DBUG_ASSERT(started);
     char buf[22];                     // 22 is enough for digits of a 64-bit int
@@ -374,7 +374,7 @@ Opt_trace_struct& Opt_trace_struct::do_add(const char *key, longlong val)
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, ulonglong val)
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, ulonglong val)
 {
     DBUG_ASSERT(started);
     char buf[22];
@@ -385,7 +385,7 @@ Opt_trace_struct& Opt_trace_struct::do_add(const char *key, ulonglong val)
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, double val)
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, double val)
 {
     DBUG_ASSERT(started);
     char buf[32];                         // 32 is enough for digits of a double
@@ -396,7 +396,7 @@ Opt_trace_struct& Opt_trace_struct::do_add(const char *key, double val)
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add_null(const char *key)
+Opt_trace_struct &Opt_trace_struct::do_add_null(const char *key)
 {
     DBUG_ASSERT(started);
     DBUG_PRINT("opt", ("%s: null", key));
@@ -405,11 +405,12 @@ Opt_trace_struct& Opt_trace_struct::do_add_null(const char *key)
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add(const char *key, Item *item)
+Opt_trace_struct &Opt_trace_struct::do_add(const char *key, Item *item)
 {
     char buff[256];
-    String str(buff,(uint32) sizeof(buff), system_charset_info);
+    String str(buff, (uint32) sizeof(buff), system_charset_info);
     str.length(0);
+
     if (item != NULL) {
         // QT_TO_SYSTEM_CHARSET because trace must be in UTF8
         item->print(&str, enum_query_type(QT_TO_SYSTEM_CHARSET |
@@ -417,34 +418,39 @@ Opt_trace_struct& Opt_trace_struct::do_add(const char *key, Item *item)
                                           QT_NO_DEFAULT_DB));
         /* needs escaping */
         return do_add(key, str.ptr(), str.length(), true);
+
     } else
         return do_add_null(key);
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add_hex(const char *key, uint64 val)
+Opt_trace_struct &Opt_trace_struct::do_add_hex(const char *key, uint64 val)
 {
     DBUG_ASSERT(started);
-    char buf[2 + 16], *p_end= buf + sizeof(buf) - 1, *p= p_end;
+    char buf[2 + 16], *p_end = buf + sizeof(buf) - 1, *p = p_end;
+
     for ( ; ; ) {
-        *p--= _dig_vec_lower[val & 15];
-        *p--= _dig_vec_lower[(val & 240) >> 4];
-        val>>= 8;
+        *p-- = _dig_vec_lower[val & 15];
+        *p-- = _dig_vec_lower[(val & 240) >> 4];
+        val >>= 8;
+
         if (val == 0)
             break;
     }
-    *p--= 'x';
-    *p= '0';
-    const int len= p_end + 1 - p;
+
+    *p-- = 'x';
+    *p = '0';
+    const int len = p_end + 1 - p;
     DBUG_PRINT("opt", ("%s: %.*s", key, len, p));
     stmt->add(check_key(key), p, len, false, false);
     return *this;
 }
 
 
-Opt_trace_struct& Opt_trace_struct::do_add_utf8_table(const TABLE *tab)
+Opt_trace_struct &Opt_trace_struct::do_add_utf8_table(const TABLE *tab)
 {
-    TABLE_LIST * const tl= tab->pos_in_table_list;
+    TABLE_LIST *const tl = tab->pos_in_table_list;
+
     if (tl != NULL) {
         StringBuffer<32> str;
         tl->print(tab->in_use, &str, enum_query_type(QT_TO_SYSTEM_CHARSET |
@@ -453,6 +459,7 @@ Opt_trace_struct& Opt_trace_struct::do_add_utf8_table(const TABLE *tab)
                   QT_DERIVED_TABLE_ONLY_ALIAS));
         return do_add("table", str.ptr(), str.length(), true);
     }
+
     return *this;
 }
 
@@ -462,12 +469,14 @@ const char *Opt_trace_struct::check_key(const char *key)
     DBUG_ASSERT(started);
     //  User should always add to the innermost open object, not outside.
     stmt->assert_current_struct(this);
-    bool has_key= key != NULL;
+    bool has_key = key != NULL;
+
     if (unlikely(has_key != requires_key)) {
         // fix the key to produce correct JSON syntax:
-        key= has_key ? NULL : stmt->make_unknown_key();
-        has_key= !has_key;
+        key = has_key ? NULL : stmt->make_unknown_key();
+        has_key = !has_key;
     }
+
     if (has_key) {
 #ifndef DBUG_OFF
         /*
@@ -476,9 +485,10 @@ const char *Opt_trace_struct::check_key(const char *key)
         */
         DBUG_ASSERT(strncmp(previous_key, key, sizeof(previous_key) - 1) != 0);
         strncpy(previous_key, key, sizeof(previous_key) - 1);
-        previous_key[sizeof(previous_key) - 1]= 0;
+        previous_key[sizeof(previous_key) - 1] = 0;
 #endif
     }
+
     return key;
 }
 
@@ -499,7 +509,7 @@ void Opt_trace_stmt::end()
 {
     DBUG_ASSERT(stack_of_current_structs.elements() == 0);
     DBUG_ASSERT(I_S_disabled >= 0);
-    ended= true;
+    ended = true;
     /*
       Because allocation is done in big chunks, buffer->Ptr[str_length]
       may be uninitialized while buffer->Ptr[allocated length] is 0, so we
@@ -512,7 +522,7 @@ void Opt_trace_stmt::end()
     trace_buffer.c_ptr_safe();
     // Send the full nice trace to DBUG.
     DBUG_EXECUTE("opt", {
-        const char *trace= trace_buffer.c_ptr_safe();
+        const char *trace = trace_buffer.c_ptr_safe();
         DBUG_LOCK_FILE;
         fputs("Complete optimizer trace:", DBUG_FILE);
         fputs(trace, DBUG_FILE);
@@ -520,6 +530,7 @@ void Opt_trace_stmt::end()
         DBUG_UNLOCK_FILE;
     }
                 );
+
     if (unlikely(missing_priv))
         ctx->restore_I_S();
 }
@@ -537,6 +548,7 @@ void Opt_trace_stmt::set_query(const char *query, size_t length,
     // Should be called only once per statement.
     DBUG_ASSERT(query_buffer.ptr() == NULL);
     query_buffer.set_charset(charset);
+
     if (!support_I_S()) {
         /*
           Query won't be read, don't waste resources storing it. Still we have set
@@ -544,15 +556,16 @@ void Opt_trace_stmt::set_query(const char *query, size_t length,
         */
         return;
     }
+
     // We are taking a bit of space from 'trace_buffer'.
-    size_t available=
+    size_t available =
         (trace_buffer.alloced_length() >= trace_buffer.get_allowed_mem_size()) ?
         0 : (trace_buffer.get_allowed_mem_size() - trace_buffer.alloced_length());
     query_buffer.set_allowed_mem_size(available);
     // No need to escape query, this is not for JSON.
     query_buffer.append(query, length);
     // Space which query took is taken out of the trace:
-    const size_t new_allowed_mem_size=
+    const size_t new_allowed_mem_size =
         (query_buffer.alloced_length() >= trace_buffer.get_allowed_mem_size()) ?
         0 : (trace_buffer.get_allowed_mem_size() - query_buffer.alloced_length());
     trace_buffer.set_allowed_mem_size(new_allowed_mem_size);
@@ -565,7 +578,6 @@ bool Opt_trace_stmt::open_struct(const char *key, Opt_trace_struct *ots,
 {
     if (support_I_S()) {
         if (wants_disable_I_S) {
-
             /*
               User requested no tracing for this structure's feature. We are
               entering a disabled portion; put an ellipsis "..." to alert the user.
@@ -581,17 +593,20 @@ bool Opt_trace_stmt::open_struct(const char *key, Opt_trace_struct *ots,
                 else
                     current_struct->add_alnum("...");
             }
+
         } else {
             trace_buffer.prealloc();
             add(key, &opening_bracket, 1, false, false);
         }
     }
+
     if (wants_disable_I_S)
         ctx->disable_I_S_for_this_and_children();
+
     {
         DBUG_EXECUTE_IF("opt_trace_oom_in_open_struct",
                         DBUG_SET("+d,simulate_out_of_memory"););
-        const bool rc= stack_of_current_structs.append(current_struct);
+        const bool rc = stack_of_current_structs.append(current_struct);
         /*
           If the append() above didn't trigger reallocation, we need to turn the
           symbol off by ourselves, or it could make an unrelated allocation
@@ -599,10 +614,11 @@ bool Opt_trace_stmt::open_struct(const char *key, Opt_trace_struct *ots,
         */
         DBUG_EXECUTE_IF("opt_trace_oom_in_open_struct",
                         DBUG_SET("-d,simulate_out_of_memory"););
+
         if (unlikely(rc))
             return true;
     }
-    current_struct= ots;
+    current_struct = ots;
     return false;
 }
 
@@ -615,17 +631,20 @@ void Opt_trace_stmt::close_struct(const char *saved_key,
       This was constructed with current_stmt_in_gen=NULL which was pushed in
       'open_struct()'. So this NULL is in the array, back() is safe.
     */
-    current_struct= *(stack_of_current_structs.back());
+    current_struct = *(stack_of_current_structs.back());
     stack_of_current_structs.pop();
+
     if (support_I_S()) {
         next_line();
         trace_buffer.append(closing_bracket);
+
         if (ctx->get_end_marker() && saved_key != NULL) {
             trace_buffer.append(STRING_WITH_LEN(" /* "));
             trace_buffer.append(saved_key);
             trace_buffer.append(STRING_WITH_LEN(" */"));
         }
     }
+
     if (has_disabled_I_S)
         ctx->restore_I_S();
 }
@@ -634,10 +653,12 @@ void Opt_trace_stmt::close_struct(const char *saved_key,
 void Opt_trace_stmt::separator()
 {
     DBUG_ASSERT(support_I_S());
+
     // Put a comma first, if we have already written an object at this level.
     if (current_struct != NULL) {
         if (!current_struct->set_not_empty())
             trace_buffer.append(',');
+
         next_line();
     }
 }
@@ -656,14 +677,16 @@ void Opt_trace_stmt::next_line()
 {
     if (ctx->get_one_line())
         return;
-    trace_buffer.append('\n');
 
-    uint to_be_printed= 2 * stack_of_current_structs.elements();
-    const size_t spaces_len= sizeof(my_spaces) - 1;
+    trace_buffer.append('\n');
+    uint to_be_printed = 2 * stack_of_current_structs.elements();
+    const size_t spaces_len = sizeof(my_spaces) - 1;
+
     while (to_be_printed > spaces_len) {
         trace_buffer.append(my_spaces, spaces_len);
-        to_be_printed-= spaces_len;
+        to_be_printed -= spaces_len;
     }
+
     trace_buffer.append(my_spaces, to_be_printed);
 }
 
@@ -681,16 +704,21 @@ void Opt_trace_stmt::add(const char *key, const char *val, size_t val_length,
 {
     if (!support_I_S())
         return;
+
     separator();
+
     if (current_struct != NULL)
-        key= current_struct->check_key(key);
+        key = current_struct->check_key(key);
+
     if (key != NULL) {
         trace_buffer.append('"');
         trace_buffer.append(key);
         trace_buffer.append(STRING_WITH_LEN("\": "));
     }
+
     if (quotes)
         trace_buffer.append('"');
+
     /*
       Objects' keys use "normal" characters (A-Za-z0-9_), no escaping
       needed. Same for numeric/bool values. Only string values may need
@@ -700,6 +728,7 @@ void Opt_trace_stmt::add(const char *key, const char *val, size_t val_length,
         trace_buffer.append_escaped(val, val_length);
     else
         trace_buffer.append(val, val_length);
+
     if (quotes)
         trace_buffer.append('"');
 }
@@ -707,29 +736,32 @@ void Opt_trace_stmt::add(const char *key, const char *val, size_t val_length,
 
 void Opt_trace_stmt::fill_info(Opt_trace_info *info) const
 {
-    if (unlikely(info->missing_priv= missing_priv)) {
-        info->trace_ptr= info->query_ptr= "";
-        info->trace_length= info->query_length= 0;
-        info->query_charset= &my_charset_bin;
-        info->missing_bytes= 0;
+    if (unlikely(info->missing_priv = missing_priv)) {
+        info->trace_ptr = info->query_ptr = "";
+        info->trace_length = info->query_length = 0;
+        info->query_charset = &my_charset_bin;
+        info->missing_bytes = 0;
+
     } else {
-        info->trace_ptr=     trace_buffer.ptr();
-        info->trace_length=  trace_buffer.length();
-        info->query_ptr=     query_buffer.ptr();
-        info->query_length=  query_buffer.length();
-        info->query_charset= query_buffer.charset();
-        info->missing_bytes= trace_buffer.get_missing_bytes() +
-                             query_buffer.get_missing_bytes();
+        info->trace_ptr =     trace_buffer.ptr();
+        info->trace_length =  trace_buffer.length();
+        info->query_ptr =     query_buffer.ptr();
+        info->query_length =  query_buffer.length();
+        info->query_charset = query_buffer.charset();
+        info->missing_bytes = trace_buffer.get_missing_bytes() +
+                              query_buffer.get_missing_bytes();
     }
 }
 
 
 const char *Opt_trace_stmt::trace_buffer_tail(size_t size)
 {
-    size_t buffer_len= trace_buffer.length();
-    const char *ptr= trace_buffer.c_ptr_safe();
+    size_t buffer_len = trace_buffer.length();
+    const char *ptr = trace_buffer.c_ptr_safe();
+
     if (buffer_len > size)
-        ptr+= buffer_len - size;
+        ptr += buffer_len - size;
+
     return ptr;
 }
 
@@ -739,7 +771,7 @@ void Opt_trace_stmt::missing_privilege()
     if (!missing_priv) {
         DBUG_PRINT("opt", ("trace denied"));
         // This mark will make the trace appear empty in OPTIMIZER_TRACE table.
-        missing_priv= true;
+        missing_priv = true;
         // And all substatements will not be traced.
         ctx->disable_I_S_for_this_and_children();
     }
@@ -753,15 +785,18 @@ namespace random_name_to_avoid_gcc_bug_29365 {
 void Buffer::append_escaped(const char *str, size_t length)
 {
     if (alloced_length() >= allowed_mem_size) {
-        missing_bytes+= length;
+        missing_bytes += length;
         return;
     }
+
     const char *pstr, *pstr_end;
     char buf[128];                     // Temporary output buffer.
-    char *pbuf= buf;
-    for (pstr= str, pstr_end= (str + length) ; pstr < pstr_end ; pstr++) {
+    char *pbuf = buf;
+
+    for (pstr = str, pstr_end = (str + length) ; pstr < pstr_end ; pstr++) {
         char esc;
-        const char c= *pstr;
+        const char c = *pstr;
+
         /*
           JSON syntax says that control characters must be escaped. Experience
           confirms that this means ASCII 0->31 and " and \ . A few of
@@ -781,44 +816,57 @@ void Buffer::append_escaped(const char *str, size_t length)
         switch (c) {
         // Don't use \u when possible for common chars, \ is easier to read:
         case '\\':
-            esc= '\\';
+            esc = '\\';
             break;
+
         case '"' :
-            esc= '\"';
+            esc = '\"';
             break;
+
         case '\n':
-            esc= 'n' ;
+            esc = 'n' ;
             break;
+
         case '\r':
-            esc= 'r' ;
+            esc = 'r' ;
             break;
+
         case '\t':
-            esc= 't' ;
+            esc = 't' ;
             break;
+
         default  :
-            esc= 0   ;
+            esc = 0   ;
             break;
         }
+
         if (esc != 0) {                         // Escaping with backslash.
-            *pbuf++= '\\';
-            *pbuf++= esc;
+            *pbuf++ = '\\';
+            *pbuf++ = esc;
+
         } else {
-            uint ascii_code= (uint)c;
+            uint ascii_code = (uint)c;
+
             if (ascii_code < 32) {                // Escaping with \u
-                *pbuf++= '\\';
-                *pbuf++= 'u';
-                *pbuf++= '0';
-                *pbuf++= '0';
-                if (ascii_code < 16) {
-                    *pbuf++= '0';
-                } else {
-                    *pbuf++= '1';
-                    ascii_code-= 16;
+                *pbuf++ = '\\';
+                *pbuf++ = 'u';
+                *pbuf++ = '0';
+                *pbuf++ = '0';
+
+                if (ascii_code < 16)
+                    *pbuf++ = '0';
+
+                else {
+                    *pbuf++ = '1';
+                    ascii_code -= 16;
                 }
-                *pbuf++= _dig_vec_lower[ascii_code];
+
+                *pbuf++ = _dig_vec_lower[ascii_code];
+
             } else
-                *pbuf++= c; // Normal character, no escaping needed.
+                *pbuf++ = c; // Normal character, no escaping needed.
         }
+
         /*
           To fit a next character, we need at most 6 bytes (happens when using
           \uXXXX syntax) before the buffer's end:
@@ -826,9 +874,10 @@ void Buffer::append_escaped(const char *str, size_t length)
         if (pbuf > buf + (sizeof(buf) - 6)) {
             // Possibly no room in 'buf' for next char, so flush buf.
             string_buf.append(buf, static_cast<uint32>(pbuf - buf));
-            pbuf= buf; // back to buf's start
+            pbuf = buf; // back to buf's start
         }
     }
+
     // Flush any chars left in 'buf'.
     string_buf.append(buf, static_cast<uint32>(pbuf - buf));
 }
@@ -837,9 +886,10 @@ void Buffer::append_escaped(const char *str, size_t length)
 void Buffer::append(const char *str, size_t length)
 {
     if (alloced_length() >= allowed_mem_size) {
-        missing_bytes+= length;
+        missing_bytes += length;
         return;
     }
+
     DBUG_EXECUTE_IF("opt_trace_oom_in_buffers",
                     DBUG_SET("+d,simulate_out_of_memory"););
     string_buf.append(str, static_cast<uint32>(length));
@@ -854,6 +904,7 @@ void Buffer::append(char chr)
         missing_bytes++;
         return;
     }
+
     // No need for escaping chr, given how this function is used.
     string_buf.append(chr);
 }
@@ -861,8 +912,9 @@ void Buffer::append(char chr)
 
 void Buffer::prealloc()
 {
-    const size_t alloced=   alloced_length();
-    const size_t first_increment= 1024;
+    const size_t alloced =   alloced_length();
+    const size_t first_increment = 1024;
+
     if ((alloced - length()) < (first_increment / 3)) {
         /*
           Support for I_S will produce long strings, and there is little free
@@ -878,8 +930,8 @@ void Buffer::prealloc()
           constant reallocation time; 1.5 is a commonly seen factor in the
           litterature.
         */
-        size_t new_size= (alloced == 0) ? first_increment : (alloced * 15 / 10);
-        size_t max_size= allowed_mem_size;
+        size_t new_size = (alloced == 0) ? first_increment : (alloced * 15 / 10);
+        size_t max_size = allowed_mem_size;
         /*
           Determine a safety margin:
           (A) String::realloc() adds at most ALIGN_SIZE(1) bytes to requested
@@ -889,11 +941,14 @@ void Buffer::prealloc()
           append() would trigger up-front truncation, which is potentially wrong
           for a "pre-emptive allocation" as we do here.
         */
-        const size_t safety_margin= ALIGN_SIZE(1) /* (A) */ + 1 /* (B) */;
+        const size_t safety_margin = ALIGN_SIZE(1) /* (A) */ + 1 /* (B) */;
+
         if (max_size >= safety_margin) {
-            max_size-= safety_margin;
+            max_size -= safety_margin;
+
             if (new_size > max_size) // Don't pre-allocate more than the limit.
-                new_size= max_size;
+                new_size = max_size;
+
             if (new_size >= alloced) // Never shrink string.
                 string_buf.realloc(static_cast<uint32>(new_size));
         }
@@ -905,17 +960,17 @@ void Buffer::prealloc()
 
 // Implementation of Opt_trace_context class
 
-const char *Opt_trace_context::flag_names[]= {
+const char *Opt_trace_context::flag_names[] = {
     "enabled", "one_line", "default", NullS
 };
 
-const char *Opt_trace_context::feature_names[]= {
+const char *Opt_trace_context::feature_names[] = {
     "greedy_search", "range_optimizer", "dynamic_range",
     "repeated_subselect", "default", NullS
 };
 
 const Opt_trace_context::feature_value
-Opt_trace_context::default_features=
+Opt_trace_context::default_features =
     Opt_trace_context::feature_value(Opt_trace_context::GREEDY_SEARCH |
                                      Opt_trace_context::RANGE_OPTIMIZER |
                                      Opt_trace_context::DYNAMIC_RANGE   |
@@ -936,20 +991,24 @@ Opt_trace_context::~Opt_trace_context()
 }
 
 
-template<class T> T * new_nothrow_w_my_error()
+template<class T> T *new_nothrow_w_my_error()
 {
-    T * const t= new (std::nothrow) T();
+    T *const t = new (std::nothrow) T();
+
     if (unlikely(t == NULL))
         my_error(ER_OUTOFMEMORY, MYF(ME_FATALERROR),
                  static_cast<int>(sizeof(T)));
+
     return t;
 }
-template<class T, class Arg> T * new_nothrow_w_my_error(Arg a)
+template<class T, class Arg> T *new_nothrow_w_my_error(Arg a)
 {
-    T * const t= new (std::nothrow) T(a);
+    T *const t = new (std::nothrow) T(a);
+
     if (unlikely(t == NULL))
         my_error(ER_OUTOFMEMORY, MYF(ME_FATALERROR),
                  static_cast<int>(sizeof(T)));
+
     return t;
 }
 
@@ -964,7 +1023,7 @@ bool Opt_trace_context::start(bool support_I_S_arg,
 
     if (I_S_disabled != 0) {
         DBUG_PRINT("opt", ("opt_trace is already disabled"));
-        support_I_S_arg= false;
+        support_I_S_arg = false;
     }
 
     /*
@@ -984,6 +1043,7 @@ bool Opt_trace_context::start(bool support_I_S_arg,
             */
             DBUG_RETURN(false);
         }
+
         /*
           If we come here, there is a parent statement which has a trace.
           Imagine that we don't create a trace for the child statement
@@ -1001,7 +1061,7 @@ bool Opt_trace_context::start(bool support_I_S_arg,
     DBUG_EXECUTE_IF("no_new_opt_trace_stmt", DBUG_ASSERT(0););
 
     if (pimpl == NULL &&
-            ((pimpl= new_nothrow_w_my_error<Opt_trace_context_impl>()) == NULL))
+            ((pimpl = new_nothrow_w_my_error<Opt_trace_context_impl>()) == NULL))
         DBUG_RETURN(true);
 
     /*
@@ -1015,37 +1075,40 @@ bool Opt_trace_context::start(bool support_I_S_arg,
           be some 'SET OPTIMIZER_TRACE="enabled=[on|off]"' to trace only certain
           sub-statements.
         */
-        pimpl->end_marker= end_marker_arg;
-        pimpl->one_line= one_line_arg;
-        pimpl->offset= offset_arg;
-        pimpl->limit= limit_arg;
-        pimpl->max_mem_size= max_mem_size_arg;
+        pimpl->end_marker = end_marker_arg;
+        pimpl->one_line = one_line_arg;
+        pimpl->offset = offset_arg;
+        pimpl->limit = limit_arg;
+        pimpl->max_mem_size = max_mem_size_arg;
         // MISC always on
-        pimpl->features= Opt_trace_context::feature_value(features_arg |
-                         Opt_trace_context::MISC);
+        pimpl->features = Opt_trace_context::feature_value(features_arg |
+                          Opt_trace_context::MISC);
     }
+
     if (support_I_S_arg && pimpl->offset >= 0) {
         /* If outside the offset/limit window, no need to support I_S */
         if (pimpl->since_offset_0 < pimpl->offset) {
             DBUG_PRINT("opt", ("disabled: since_offset_0(%ld) < offset(%ld)",
                                pimpl->since_offset_0, pimpl->offset));
-            support_I_S_arg= false;
+            support_I_S_arg = false;
+
         } else if (pimpl->since_offset_0 >= (pimpl->offset + pimpl->limit)) {
             DBUG_PRINT("opt", ("disabled: since_offset_0(%ld) >="
                                " offset(%ld) + limit(%ld)",
                                pimpl->since_offset_0, pimpl->offset, pimpl->limit));
-            support_I_S_arg= false;
+            support_I_S_arg = false;
         }
+
         pimpl->since_offset_0++;
     }
+
     {
         /*
           We don't allocate it in THD's MEM_ROOT as it must survive until a next
           statement (SELECT) reads the trace.
         */
-        Opt_trace_stmt *stmt= new_nothrow_w_my_error<Opt_trace_stmt>(this);
-
-        DBUG_PRINT("opt",("new stmt %p support_I_S %d", stmt, support_I_S_arg));
+        Opt_trace_stmt *stmt = new_nothrow_w_my_error<Opt_trace_stmt>(this);
+        DBUG_PRINT("opt", ("new stmt %p support_I_S %d", stmt, support_I_S_arg));
 
         if (unlikely(stmt == NULL ||
                      pimpl->stack_of_current_stmts
@@ -1059,24 +1122,24 @@ bool Opt_trace_context::start(bool support_I_S_arg,
           So we just link it to the 'del' list for purging when ended.
         */
         Dynamic_array<Opt_trace_stmt *> *list;
+
         if (support_I_S_arg)
-            list= &pimpl->all_stmts_for_I_S;
+            list = &pimpl->all_stmts_for_I_S;
         else {
             stmt->disable_I_S();           // no need to fill a not-shown JSON trace
-            list= &pimpl->all_stmts_to_del;
+            list = &pimpl->all_stmts_to_del;
         }
 
         if (unlikely(list->append(stmt)))
             goto err;
 
-        pimpl->current_stmt_in_gen= stmt;
-
+        pimpl->current_stmt_in_gen = stmt;
         // As we just added one trace, maybe the previous ones are unneeded now
         purge_stmts(false);
         // This purge may have freed space, compute max allowed size:
         stmt->set_allowed_mem_size(allowed_mem_size_for_current_stmt());
         DBUG_RETURN(false);
-err:
+    err:
         delete stmt;
         DBUG_ASSERT(0);
         DBUG_RETURN(true);
@@ -1087,17 +1150,20 @@ err:
 void Opt_trace_context::end()
 {
     DBUG_ASSERT(I_S_disabled >= 0);
+
     if (likely(pimpl == NULL))
         return;
+
     if (pimpl->current_stmt_in_gen != NULL) {
         pimpl->current_stmt_in_gen->end();
         /*
           pimpl was constructed with current_stmt_in_gen=NULL which was pushed in
           'start()'. So this NULL is in the array, back() is safe.
         */
-        Opt_trace_stmt * const parent= *(pimpl->stack_of_current_stmts.back());
+        Opt_trace_stmt *const parent = *(pimpl->stack_of_current_stmts.back());
         pimpl->stack_of_current_stmts.pop();
-        pimpl->current_stmt_in_gen= parent;
+        pimpl->current_stmt_in_gen = parent;
+
         if (parent != NULL) {
             /*
               Parent regains control, now it needs to be told that its child has
@@ -1105,6 +1171,7 @@ void Opt_trace_context::end()
             */
             parent->set_allowed_mem_size(allowed_mem_size_for_current_stmt());
         }
+
         /*
           Purge again. Indeed when we are here, compared to the previous start()
           we have one more ended trace, so can potentially free more. Consider
@@ -1124,6 +1191,7 @@ void Opt_trace_context::end()
              to free-ing it only when the new sub_stmt ends.
         */
         purge_stmts(false);
+
     } else
         DBUG_ASSERT(pimpl->stack_of_current_stmts.elements() == 0);
 }
@@ -1139,11 +1207,14 @@ bool Opt_trace_context::support_I_S() const
 void Opt_trace_context::purge_stmts(bool purge_all)
 {
     DBUG_ENTER("Opt_trace_context::purge_stmts");
+
     if (!purge_all && pimpl->offset >= 0) {
         /* This case is managed in @c Opt_trace_context::start() */
         DBUG_VOID_RETURN;
     }
+
     long idx;
+
     /*
       Start from the newest traces (array's end), scroll back in time. This
       direction is necessary, as we may delete elements from the array (assume
@@ -1152,7 +1223,7 @@ void Opt_trace_context::purge_stmts(bool purge_all)
       incremented to 1, which is past the array's end, so break out of the loop:
       cell 0 (old cell 1) was not deleted, wrong).
     */
-    for (idx= (pimpl->all_stmts_for_I_S.elements() - 1) ; idx >= 0 ; idx--) {
+    for (idx = (pimpl->all_stmts_for_I_S.elements() - 1) ; idx >= 0 ; idx--) {
         if (!purge_all &&
                 ((pimpl->all_stmts_for_I_S.elements() + pimpl->offset) <= idx)) {
             /* OFFSET mandates that this trace should be kept; move to previous */
@@ -1163,6 +1234,7 @@ void Opt_trace_context::purge_stmts(bool purge_all)
             */
             DBUG_EXECUTE_IF("opt_trace_oom_in_purge",
                             DBUG_SET("+d,simulate_out_of_memory"););
+
             if (likely(!pimpl->all_stmts_to_del
                        .append(pimpl->all_stmts_for_I_S.at(idx))))
                 pimpl->all_stmts_for_I_S.del(idx);
@@ -1173,19 +1245,22 @@ void Opt_trace_context::purge_stmts(bool purge_all)
                   the OPTIMIZER_TRACE table). append() above has called my_error().
                 */
             }
+
             DBUG_EXECUTE_IF("opt_trace_oom_in_purge",
                             DBUG_SET("-d,simulate_out_of_memory"););
         }
     }
+
     /* Examine list of "to be freed" traces and free what can be */
-    for (idx= (pimpl->all_stmts_to_del.elements() - 1) ; idx >= 0 ; idx--) {
-        Opt_trace_stmt *stmt= pimpl->all_stmts_to_del.at(idx);
+    for (idx = (pimpl->all_stmts_to_del.elements() - 1) ; idx >= 0 ; idx--) {
+        Opt_trace_stmt *stmt = pimpl->all_stmts_to_del.at(idx);
 #ifndef DBUG_OFF
-        bool skip_del= false;
-        DBUG_EXECUTE_IF("opt_trace_oom_in_purge", skip_del= true;);
+        bool skip_del = false;
+        DBUG_EXECUTE_IF("opt_trace_oom_in_purge", skip_del = true;);
 #else
-        const bool skip_del= false;
+        const bool skip_del = false;
 #endif
+
         if (!stmt->has_ended() || skip_del) {
             /*
               This trace is not finished, freeing it now would lead to use of
@@ -1215,27 +1290,31 @@ void Opt_trace_context::purge_stmts(bool purge_all)
             delete stmt;
         }
     }
+
     DBUG_VOID_RETURN;
 }
 
 
 size_t Opt_trace_context::allowed_mem_size_for_current_stmt() const
 {
-    size_t mem_size= 0;
+    size_t mem_size = 0;
     int idx;
-    for (idx= (pimpl->all_stmts_for_I_S.elements() - 1) ; idx >= 0 ; idx--) {
-        const Opt_trace_stmt *stmt= pimpl->all_stmts_for_I_S.at(idx);
-        mem_size+= stmt->alloced_length();
+
+    for (idx = (pimpl->all_stmts_for_I_S.elements() - 1) ; idx >= 0 ; idx--) {
+        const Opt_trace_stmt *stmt = pimpl->all_stmts_for_I_S.at(idx);
+        mem_size += stmt->alloced_length();
     }
+
     // Even to-be-deleted traces use memory, so consider them in sum
-    for (idx= (pimpl->all_stmts_to_del.elements() - 1) ; idx >= 0 ; idx--) {
-        const Opt_trace_stmt *stmt= pimpl->all_stmts_to_del.at(idx);
-        mem_size+= stmt->alloced_length();
+    for (idx = (pimpl->all_stmts_to_del.elements() - 1) ; idx >= 0 ; idx--) {
+        const Opt_trace_stmt *stmt = pimpl->all_stmts_to_del.at(idx);
+        mem_size += stmt->alloced_length();
     }
+
     /* The current statement is in exactly one of the two lists above */
-    mem_size-= pimpl->current_stmt_in_gen->alloced_length();
-    size_t rc= (mem_size <= pimpl->max_mem_size) ?
-               (pimpl->max_mem_size - mem_size) : 0;
+    mem_size -= pimpl->current_stmt_in_gen->alloced_length();
+    size_t rc = (mem_size <= pimpl->max_mem_size) ?
+                (pimpl->max_mem_size - mem_size) : 0;
     DBUG_PRINT("opt", ("rc %llu max_mem_size %llu",
                        (ulonglong)rc, (ulonglong)pimpl->max_mem_size));
     return rc;
@@ -1253,8 +1332,9 @@ void Opt_trace_context::reset()
 {
     if (pimpl == NULL)
         return;
+
     purge_stmts(true);
-    pimpl->since_offset_0= 0;
+    pimpl->since_offset_0 = 0;
 }
 
 
@@ -1295,15 +1375,17 @@ const Opt_trace_stmt
 *Opt_trace_context::get_next_stmt_for_I_S(long *got_so_far) const
 {
     const Opt_trace_stmt *p;
+
     if ((pimpl == NULL) ||
             (*got_so_far >= pimpl->limit) ||
             (*got_so_far >= pimpl->all_stmts_for_I_S.elements()))
-        p= NULL;
+        p = NULL;
     else {
-        p= pimpl->all_stmts_for_I_S.at(*got_so_far);
+        p = pimpl->all_stmts_for_I_S.at(*got_so_far);
         DBUG_ASSERT(p != NULL);
         (*got_so_far)++;
     }
+
     return p;
 }
 
@@ -1318,7 +1400,7 @@ Opt_trace_iterator::Opt_trace_iterator(Opt_trace_context *ctx_arg) :
 
 void Opt_trace_iterator::next()
 {
-    cursor= ctx->get_next_stmt_for_I_S(&row_count);
+    cursor = ctx->get_next_stmt_for_I_S(&row_count);
 }
 
 

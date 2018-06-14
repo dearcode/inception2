@@ -58,42 +58,41 @@ using std::max;
    @return The number of bytes written at @c row_data.
  */
 #if !defined(MYSQL_CLIENT)
-size_t
-pack_row(TABLE *table, MY_BITMAP const* cols,
-         uchar *row_data, const uchar *record)
+size_t pack_row(TABLE *table, MY_BITMAP const *cols,
+                uchar *row_data, const uchar *record)
 {
-    Field **p_field= table->field, *field;
-    int const null_byte_count= (bitmap_bits_set(cols) + 7) / 8;
+    Field **p_field = table->field, *field;
+    int const null_byte_count = (bitmap_bits_set(cols) + 7) / 8;
     uchar *pack_ptr = row_data + null_byte_count;
     uchar *null_ptr = row_data;
-    my_ptrdiff_t const rec_offset= record - table->record[0];
-    my_ptrdiff_t const def_offset= table->s->default_values - table->record[0];
-
+    my_ptrdiff_t const rec_offset = record - table->record[0];
+    my_ptrdiff_t const def_offset = table->s->default_values - table->record[0];
     DBUG_ENTER("pack_row");
-
     /*
       We write the null bits and the packed records using one pass
       through all the fields. The null bytes are written little-endian,
       i.e., the first fields are in the first byte.
      */
-    unsigned int null_bits= (1U << 8) - 1;
+    unsigned int null_bits = (1U << 8) - 1;
     // Mask to mask out the correct but among the null bits
-    unsigned int null_mask= 1U;
+    unsigned int null_mask = 1U;
     DBUG_PRINT("debug", ("null ptr: 0x%lx; row start: %p; null bytes: %d",
                          (ulong) null_ptr, row_data, null_byte_count));
-    DBUG_DUMP("cols", (uchar*) cols->bitmap, cols->last_word_ptr - cols->bitmap + 1);
-    for ( ; (field= *p_field) ; p_field++) {
+    DBUG_DUMP("cols", (uchar *) cols->bitmap, cols->last_word_ptr - cols->bitmap + 1);
+
+    for ( ; (field = *p_field) ; p_field++) {
         if (bitmap_is_set(cols, p_field - table->field)) {
             my_ptrdiff_t offset;
+
             if (field->is_null(rec_offset)) {
                 DBUG_PRINT("debug", ("Is NULL; null_mask: 0x%x; null_bits: 0x%x",
                                      null_mask, null_bits));
-                offset= def_offset;
+                offset = def_offset;
                 null_bits |= null_mask;
-            } else {
-                offset= rec_offset;
-                null_bits &= ~null_mask;
 
+            } else {
+                offset = rec_offset;
+                null_bits &= ~null_mask;
                 /*
                   We only store the data of the field if it is non-null
 
@@ -102,10 +101,10 @@ pack_row(TABLE *table, MY_BITMAP const* cols,
                   format used for the binlog.
                 */
 #ifndef DBUG_OFF
-                const uchar *old_pack_ptr= pack_ptr;
+                const uchar *old_pack_ptr = pack_ptr;
 #endif
-                pack_ptr= field->pack(pack_ptr, field->ptr + offset,
-                                      field->max_data_length(), TRUE);
+                pack_ptr = field->pack(pack_ptr, field->ptr + offset,
+                                       field->max_data_length(), TRUE);
                 DBUG_PRINT("debug", ("field: %s; real_type: %d, pack_ptr: 0x%lx;"
                                      " pack_ptr':0x%lx; bytes: %d",
                                      field->field_name, field->real_type(),
@@ -115,17 +114,20 @@ pack_row(TABLE *table, MY_BITMAP const* cols,
             }
 
             null_mask <<= 1;
+
             if ((null_mask & 0xFF) == 0) {
                 DBUG_ASSERT(null_ptr < row_data + null_byte_count);
                 null_mask = 1U;
                 *null_ptr++ = null_bits;
-                null_bits= (1U << 8) - 1;
+                null_bits = (1U << 8) - 1;
             }
         }
+
 #ifndef DBUG_OFF
-        else {
+
+        else
             DBUG_PRINT("debug", ("Skipped"));
-        }
+
 #endif
     }
 
@@ -187,46 +189,41 @@ pack_row(TABLE *table, MY_BITMAP const* cols,
    A generic, internal, error caused the unpacking to fail.
  */
 #if !defined(MYSQL_CLIENT) && defined(HAVE_REPLICATION)
-int
-unpack_row(Relay_log_info const *rli,
-           TABLE *table, uint const colcnt,
-           uchar const *const row_data, MY_BITMAP const *cols,
-           uchar const **const row_end, ulong *const master_reclength)
+int unpack_row(Relay_log_info const *rli,
+               TABLE *table, uint const colcnt,
+               uchar const *const row_data, MY_BITMAP const *cols,
+               uchar const **const row_end, ulong *const master_reclength)
 {
     DBUG_ENTER("unpack_row");
     DBUG_ASSERT(row_data);
     DBUG_ASSERT(table);
-    size_t const master_null_byte_count= (bitmap_bits_set(cols) + 7) / 8;
-    int error= 0;
-
-    uchar const *null_ptr= row_data;
-    uchar const *pack_ptr= row_data + master_null_byte_count;
+    size_t const master_null_byte_count = (bitmap_bits_set(cols) + 7) / 8;
+    int error = 0;
+    uchar const *null_ptr = row_data;
+    uchar const *pack_ptr = row_data + master_null_byte_count;
 
     if (bitmap_is_clear_all(cols)) {
         /**
            There was no data sent from the master, so there is
            nothing to unpack.
          */
-        *row_end= pack_ptr;
-        *master_reclength= 0;
+        *row_end = pack_ptr;
+        *master_reclength = 0;
         DBUG_RETURN(error);
     }
 
-
     Field **const begin_ptr = table->field;
     Field **field_ptr;
-    Field **const end_ptr= begin_ptr + colcnt;
-
+    Field **const end_ptr = begin_ptr + colcnt;
     DBUG_ASSERT(null_ptr < row_data + master_null_byte_count);
-
     // Mask to mask out the correct bit among the null bits
-    unsigned int null_mask= 1U;
+    unsigned int null_mask = 1U;
     // The "current" null bits
-    unsigned int null_bits= *null_ptr++;
-    uint i= 0;
-    table_def *tabledef= NULL;
-    TABLE *conv_table= NULL;
-    bool table_found= rli && rli->get_table_data(table, &tabledef, &conv_table);
+    unsigned int null_bits = *null_ptr++;
+    uint i = 0;
+    table_def *tabledef = NULL;
+    TABLE *conv_table = NULL;
+    bool table_found = rli && rli->get_table_data(table, &tabledef, &conv_table);
     DBUG_PRINT("debug", ("Table data: table_found: %d, tabldef: %p, conv_table: %p",
                          table_found, tabledef, conv_table));
     DBUG_ASSERT(table_found);
@@ -240,22 +237,21 @@ unpack_row(Relay_log_info const *rli,
     if (rli && !table_found)
         DBUG_RETURN(HA_ERR_GENERIC);
 
-    for (field_ptr= begin_ptr ; field_ptr < end_ptr && *field_ptr ; ++field_ptr) {
+    for (field_ptr = begin_ptr ; field_ptr < end_ptr && *field_ptr ; ++field_ptr) {
         /*
           If there is a conversion table, we pick up the field pointer to
           the conversion table.  If the conversion table or the field
           pointer is NULL, no conversions are necessary.
          */
-        Field *conv_field=
+        Field *conv_field =
             conv_table ? conv_table->field[field_ptr - begin_ptr] : NULL;
-        Field *const f=
+        Field *const f =
             conv_field ? conv_field : *field_ptr;
         DBUG_PRINT("debug", ("Conversion %srequired for field '%s' (#%ld)",
                              conv_field ? "" : "not ",
                              (*field_ptr)->field_name,
                              (long) (field_ptr - begin_ptr)));
         DBUG_ASSERT(f != NULL);
-
         DBUG_PRINT("debug", ("field: %s; null mask: 0x%x; null bits: 0x%lx;"
                              " row start: %p; null bytes: %ld",
                              f->field_name, null_mask, (ulong) null_bits,
@@ -268,12 +264,11 @@ unpack_row(Relay_log_info const *rli,
         if (bitmap_is_set(cols, field_ptr -  begin_ptr)) {
             if ((null_mask & 0xFF) == 0) {
                 DBUG_ASSERT(null_ptr < row_data + master_null_byte_count);
-                null_mask= 1U;
-                null_bits= *null_ptr++;
+                null_mask = 1U;
+                null_bits = *null_ptr++;
             }
 
             DBUG_ASSERT(null_mask & 0xFF); // One of the 8 LSB should be set
-
             /* Field...::unpack() cannot return 0 */
             DBUG_ASSERT(pack_ptr != NULL);
 
@@ -298,30 +293,30 @@ unpack_row(Relay_log_info const *rli,
                      */
                     f->reset();
                     f->set_null();
+
                 } else {
                     f->set_default();
                     push_warning_printf(current_thd, Sql_condition::WARN_LEVEL_WARN,
                                         ER_BAD_NULL_ERROR, ER(ER_BAD_NULL_ERROR),
                                         f->field_name);
                 }
+
             } else {
                 f->set_notnull();
-
                 /*
                   We only unpack the field if it was non-null.
                   Use the master's size information if available else call
                   normal unpack operation.
                 */
-                uint16 const metadata= tabledef->field_metadata(i);
+                uint16 const metadata = tabledef->field_metadata(i);
 #ifndef DBUG_OFF
-                uchar const *const old_pack_ptr= pack_ptr;
+                uchar const *const old_pack_ptr = pack_ptr;
 #endif
-                pack_ptr= f->unpack(f->ptr, pack_ptr, metadata, TRUE);
+                pack_ptr = f->unpack(f->ptr, pack_ptr, metadata, TRUE);
                 DBUG_PRINT("debug", ("Unpacked; metadata: 0x%x;"
                                      " pack_ptr: 0x%lx; pack_ptr': 0x%lx; bytes: %d",
                                      metadata, (ulong) old_pack_ptr, (ulong) pack_ptr,
                                      (int) (pack_ptr - old_pack_ptr)));
-
                 /*
                   The raw size of the field, as calculated in calc_field_size,
                   should match the one reported by Field_*::unpack.
@@ -364,10 +359,12 @@ unpack_row(Relay_log_info const *rli,
 
             null_mask <<= 1;
         }
+
 #ifndef DBUG_OFF
-        else {
+
+        else
             DBUG_PRINT("debug", ("Non-existent: skipped"));
-        }
+
 #endif
         i++;
     }
@@ -375,21 +372,24 @@ unpack_row(Relay_log_info const *rli,
     /*
       throw away master's extra fields
     */
-    uint max_cols= min<ulong>(tabledef->size(), cols->n_bits);
+    uint max_cols = min<ulong>(tabledef->size(), cols->n_bits);
+
     for (; i < max_cols; i++) {
         if (bitmap_is_set(cols, i)) {
             if ((null_mask & 0xFF) == 0) {
                 DBUG_ASSERT(null_ptr < row_data + master_null_byte_count);
-                null_mask= 1U;
-                null_bits= *null_ptr++;
+                null_mask = 1U;
+                null_bits = *null_ptr++;
             }
+
             DBUG_ASSERT(null_mask & 0xFF); // One of the 8 LSB should be set
 
             if (!((null_bits & null_mask) && tabledef->maybe_null(i))) {
-                uint32 len= tabledef->calc_field_size(i, (uchar *) pack_ptr);
+                uint32 len = tabledef->calc_field_size(i, (uchar *) pack_ptr);
                 DBUG_DUMP("field_data", pack_ptr, len);
-                pack_ptr+= len;
+                pack_ptr += len;
             }
+
             null_mask <<= 1;
         }
     }
@@ -399,10 +399,9 @@ unpack_row(Relay_log_info const *rli,
       really wrong.
      */
     DBUG_ASSERT(null_ptr == row_data + master_null_byte_count);
-
     DBUG_DUMP("row_data", row_data, pack_ptr - row_data);
-
     *row_end = pack_ptr;
+
     if (master_reclength) {
         if (*field_ptr)
             *master_reclength = (*field_ptr)->ptr - table->record[0];
@@ -429,7 +428,6 @@ unpack_row(Relay_log_info const *rli,
 int prepare_record(TABLE *const table, const MY_BITMAP *cols, const bool check)
 {
     DBUG_ENTER("prepare_record");
-
     restore_record(table, s->default_values);
 
     if (!check)
@@ -441,12 +439,13 @@ int prepare_record(TABLE *const table, const MY_BITMAP *cols, const bool check)
       explicit value for a field not having the explicit default
       (@c check_that_all_fields_are_given_values()).
     */
-
     DBUG_PRINT_BITSET("debug", "cols: %s", cols);
-    for (Field **field_ptr= table->field; *field_ptr; ++field_ptr) {
+
+    for (Field **field_ptr = table->field; *field_ptr; ++field_ptr) {
         if ((uint) (field_ptr - table->field) >= cols->n_bits ||
                 !bitmap_is_set(cols, field_ptr - table->field)) {
-            Field *const f= *field_ptr;
+            Field *const f = *field_ptr;
+
             if ((f->flags &  NO_DEFAULT_VALUE_FLAG) &&
                     (f->real_type() != MYSQL_TYPE_ENUM)) {
                 f->set_default();

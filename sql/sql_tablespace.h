@@ -19,6 +19,6 @@
 class THD;
 class st_alter_tablespace;
 
-int mysql_alter_tablespace(THD* thd, st_alter_tablespace *ts_info);
+int mysql_alter_tablespace(THD *thd, st_alter_tablespace *ts_info);
 
 #endif /* SQL_TABLESPACE_INCLUDED */

@@ -46,26 +46,26 @@ public:
     }
     void make_field(Send_field *)
     {
-        illegal_method_call((const char*)"make_field");
+        illegal_method_call((const char *)"make_field");
     };
     double val_real()
     {
-        illegal_method_call((const char*)"val");
+        illegal_method_call((const char *)"val");
         return 0;
     };
     longlong val_int()
     {
-        illegal_method_call((const char*)"val_int");
+        illegal_method_call((const char *)"val_int");
         return 0;
     };
     String *val_str(String *)
     {
-        illegal_method_call((const char*)"val_str");
+        illegal_method_call((const char *)"val_str");
         return 0;
     };
     my_decimal *val_decimal(my_decimal *)
     {
-        illegal_method_call((const char*)"val_decimal");
+        illegal_method_call((const char *)"val_decimal");
         return 0;
     };
     bool get_date(MYSQL_TIME *ltime, uint fuzzydate)
@@ -111,11 +111,11 @@ public:
     {
         return arg_count;
     }
-    Item* element_index(uint i)
+    Item *element_index(uint i)
     {
         return items[i];
     }
-    Item** addr(uint i)
+    Item **addr(uint i)
     {
         return items + i;
     }

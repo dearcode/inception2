@@ -23,9 +23,9 @@ const size_t Uuid::TEXT_LENGTH;
 const size_t Uuid::BYTE_LENGTH;
 const size_t Uuid::BIT_LENGTH;
 */
-const int Uuid::bytes_per_section[Uuid::NUMBER_OF_SECTIONS]=
+const int Uuid::bytes_per_section[Uuid::NUMBER_OF_SECTIONS] =
 { 4, 2, 2, 2, 6 };
-const int Uuid::hex_to_byte[]= {
+const int Uuid::hex_to_byte[] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -48,27 +48,35 @@ const int Uuid::hex_to_byte[]= {
 enum_return_status Uuid::parse(const char *s)
 {
     DBUG_ENTER("Uuid::parse");
-    unsigned char *u= bytes;
-    unsigned char *ss= (unsigned char *)s;
-    for (int i= 0; i < NUMBER_OF_SECTIONS; i++) {
+    unsigned char *u = bytes;
+    unsigned char *ss = (unsigned char *)s;
+
+    for (int i = 0; i < NUMBER_OF_SECTIONS; i++) {
         if (i > 0) {
             if (*ss != '-')
                 RETURN_UNREPORTED_ERROR;
+
             ss++;
         }
-        for (int j= 0; j < bytes_per_section[i]; j++) {
-            int hi= hex_to_byte[*ss];
+
+        for (int j = 0; j < bytes_per_section[i]; j++) {
+            int hi = hex_to_byte[*ss];
+
             if (hi == -1)
                 RETURN_UNREPORTED_ERROR;
+
             ss++;
-            int lo= hex_to_byte[*ss];
+            int lo = hex_to_byte[*ss];
+
             if (lo == -1)
                 RETURN_UNREPORTED_ERROR;
+
             ss++;
-            *u= (hi << 4) + lo;
+            *u = (hi << 4) + lo;
             u++;
         }
     }
+
     RETURN_OK;
 }
 
@@ -76,46 +84,56 @@ enum_return_status Uuid::parse(const char *s)
 bool Uuid::is_valid(const char *s)
 {
     DBUG_ENTER("Uuid::is_valid");
-    const unsigned char *ss= (const unsigned char *)s;
-    for (int i= 0; i < NUMBER_OF_SECTIONS; i++) {
+    const unsigned char *ss = (const unsigned char *)s;
+
+    for (int i = 0; i < NUMBER_OF_SECTIONS; i++) {
         if (i > 0) {
             if (*ss != '-')
                 DBUG_RETURN(false);
+
             ss++;
         }
-        for (int j= 0; j < bytes_per_section[i]; j++) {
+
+        for (int j = 0; j < bytes_per_section[i]; j++) {
             if (hex_to_byte[*ss] == -1)
                 DBUG_RETURN(false);
+
             ss++;
+
             if (hex_to_byte[*ss] == -1)
                 DBUG_RETURN(false);
+
             ss++;
         }
     }
+
     DBUG_RETURN(true);
 }
 
 
-size_t Uuid::to_string(const uchar* bytes_arg, char *buf)
+size_t Uuid::to_string(const uchar *bytes_arg, char *buf)
 {
     DBUG_ENTER("Uuid::to_string");
-    static const char byte_to_hex[]= "0123456789abcdef";
-    const unsigned char *u= bytes_arg;
-    for (int i= 0; i < NUMBER_OF_SECTIONS; i++) {
+    static const char byte_to_hex[] = "0123456789abcdef";
+    const unsigned char *u = bytes_arg;
+
+    for (int i = 0; i < NUMBER_OF_SECTIONS; i++) {
         if (i > 0) {
-            *buf= '-';
+            *buf = '-';
             buf++;
         }
-        for (int j= 0; j < bytes_per_section[i]; j++) {
-            int byte= *u;
-            *buf= byte_to_hex[byte >> 4];
+
+        for (int j = 0; j < bytes_per_section[i]; j++) {
+            int byte = *u;
+            *buf = byte_to_hex[byte >> 4];
             buf++;
-            *buf= byte_to_hex[byte & 0xf];
+            *buf = byte_to_hex[byte & 0xf];
             buf++;
             u++;
         }
     }
-    *buf= '\0';
+
+    *buf = '\0';
     DBUG_RETURN(TEXT_LENGTH);
 }
 

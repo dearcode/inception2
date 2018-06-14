@@ -73,33 +73,41 @@ rpl_sidno Sid_map::add_sid(const rpl_sid &sid)
     sid.to_string(buf);
     DBUG_PRINT("info", ("SID=%s", buf));
 #endif
+
     if (sid_lock)
         sid_lock->assert_some_lock();
-    Node *node= (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
-                                       rpl_sid::BYTE_LENGTH);
+
+    Node *node = (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
+                                        rpl_sid::BYTE_LENGTH);
+
     if (node != NULL) {
         DBUG_PRINT("info", ("existed as sidno=%d", node->sidno));
         DBUG_RETURN(node->sidno);
     }
 
-    bool is_wrlock= false;
+    bool is_wrlock = false;
+
     if (sid_lock) {
-        is_wrlock= sid_lock->is_wrlock();
+        is_wrlock = sid_lock->is_wrlock();
+
         if (!is_wrlock) {
             sid_lock->unlock();
             sid_lock->wrlock();
         }
     }
+
     DBUG_PRINT("info", ("is_wrlock=%d sid_lock=%p", is_wrlock, sid_lock));
     rpl_sidno sidno;
-    node= (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
-                                 rpl_sid::BYTE_LENGTH);
+    node = (Node *)my_hash_search(&_sid_to_sidno, sid.bytes,
+                                  rpl_sid::BYTE_LENGTH);
+
     if (node != NULL)
-        sidno= node->sidno;
+        sidno = node->sidno;
     else {
-        sidno= get_max_sidno() + 1;
+        sidno = get_max_sidno() + 1;
+
         if (add_node(sidno, sid) != RETURN_STATUS_OK)
-            sidno= -1;
+            sidno = -1;
     }
 
     if (sid_lock) {
@@ -108,24 +116,30 @@ rpl_sidno Sid_map::add_sid(const rpl_sid &sid)
             sid_lock->rdlock();
         }
     }
+
     DBUG_RETURN(sidno);
 }
 
 enum_return_status Sid_map::add_node(rpl_sidno sidno, const rpl_sid &sid)
 {
     DBUG_ENTER("Sid_map::add_node(rpl_sidno, const rpl_sid *)");
+
     if (sid_lock)
         sid_lock->assert_some_wrlock();
-    Node *node= (Node *)my_malloc(sizeof(Node), MYF(MY_WME));
+
+    Node *node = (Node *)my_malloc(sizeof(Node), MYF(MY_WME));
+
     if (node == NULL)
         RETURN_REPORTED_ERROR;
 
-    node->sidno= sidno;
-    node->sid= sid;
+    node->sidno = sidno;
+    node->sid = sid;
+
     if (insert_dynamic(&_sidno_to_sid, &node) == 0) {
         if (insert_dynamic(&_sorted, &sidno) == 0) {
             if (my_hash_insert(&_sid_to_sidno, (uchar *)node) == 0) {
 #ifdef MYSQL_SERVER
+
                 /*
                   If this is the global_sid_map, we take the opportunity to
                   resize all arrays in gtid_state while holding the wrlock.
@@ -136,31 +150,37 @@ enum_return_status Sid_map::add_node(rpl_sidno sidno, const rpl_sid &sid)
                 {
                     // We have added one element to the end of _sorted.  Now we
                     // bubble it down to the sorted position.
-                    int sorted_i= sidno - 1;
-                    rpl_sidno *prev_sorted_p= dynamic_element(&_sorted, sorted_i,
-                                              rpl_sidno *);
+                    int sorted_i = sidno - 1;
+                    rpl_sidno *prev_sorted_p = dynamic_element(&_sorted, sorted_i,
+                                               rpl_sidno *);
                     sorted_i--;
+
                     while (sorted_i >= 0) {
-                        rpl_sidno *sorted_p= dynamic_element(&_sorted, sorted_i,
-                                                             rpl_sidno *);
-                        const rpl_sid &other_sid= sidno_to_sid(*sorted_p);
+                        rpl_sidno *sorted_p = dynamic_element(&_sorted, sorted_i,
+                                                              rpl_sidno *);
+                        const rpl_sid &other_sid = sidno_to_sid(*sorted_p);
+
                         if (memcmp(sid.bytes, other_sid.bytes,
                                    rpl_sid::BYTE_LENGTH) >= 0)
                             break;
+
                         memcpy(prev_sorted_p, sorted_p, sizeof(rpl_sidno));
                         sorted_i--;
-                        prev_sorted_p= sorted_p;
+                        prev_sorted_p = sorted_p;
                     }
+
                     memcpy(prev_sorted_p, &sidno, sizeof(rpl_sidno));
                     RETURN_OK;
                 }
             }
+
             pop_dynamic(&_sorted);
         }
+
         pop_dynamic(&_sidno_to_sid);
     }
-    my_free(node);
 
+    my_free(node);
     BINLOG_ERROR(("Out of memory."), (ER_OUT_OF_RESOURCES, MYF(0)));
     RETURN_REPORTED_ERROR;
 }

@@ -96,13 +96,15 @@ public:
     void chop(const size_t pos)
     {
         DBUG_ASSERT(pos < m_size);
+
         if (!has_trivial_destructor) {
-            for (size_t ix= pos; ix < m_size; ++ix) {
-                Element_type *p= &m_array[ix];
+            for (size_t ix = pos; ix < m_size; ++ix) {
+                Element_type *p = &m_array[ix];
                 p->~Element_type();              // Destroy discarded element.
             }
         }
-        m_size= pos;
+
+        m_size = pos;
     }
 
     /*
@@ -117,23 +119,26 @@ public:
         if (n <= m_capacity)
             return false;
 
-        void *mem= alloc_root(m_root, n * element_size());
+        void *mem = alloc_root(m_root, n * element_size());
+
         if (!mem)
             return true;
-        Element_type *array= static_cast<Element_type*>(mem);
+
+        Element_type *array = static_cast<Element_type *>(mem);
 
         // Copy all the existing elements into the new array.
-        for (size_t ix= 0; ix < m_size; ++ix) {
-            Element_type *new_p= &array[ix];
-            Element_type *old_p= &m_array[ix];
+        for (size_t ix = 0; ix < m_size; ++ix) {
+            Element_type *new_p = &array[ix];
+            Element_type *old_p = &m_array[ix];
             new (new_p) Element_type(*old_p);         // Copy into new location.
+
             if (!has_trivial_destructor)
                 old_p->~Element_type();                 // Destroy the old element.
         }
 
         // Forget the old array.
-        m_array= array;
-        m_capacity= n;
+        m_array = array;
+        m_capacity = n;
         return false;
     }
 
@@ -147,13 +152,16 @@ public:
     */
     bool push_back(const Element_type &element)
     {
-        const size_t min_capacity= 20;
-        const size_t expansion_factor= 2;
+        const size_t min_capacity = 20;
+        const size_t expansion_factor = 2;
+
         if (0 == m_capacity && reserve(min_capacity))
             return true;
+
         if (m_size == m_capacity && reserve(m_capacity * expansion_factor))
             return true;
-        Element_type *p= &m_array[m_size++];
+
+        Element_type *p = &m_array[m_size++];
         new (p) Element_type(element);
         return false;
     }
@@ -182,8 +190,8 @@ private:
     size_t          m_capacity;
 
     // Not (yet) implemented.
-    Mem_root_array(const Mem_root_array&);
-    Mem_root_array &operator=(const Mem_root_array&);
+    Mem_root_array(const Mem_root_array &);
+    Mem_root_array &operator=(const Mem_root_array &);
 };
 
 

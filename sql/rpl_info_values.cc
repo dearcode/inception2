@@ -31,7 +31,7 @@ bool Rpl_info_values::init()
 {
     DBUG_ENTER("Rpl_info_values::init");
 
-    if (!value && !(value= new String[ninfo]))
+    if (!value && !(value = new String[ninfo]))
         DBUG_RETURN(TRUE);
 
     DBUG_RETURN(FALSE);

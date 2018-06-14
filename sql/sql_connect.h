@@ -44,7 +44,7 @@ int check_user(THD *thd, enum enum_server_command command,
                bool check_count);
 
 bool login_connection(THD *thd);
-void prepare_new_connection_state(THD* thd);
+void prepare_new_connection_state(THD *thd);
 void end_connection(THD *thd);
 int get_or_create_user_conn(THD *thd, const char *user,
                             const char *host, const USER_RESOURCES *mqh);

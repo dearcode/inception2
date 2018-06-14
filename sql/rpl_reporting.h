@@ -25,7 +25,7 @@
 
 // todo: consider to remove rpl_reporting.cc,h from building embedded
 #if !defined(EMBEDDED_LIBRARY)
-class THD;
+    class THD;
 #endif
 
 /**
@@ -77,7 +77,7 @@ public:
     /**
        Check if the current error is of temporary nature or not.
     */
-    int has_temporary_error(THD *thd, uint error_arg= 0, bool* silent= 0) const;
+    int has_temporary_error(THD *thd, uint error_arg = 0, bool *silent = 0) const;
 #endif // EMBEDDED_LIBRARY
 
     /**
@@ -94,10 +94,9 @@ public:
 
         void clear()
         {
-            number= 0;
-            message[0]= '\0';
-            timestamp[0]= '\0';
-
+            number = 0;
+            message[0] = '\0';
+            timestamp[0] = '\0';
         }
 
         void update_timestamp()
@@ -105,19 +104,17 @@ public:
             time_t skr;
             struct tm tm_tmp;
             struct tm *start;
-
-            skr= my_time(0);
+            skr = my_time(0);
             localtime_r(&skr, &tm_tmp);
-            start=&tm_tmp;
-
+            start = &tm_tmp;
             sprintf(timestamp, "%02d%02d%02d %02d:%02d:%02d",
                     start->tm_year % 100,
-                    start->tm_mon+1,
+                    start->tm_mon + 1,
                     start->tm_mday,
                     start->tm_hour,
                     start->tm_min,
                     start->tm_sec);
-            timestamp[15]= '\0';
+            timestamp[15] = '\0';
         }
 
         /** Error code */
@@ -128,7 +125,7 @@ public:
         char timestamp[16];
     };
 
-    Error const& last_error() const
+    Error const &last_error() const
     {
         return m_last_error;
     }
@@ -137,7 +134,7 @@ public:
         return last_error().number != 0;
     }
 
-    virtual ~Slave_reporting_capability()= 0;
+    virtual ~Slave_reporting_capability() = 0;
 
 protected:
 
@@ -156,8 +153,8 @@ private:
     char const *const m_thread_name;
 
     // not implemented
-    Slave_reporting_capability(const Slave_reporting_capability& rhs);
-    Slave_reporting_capability& operator=(const Slave_reporting_capability& rhs);
+    Slave_reporting_capability(const Slave_reporting_capability &rhs);
+    Slave_reporting_capability &operator=(const Slave_reporting_capability &rhs);
 };
 
 #endif // RPL_REPORTING_H

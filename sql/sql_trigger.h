@@ -29,9 +29,9 @@ class Query_tables_list;
 /** Event on which trigger is invoked. */
 enum trg_event_type
 {
-    TRG_EVENT_INSERT= 0,
-    TRG_EVENT_UPDATE= 1,
-    TRG_EVENT_DELETE= 2,
+    TRG_EVENT_INSERT = 0,
+    TRG_EVENT_UPDATE = 1,
+    TRG_EVENT_DELETE = 2,
     TRG_EVENT_MAX
 };
 
@@ -46,7 +46,7 @@ enum trg_event_type
 */
 enum trg_action_time_type
 {
-    TRG_ACTION_BEFORE= 0, TRG_ACTION_AFTER= 1, TRG_ACTION_MAX
+    TRG_ACTION_BEFORE = 0, TRG_ACTION_AFTER = 1, TRG_ACTION_MAX
 };
 
 
@@ -145,8 +145,8 @@ public:
     /* End of character ser context. */
 
     Table_triggers_list(TABLE *table_arg)
-        :record1_field(0), trigger_table(table_arg),
-         m_has_unparseable_trigger(false)
+        : record1_field(0), trigger_table(table_arg),
+          m_has_unparseable_trigger(false)
     {
         memset(bodies, 0, sizeof(bodies));
         memset(&subject_table_grants, 0, sizeof(subject_table_grants));
@@ -215,7 +215,7 @@ public:
                                       trg_action_time_type action_time);
 private:
     bool prepare_record1_accessors();
-    LEX_STRING* change_table_name_in_trignames(const char *old_db_name,
+    LEX_STRING *change_table_name_in_trignames(const char *old_db_name,
             const char *new_db_name,
             LEX_STRING *new_table_name,
             LEX_STRING *stopper);
@@ -231,6 +231,7 @@ private:
             my_message(ER_PARSE_ERROR, m_parse_error_message, MYF(0));
             return true;
         }
+
         return false;
     }
 };
@@ -253,7 +254,7 @@ bool load_table_name_for_trigger(THD *thd,
                                  LEX_STRING *tbl_name);
 bool mysql_create_or_drop_trigger(THD *thd, TABLE_LIST *tables, bool create);
 
-extern const char * const TRG_EXT;
-extern const char * const TRN_EXT;
+extern const char *const TRG_EXT;
+extern const char *const TRN_EXT;
 
 #endif /* SQL_TRIGGER_INCLUDED */

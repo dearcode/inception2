@@ -200,12 +200,12 @@ public:
         alter_list.empty();
         key_list.empty();
         create_list.empty();
-        flags= 0;
-        keys_onoff= LEAVE_AS_IS;
-        num_parts= 0;
+        flags = 0;
+        keys_onoff = LEAVE_AS_IS;
+        num_parts = 0;
         partition_names.empty();
-        requested_algorithm= ALTER_TABLE_ALGORITHM_DEFAULT;
-        requested_lock= ALTER_TABLE_LOCK_DEFAULT;
+        requested_algorithm = ALTER_TABLE_ALGORITHM_DEFAULT;
+        requested_lock = ALTER_TABLE_LOCK_DEFAULT;
     }
 
 
@@ -323,9 +323,9 @@ public:
     */
     void set_fk_error_if_delete_row(FOREIGN_KEY_INFO *fk)
     {
-        fk_error_if_delete_row= true;
-        fk_error_id= fk->foreign_id->str;
-        fk_error_table= fk->foreign_table->str;
+        fk_error_if_delete_row = true;
+        fk_error_id = fk->foreign_id->str;
+        fk_error_table = fk->foreign_table->str;
     }
 
 public:

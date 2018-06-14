@@ -21,59 +21,66 @@
 
 NAMED_ILIST key_caches;
 
-uchar* find_named(I_List<NAMED_ILINK> *list, const char *name, uint length,
+uchar *find_named(I_List<NAMED_ILINK> *list, const char *name, uint length,
                   NAMED_ILINK **found)
 {
     I_List_iterator<NAMED_ILINK> it(*list);
     NAMED_ILINK *element;
-    while ((element= it++)) {
+
+    while ((element = it++)) {
         if (element->cmp(name, length)) {
             if (found)
-                *found= element;
+                *found = element;
+
             return element->data;
         }
     }
+
     return 0;
 }
 
 
-void NAMED_ILIST::delete_elements(void (*free_element)(const char *name, uchar*))
+void NAMED_ILIST::delete_elements(void (*free_element)(const char *name, uchar *))
 {
     NAMED_ILINK *element;
     DBUG_ENTER("NAMED_ILIST::delete_elements");
-    while ((element= get())) {
+
+    while ((element = get())) {
         (*free_element)(element->name, element->data);
         delete element;
     }
+
     DBUG_VOID_RETURN;
 }
 
 
 /* Key cache functions */
 
-LEX_STRING default_key_cache_base= {C_STRING_WITH_LEN("default")};
+LEX_STRING default_key_cache_base = {C_STRING_WITH_LEN("default")};
 
 KEY_CACHE zero_key_cache; ///< @@nonexistent_cache.param->value_ptr() points here
 
 KEY_CACHE *get_key_cache(LEX_STRING *cache_name)
 {
     if (!cache_name || ! cache_name->length)
-        cache_name= &default_key_cache_base;
-    return ((KEY_CACHE*) find_named(&key_caches,
-                                    cache_name->str, cache_name->length, 0));
+        cache_name = &default_key_cache_base;
+
+    return ((KEY_CACHE *) find_named(&key_caches,
+                                     cache_name->str, cache_name->length, 0));
 }
 
 KEY_CACHE *create_key_cache(const char *name, uint length)
 {
     KEY_CACHE *key_cache;
     DBUG_ENTER("create_key_cache");
-    DBUG_PRINT("enter",("name: %.*s", length, name));
+    DBUG_PRINT("enter", ("name: %.*s", length, name));
 
-    if ((key_cache= (KEY_CACHE*) my_malloc(sizeof(KEY_CACHE),
-                                           MYF(MY_ZEROFILL | MY_WME)))) {
-        if (!new NAMED_ILINK(&key_caches, name, length, (uchar*) key_cache)) {
+    if ((key_cache = (KEY_CACHE *) my_malloc(sizeof(KEY_CACHE),
+                     MYF(MY_ZEROFILL | MY_WME)))) {
+        if (!new NAMED_ILINK(&key_caches, name, length, (uchar *) key_cache)) {
             my_free(key_cache);
-            key_cache= 0;
+            key_cache = 0;
+
         } else {
             /*
               Set default values for a key cache
@@ -81,11 +88,12 @@ KEY_CACHE *create_key_cache(const char *name, uint length)
 
               We don't set 'buff_size' as this is used to enable the key cache
             */
-            key_cache->param_block_size=     dflt_key_cache_var.param_block_size;
-            key_cache->param_division_limit= dflt_key_cache_var.param_division_limit;
-            key_cache->param_age_threshold=  dflt_key_cache_var.param_age_threshold;
+            key_cache->param_block_size =     dflt_key_cache_var.param_block_size;
+            key_cache->param_division_limit = dflt_key_cache_var.param_division_limit;
+            key_cache->param_age_threshold =  dflt_key_cache_var.param_age_threshold;
         }
     }
+
     DBUG_RETURN(key_cache);
 }
 
@@ -94,11 +102,12 @@ KEY_CACHE *get_or_create_key_cache(const char *name, uint length)
 {
     LEX_STRING key_cache_name;
     KEY_CACHE *key_cache;
+    key_cache_name.str = (char *) name;
+    key_cache_name.length = length;
 
-    key_cache_name.str= (char *) name;
-    key_cache_name.length= length;
-    if (!(key_cache= get_key_cache(&key_cache_name)))
-        key_cache= create_key_cache(name, length);
+    if (!(key_cache = get_key_cache(&key_cache_name)))
+        key_cache = create_key_cache(name, length);
+
     return key_cache;
 }
 
@@ -115,10 +124,11 @@ bool process_key_caches(process_key_cache_t func)
     I_List_iterator<NAMED_ILINK> it(key_caches);
     NAMED_ILINK *element;
 
-    while ((element= it++)) {
-        KEY_CACHE *key_cache= (KEY_CACHE *) element->data;
+    while ((element = it++)) {
+        KEY_CACHE *key_cache = (KEY_CACHE *) element->data;
         func(element->name, key_cache);
     }
+
     return 0;
 }
 

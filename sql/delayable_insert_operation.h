@@ -55,8 +55,8 @@ public:
     */
     void set_dup_and_ignore(enum enum_duplicates d, bool i)
     {
-        handle_duplicates= d;
-        ignore= i;
+        handle_duplicates = d;
+        ignore = i;
     }
 };
 

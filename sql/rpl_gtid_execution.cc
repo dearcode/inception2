@@ -41,8 +41,9 @@
 int gtid_acquire_ownership_single(THD *thd)
 {
     DBUG_ENTER("gtid_acquire_ownership_single");
-    int ret= 0;
-    const Gtid gtid_next= thd->variables.gtid_next.gtid;
+    int ret = 0;
+    const Gtid gtid_next = thd->variables.gtid_next.gtid;
+
     while (true) {
         global_sid_lock->rdlock();
         // acquire lock before checking conditions
@@ -56,14 +57,18 @@ int gtid_acquire_ownership_single(THD *thd)
             */
             break;
         }
-        my_thread_id owner= gtid_state->get_owner(gtid_next);
+
+        my_thread_id owner = gtid_state->get_owner(gtid_next);
+
         // GTID not owned by anyone: acquire ownership
         if (owner == 0) {
             if (gtid_state->acquire_ownership(thd, gtid_next) != RETURN_STATUS_OK)
-                ret= 1;
-            thd->owned_gtid= gtid_next;
+                ret = 1;
+
+            thd->owned_gtid = gtid_next;
             break;
         }
+
         // GTID owned by someone (other thread)
         else {
             DBUG_ASSERT(owner != thd->id);
@@ -76,7 +81,9 @@ int gtid_acquire_ownership_single(THD *thd)
             // Check if thread was killed.
             if (thd->killed || abort_loop)
                 DBUG_RETURN(1);
+
 #ifdef HAVE_REPLICATION
+
             // If this thread is a slave SQL thread or slave SQL worker
             // thread, we need this additional condition to determine if it
             // has been stopped by STOP SLAVE [SQL_THREAD].
@@ -84,12 +91,15 @@ int gtid_acquire_ownership_single(THD *thd)
                     (SYSTEM_THREAD_SLAVE_SQL | SYSTEM_THREAD_SLAVE_WORKER)) != 0) {
                 // TODO: error is *not* reported on cancel
                 DBUG_ASSERT(active_mi != NULL && active_mi->rli != NULL);
+
                 if (active_mi->rli->abort_slave)
                     DBUG_RETURN(1);
             }
+
 #endif // HAVE_REPLICATION
         }
     }
+
     gtid_state->unlock_sidno(gtid_next.sidno);
     global_sid_lock->unlock();
     DBUG_RETURN(ret);
@@ -103,32 +113,37 @@ int gtid_acquire_ownership_single(THD *thd)
 #ifdef HAVE_NDB_BINLOG
 int gtid_acquire_ownership_multiple(THD *thd)
 {
-    const Gtid_set *gtid_next_list= thd->get_gtid_next_list_const();
-    rpl_sidno greatest_sidno= 0;
+    const Gtid_set *gtid_next_list = thd->get_gtid_next_list_const();
+    rpl_sidno greatest_sidno = 0;
     DBUG_ENTER("gtid_acquire_ownership_multiple");
+
     // first check if we need to wait for any group
     while (true) {
         Gtid_set::Gtid_iterator git(gtid_next_list);
-        Gtid g= git.get();
-        my_thread_id owner= 0;
-        rpl_sidno last_sidno= 0;
+        Gtid g = git.get();
+        my_thread_id owner = 0;
+        rpl_sidno last_sidno = 0;
         global_sid_lock->rdlock();
+
         while (g.sidno != 0) {
             // lock all SIDNOs in order
             if (g.sidno != last_sidno)
                 gtid_state->lock_sidno(g.sidno);
+
             if (!gtid_state->is_logged(g)) {
-                owner= gtid_state->get_owner(g);
+                owner = gtid_state->get_owner(g);
+
                 // break the do-loop and wait for the sid to be updated
                 if (owner != 0) {
                     DBUG_ASSERT(owner != thd->id);
                     break;
                 }
             }
-            last_sidno= g.sidno;
-            greatest_sidno= g.sidno;
+
+            last_sidno = g.sidno;
+            greatest_sidno = g.sidno;
             git.next();
-            g= git.get();
+            g = git.get();
         }
 
         // we don't need to wait for any groups, and all SIDNOs in the
@@ -138,7 +153,7 @@ int gtid_acquire_ownership_multiple(THD *thd)
 
         // unlock all previous sidnos to avoid blocking them
         // while waiting.  keep lock on g.sidno
-        for (rpl_sidno sidno= 1; sidno < g.sidno; sidno++)
+        for (rpl_sidno sidno = 1; sidno < g.sidno; sidno++)
             if (gtid_next_list->contains_sidno(sidno))
                 gtid_state->unlock_sidno(sidno);
 
@@ -152,22 +167,25 @@ int gtid_acquire_ownership_multiple(THD *thd)
         // read lock that was held when this function was invoked
         if (thd->killed || abort_loop)
             DBUG_RETURN(1);
+
 #ifdef HAVE_REPLICATION
+
         // If this thread is a slave SQL thread or slave SQL worker
         // thread, we need this additional condition to determine if it
         // has been stopped by STOP SLAVE [SQL_THREAD].
         if ((thd->system_thread &
                 (SYSTEM_THREAD_SLAVE_SQL | SYSTEM_THREAD_SLAVE_WORKER)) != 0) {
             DBUG_ASSERT(active_mi != NULL && active_mi->rli != NULL);
+
             if (active_mi->rli->abort_slave)
                 DBUG_RETURN(1);
         }
+
 #endif // HAVE_REPLICATION
     }
 
     // global_sid_lock is now held
     thd->owned_gtid_set.ensure_sidno(greatest_sidno);
-
     /*
       Now the following hold:
        - None of the GTIDs in GTID_NEXT_LIST is owned by any thread.
@@ -175,30 +193,32 @@ int gtid_acquire_ownership_multiple(THD *thd)
        - We hold a lock on all SIDNOs in GTID_NEXT_LIST.
       So we acquire ownership of all groups that we need.
     */
-    int ret= 0;
+    int ret = 0;
     Gtid_set::Gtid_iterator git(gtid_next_list);
-    Gtid g= git.get();
+    Gtid g = git.get();
+
     do {
         if (!gtid_state->is_logged(g)) {
             if (gtid_state->acquire_ownership(thd, g) != RETURN_STATUS_OK ||
                     thd->owned_gtid_set._add_gtid(g)) {
                 /// @todo release ownership on error
-                ret= 1;
+                ret = 1;
                 break;
             }
         }
+
         git.next();
-        g= git.get();
+        g = git.get();
     } while (g.sidno != 0);
 
     // unlock all sidnos
-    rpl_sidno max_sidno= gtid_next_list->get_max_sidno();
-    for (rpl_sidno sidno= 1; sidno <= max_sidno; sidno++)
+    rpl_sidno max_sidno = gtid_next_list->get_max_sidno();
+
+    for (rpl_sidno sidno = 1; sidno <= max_sidno; sidno++)
         if (gtid_next_list->contains_sidno(sidno))
             gtid_state->unlock_sidno(sidno);
 
     global_sid_lock->unlock();
-
     DBUG_RETURN(ret);
 }
 #endif
@@ -207,14 +227,12 @@ int gtid_acquire_ownership_multiple(THD *thd)
 enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
 {
     DBUG_ENTER("gtid_pre_statement_checks");
-
 //   if (enforce_gtid_consistency && !thd->is_ddl_gtid_compatible())
 //   {
 //     // error message has been generated by thd->is_ddl_gtid_compatible()
 //     DBUG_RETURN(GTID_STATEMENT_CANCEL);
 //   }
-
-    const Gtid_specification *gtid_next= &thd->variables.gtid_next;
+    const Gtid_specification *gtid_next = &thd->variables.gtid_next;
 //   if (stmt_causes_implicit_commit(thd, CF_IMPLICIT_COMMIT_BEGIN) &&
 //       thd->in_active_multi_stmt_transaction() &&
 //       gtid_next->type != AUTOMATIC_GROUP)
@@ -222,7 +240,6 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
 //     my_error(ER_CANT_DO_IMPLICIT_COMMIT_IN_TRX_WHEN_GTID_NEXT_IS_SET, MYF(0));
 //     DBUG_RETURN(GTID_STATEMENT_CANCEL);
 //   }
-
     /*
       never skip BEGIN/COMMIT.
 
@@ -232,7 +249,8 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
 
       @todo: figure out how to handle SQLCOM_XA_*
     */
-    enum_sql_command sql_command= thd->lex->sql_command;
+    enum_sql_command sql_command = thd->lex->sql_command;
+
     if (sql_command == SQLCOM_COMMIT || sql_command == SQLCOM_BEGIN ||
             sql_command == SQLCOM_ROLLBACK ||
             ((sql_command == SQLCOM_SELECT ||
@@ -270,8 +288,7 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
         DBUG_RETURN(GTID_STATEMENT_CANCEL);
     }
 
-    const Gtid_set *gtid_next_list= thd->get_gtid_next_list_const();
-
+    const Gtid_set *gtid_next_list = thd->get_gtid_next_list_const();
     DBUG_PRINT("info", ("gtid_next_list=%p gtid_next->type=%d "
                         "thd->owned_gtid.gtid.{sidno,gno}={%d,%lld} "
                         "thd->thread_id=%lu",
@@ -300,19 +317,26 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
                 */
                 DBUG_RETURN(GTID_STATEMENT_SKIP);
             }
+
             DBUG_ASSERT(thd->owned_gtid.equals(gtid_next->gtid));
+
         } else
             DBUG_ASSERT(thd->owned_gtid.sidno == 0);
+
         DBUG_RETURN(GTID_STATEMENT_EXECUTE);
+
     } else {
 #ifdef HAVE_NDB_BINLOG
+
         switch (gtid_next->type) {
         case AUTOMATIC_GROUP:
             my_error(ER_GTID_NEXT_CANT_BE_AUTOMATIC_IF_GTID_NEXT_LIST_IS_NON_NULL,
                      MYF(0));
             DBUG_RETURN(GTID_STATEMENT_CANCEL);
+
         case GTID_GROUP:
             DBUG_ASSERT(gtid_next_list->contains_gtid(gtid_next->gtid));
+
             if (!thd->owned_gtid_set.contains_gtid(gtid_next->gtid)) {
                 /*
                   @todo: tests fail when this is enabled. figure out why /sven
@@ -331,16 +355,20 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
                                     thd->thread_id));
                 DBUG_RETURN(GTID_STATEMENT_SKIP);
             }
+
         /*FALLTHROUGH*/
         case ANONYMOUS_GROUP:
             DBUG_RETURN(GTID_STATEMENT_EXECUTE);
+
         case INVALID_GROUP:
             DBUG_ASSERT(0);/*NOTREACHED*/
         }
+
 #else
         DBUG_ASSERT(0);/*NOTREACHED*/
 #endif
     }
+
     DBUG_ASSERT(0);/*NOTREACHED*/
     DBUG_RETURN(GTID_STATEMENT_CANCEL);
 }
@@ -349,12 +377,9 @@ enum_gtid_statement_status gtid_pre_statement_checks(const THD *thd)
 int gtid_rollback(THD *thd)
 {
     DBUG_ENTER("gtid_rollback");
-
     global_sid_lock->rdlock();
     gtid_state->update_on_rollback(thd);
     global_sid_lock->unlock();
-
     thd->variables.gtid_next.set_undefined();
-
     DBUG_RETURN(0);
 }

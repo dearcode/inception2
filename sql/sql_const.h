@@ -33,9 +33,9 @@
 #define MAX_REF_PARTS 16U			/* Max parts used as ref */
 #define MAX_KEY_LENGTH 767U/* max possible key */
 #if SIZEOF_OFF_T > 4
-#define MAX_REFLENGTH 8				/* Max length for record ref */
+    #define MAX_REFLENGTH 8				/* Max length for record ref */
 #else
-#define MAX_REFLENGTH 4				/* Max length for record ref */
+    #define MAX_REFLENGTH 4				/* Max length for record ref */
 #endif
 #define MAX_HOSTNAME  61			/* len+1 in mysql.user */
 
@@ -144,7 +144,7 @@
 #define STACK_MIN_SIZE_FOR_OPEN 1024*80
 #define STACK_BUFF_ALLOC        352     ///< For stack overrun checks
 #ifndef MYSQLD_NET_RETRY_COUNT
-#define MYSQLD_NET_RETRY_COUNT  10	///< Abort read after this many int.
+    #define MYSQLD_NET_RETRY_COUNT  10	///< Abort read after this many int.
 #endif
 
 #define QUERY_ALLOC_BLOCK_SIZE		8192
@@ -265,15 +265,15 @@
 #define MAX_TIME_ZONE_NAME_LENGTH       (NAME_LEN + 1)
 
 #if defined(__WIN__)
-#define INTERRUPT_PRIOR -2
-#define CONNECT_PRIOR	-1
-#define WAIT_PRIOR	0
-#define QUERY_PRIOR	2
+    #define INTERRUPT_PRIOR -2
+    #define CONNECT_PRIOR	-1
+    #define WAIT_PRIOR	0
+    #define QUERY_PRIOR	2
 #else
-#define INTERRUPT_PRIOR 10
-#define CONNECT_PRIOR	9
-#define WAIT_PRIOR	8
-#define QUERY_PRIOR	6
+    #define INTERRUPT_PRIOR 10
+    #define CONNECT_PRIOR	9
+    #define WAIT_PRIOR	8
+    #define QUERY_PRIOR	6
 #endif /* __WIN92__ */
 
 #endif /* SQL_CONST_INCLUDED */

@@ -172,16 +172,16 @@ inline void append_identifier(THD *thd, String *packet, Simple_cstring str)
 {
     append_identifier(thd, packet, str.ptr(), static_cast<uint>(str.length()));
 }
-void mysqld_list_fields(THD *thd,TABLE_LIST *table, const char *wild);
+void mysqld_list_fields(THD *thd, TABLE_LIST *table, const char *wild);
 bool mysqld_show_create(THD *thd, TABLE_LIST *table_list);
 bool mysqld_show_create_db(THD *thd, char *dbname, HA_CREATE_INFO *create);
 
-void mysqld_list_processes(THD *thd,const char *user,bool verbose);
+void mysqld_list_processes(THD *thd, const char *user, bool verbose);
 int mysqld_show_status(THD *thd);
-int mysqld_show_variables(THD *thd,const char *wild);
+int mysqld_show_variables(THD *thd, const char *wild);
 bool mysqld_show_storage_engines(THD *thd);
 bool mysqld_show_privileges(THD *thd);
-char *make_backup_log_name(char *buff, const char *name, const char* log_ext);
+char *make_backup_log_name(char *buff, const char *name, const char *log_ext);
 void calc_sum_of_all_status(STATUS_VAR *to);
 void append_definer(THD *thd, String *buffer, const LEX_STRING *definer_user,
                     const LEX_STRING *definer_host);
@@ -193,11 +193,11 @@ void reset_status_vars();
 bool show_create_trigger(THD *thd, const sp_name *trg_name);
 void view_store_options(THD *thd, TABLE_LIST *table, String *buff);
 
-void init_fill_schema_files_row(TABLE* table);
+void init_fill_schema_files_row(TABLE *table);
 bool schema_table_store_record(THD *thd, TABLE *table);
 void initialize_information_schema_acl();
 
-ST_SCHEMA_TABLE *find_schema_table(THD *thd, const char* table_name);
+ST_SCHEMA_TABLE *find_schema_table(THD *thd, const char *table_name);
 ST_SCHEMA_TABLE *get_schema_table(enum enum_schema_tables schema_table_idx);
 int make_schema_select(THD *thd,  SELECT_LEX *sel,
                        enum enum_schema_tables schema_table_idx);

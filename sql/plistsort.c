@@ -30,127 +30,136 @@ things to define before including the file:
 
 typedef struct LS_STRUCT_NAME
 {
-  LS_LIST_ITEM *list1;
-  int list_len;
-  int return_point;
+    LS_LIST_ITEM *list1;
+    int list_len;
+    int return_point;
 } LS_STRUCT_NAME;
 
-LS_SCOPE LS_LIST_ITEM* LS_NAME(LS_COMPARE_FUNC_DECL LS_LIST_ITEM *list, int list_len)
+LS_SCOPE LS_LIST_ITEM *LS_NAME(LS_COMPARE_FUNC_DECL LS_LIST_ITEM *list, int list_len)
 {
-  LS_LIST_ITEM *list_end;
-  LS_LIST_ITEM *sorted_list;
+    LS_LIST_ITEM *list_end;
+    LS_LIST_ITEM *sorted_list;
+    struct LS_STRUCT_NAME stack[63], *sp = stack;
 
-  struct LS_STRUCT_NAME stack[63], *sp= stack;
+    if (list_len < 2)
+        return list;
 
-  if (list_len < 2)
-    return list;
-
-  sp->list_len= list_len;
-  sp->return_point= 2;
-
+    sp->list_len = list_len;
+    sp->return_point = 2;
 recursion_point:
 
-  if (sp->list_len < 4)
-  {
-    LS_LIST_ITEM *e1, *e2;
-    sorted_list= list;
-    e1= LS_NEXT(sorted_list);
-    list_end= LS_NEXT(e1);
-    if (LS_COMPARE_FUNC_CALL(sorted_list, e1))
+    if (sp->list_len < 4)
     {
-      sorted_list= e1;
-      e1= list;
-    }
-    if (sp->list_len == 2)
-    {
-      LS_SET_NEXT(sorted_list, e1);
-      LS_SET_NEXT(e1, NULL);
-      goto exit_point;
-    }
-    e2= list_end;
-    list_end= LS_NEXT(e2);
-    if (LS_COMPARE_FUNC_CALL(e1, e2))
-    {
-      {
-        LS_LIST_ITEM *tmp_e= e1;
-        e1= e2;
-        e2= tmp_e;
-      }
-      if (LS_COMPARE_FUNC_CALL(sorted_list, e1))
-      {
-        LS_LIST_ITEM *tmp_e= sorted_list;
-        sorted_list= e1;
-        e1= tmp_e;
-      }
+        LS_LIST_ITEM *e1, *e2;
+        sorted_list = list;
+        e1 = LS_NEXT(sorted_list);
+        list_end = LS_NEXT(e1);
+
+        if (LS_COMPARE_FUNC_CALL(sorted_list, e1))
+        {
+            sorted_list = e1;
+            e1 = list;
+        }
+
+        if (sp->list_len == 2)
+        {
+            LS_SET_NEXT(sorted_list, e1);
+            LS_SET_NEXT(e1, NULL);
+            goto exit_point;
+        }
+
+        e2 = list_end;
+        list_end = LS_NEXT(e2);
+
+        if (LS_COMPARE_FUNC_CALL(e1, e2))
+        {
+            {
+                LS_LIST_ITEM *tmp_e = e1;
+                e1 = e2;
+                e2 = tmp_e;
+            }
+
+            if (LS_COMPARE_FUNC_CALL(sorted_list, e1))
+            {
+                LS_LIST_ITEM *tmp_e = sorted_list;
+                sorted_list = e1;
+                e1 = tmp_e;
+            }
+        }
+
+        LS_SET_NEXT(sorted_list, e1);
+        LS_SET_NEXT(e1, e2);
+        LS_SET_NEXT(e2, NULL);
+        goto exit_point;
     }
 
-    LS_SET_NEXT(sorted_list, e1);
-    LS_SET_NEXT(e1, e2);
-    LS_SET_NEXT(e2, NULL);
-    goto exit_point;
-  }
+    {
+        register struct LS_STRUCT_NAME *sp0 = sp++;
+        sp->list_len = sp0->list_len >> 1;
+        sp0->list_len -= sp->list_len;
+        sp->return_point = 0;
+    }
 
-  {
-    register struct LS_STRUCT_NAME *sp0= sp++;
-    sp->list_len= sp0->list_len >> 1;
-    sp0->list_len-= sp->list_len;
-    sp->return_point= 0;
-  }
-  goto recursion_point;
+    goto recursion_point;
 return_point0:
-  sp->list1= sorted_list;
-  {
-    register struct LS_STRUCT_NAME *sp0= sp++;
-    list= list_end;
-    sp->list_len= sp0->list_len;
-    sp->return_point= 1;
-  }
-  goto recursion_point;
+    sp->list1 = sorted_list;
+    {
+        register struct LS_STRUCT_NAME *sp0 = sp++;
+        list = list_end;
+        sp->list_len = sp0->list_len;
+        sp->return_point = 1;
+    }
+    goto recursion_point;
 return_point1:
-  {
-    register LS_LIST_ITEM **hook= &sorted_list;
-    register LS_LIST_ITEM *list1= sp->list1;
-    register LS_LIST_ITEM *list2= sorted_list;
-
-    if (LS_COMPARE_FUNC_CALL(list1, list2))
     {
-      LS_LIST_ITEM *tmp_e= list2;
-      list2= list1;
-      list1= tmp_e;
-    }
-    for (;;)
-    {
-      *hook= list1;
-      do
-      {
-        if (!(list1= *(hook= LS_P_NEXT(list1))))
-        {
-          *hook= list2;
-          goto exit_point;
-        }
-      } while (LS_COMPARE_FUNC_CALL(list2, list1));
+        register LS_LIST_ITEM **hook = &sorted_list;
+        register LS_LIST_ITEM *list1 = sp->list1;
+        register LS_LIST_ITEM *list2 = sorted_list;
 
-      *hook= list2;
-      do
-      {
-        if (!(list2= *(hook= LS_P_NEXT(list2))))
+        if (LS_COMPARE_FUNC_CALL(list1, list2))
         {
-          *hook= list1;
-          goto exit_point;
+            LS_LIST_ITEM *tmp_e = list2;
+            list2 = list1;
+            list1 = tmp_e;
         }
-      } while (LS_COMPARE_FUNC_CALL(list1, list2));
-    }
-  }
 
+        for (;;)
+        {
+            *hook = list1;
+
+            do
+            {
+                if (!(list1 = *(hook = LS_P_NEXT(list1))))
+                {
+                    *hook = list2;
+                    goto exit_point;
+                }
+            } while (LS_COMPARE_FUNC_CALL(list2, list1));
+
+            *hook = list2;
+
+            do
+            {
+                if (!(list2 = *(hook = LS_P_NEXT(list2))))
+                {
+                    *hook = list1;
+                    goto exit_point;
+                }
+            } while (LS_COMPARE_FUNC_CALL(list1, list2));
+        }
+    }
 exit_point:
-  switch ((sp--)->return_point)
-  {
-    case 0: goto return_point0;
-    case 1: goto return_point1;
-    default:;
-  }
 
-  return sorted_list;
+    switch ((sp--)->return_point)
+    {
+    case 0: goto return_point0;
+
+    case 1: goto return_point1;
+
+    default:;
+    }
+
+    return sorted_list;
 }
 
 

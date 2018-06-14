@@ -21,15 +21,15 @@
 
 #include "lex_symbol.h"
 
-SYM_GROUP sym_group_common= {"", ""};
-SYM_GROUP sym_group_geom= {"Spatial extentions", "HAVE_SPATIAL"};
-SYM_GROUP sym_group_rtree= {"RTree keys", "HAVE_RTREE_KEYS"};
+SYM_GROUP sym_group_common = {"", ""};
+SYM_GROUP sym_group_geom = {"Spatial extentions", "HAVE_SPATIAL"};
+SYM_GROUP sym_group_rtree = {"RTree keys", "HAVE_RTREE_KEYS"};
 
 /* We don't want to include sql_yacc.h into gen_lex_hash */
 #ifdef NO_YACC_SYMBOLS
-#define SYM_OR_NULL(A) 0
+    #define SYM_OR_NULL(A) 0
 #else
-#define SYM_OR_NULL(A) A
+    #define SYM_OR_NULL(A) A
 #endif
 
 #define SYM(A) SYM_OR_NULL(A),0,&sym_group_common
@@ -242,7 +242,7 @@ static SYMBOL symbols[] = {
     { "FUNCTION",		SYM(FUNCTION_SYM)},
     { "GENERAL",          SYM(GENERAL)},
     { "GEOMETRY",		SYM(GEOMETRY_SYM)},
-    { "GEOMETRYCOLLECTION",SYM(GEOMETRYCOLLECTION)},
+    { "GEOMETRYCOLLECTION", SYM(GEOMETRYCOLLECTION)},
     { "GET_FORMAT",       SYM(GET_FORMAT)},
     { "GET",              SYM(GET_SYM)},
     { "GLOBAL",		SYM(GLOBAL_SYM)},
@@ -341,11 +341,11 @@ static SYMBOL symbols[] = {
     { "MASTER_SERVER_ID",           SYM(MASTER_SERVER_ID_SYM)},
     { "MASTER_SSL",       SYM(MASTER_SSL_SYM)},
     { "MASTER_SSL_CA",    SYM(MASTER_SSL_CA_SYM)},
-    { "MASTER_SSL_CAPATH",SYM(MASTER_SSL_CAPATH_SYM)},
+    { "MASTER_SSL_CAPATH", SYM(MASTER_SSL_CAPATH_SYM)},
     { "MASTER_SSL_CERT",  SYM(MASTER_SSL_CERT_SYM)},
-    { "MASTER_SSL_CIPHER",SYM(MASTER_SSL_CIPHER_SYM)},
+    { "MASTER_SSL_CIPHER", SYM(MASTER_SSL_CIPHER_SYM)},
     { "MASTER_SSL_CRL",   SYM(MASTER_SSL_CRL_SYM)},
-    { "MASTER_SSL_CRLPATH",SYM(MASTER_SSL_CRLPATH_SYM)},
+    { "MASTER_SSL_CRLPATH", SYM(MASTER_SSL_CRLPATH_SYM)},
     { "MASTER_SSL_KEY",   SYM(MASTER_SSL_KEY_SYM)},
     { "MASTER_SSL_VERIFY_SERVER_CERT", SYM(MASTER_SSL_VERIFY_SERVER_CERT_SYM)},
     { "MASTER_USER",           SYM(MASTER_USER_SYM)},
@@ -484,7 +484,7 @@ static SYMBOL symbols[] = {
     { "RESTORE",		SYM(RESTORE_SYM)},
     { "RESTRICT",		SYM(RESTRICT)},
     { "RESUME",           SYM(RESUME_SYM)},
-    { "RETURNED_SQLSTATE",SYM(RETURNED_SQLSTATE_SYM)},
+    { "RETURNED_SQLSTATE", SYM(RETURNED_SQLSTATE_SYM)},
     { "RETURN",           SYM(RETURN_SYM)},
     { "RETURNS",		SYM(RETURNS_SYM)},
     { "REVERSE",		SYM(REVERSE_SYM)},
@@ -558,9 +558,9 @@ static SYMBOL symbols[] = {
     { "START",		SYM(START_SYM)},
     { "STARTING",		SYM(STARTING)},
     { "STARTS",		SYM(STARTS_SYM)},
-    { "STATS_AUTO_RECALC",SYM(STATS_AUTO_RECALC_SYM)},
+    { "STATS_AUTO_RECALC", SYM(STATS_AUTO_RECALC_SYM)},
     { "STATS_PERSISTENT",	SYM(STATS_PERSISTENT_SYM)},
-    { "STATS_SAMPLE_PAGES",SYM(STATS_SAMPLE_PAGES_SYM)},
+    { "STATS_SAMPLE_PAGES", SYM(STATS_SAMPLE_PAGES_SYM)},
     { "STATUS",		SYM(STATUS_SYM)},
     { "STOP",		SYM(STOP_SYM)},
     { "STORAGE",		SYM(STORAGE_SYM)},

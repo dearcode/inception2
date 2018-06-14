@@ -36,22 +36,22 @@ enum enum_nested_loop_state
        Thread shutdown was requested while processing the record
        @todo could it be merged with NESTED_LOOP_ERROR? Why two distinct states?
     */
-    NESTED_LOOP_KILLED= -2,
+    NESTED_LOOP_KILLED = -2,
     /// A fatal error (like table corruption) was detected
-    NESTED_LOOP_ERROR= -1,
+    NESTED_LOOP_ERROR = -1,
     /// Record has been successfully handled
-    NESTED_LOOP_OK= 0,
+    NESTED_LOOP_OK = 0,
     /**
        Record has been successfully handled; additionally, the nested loop
        produced the number of rows specified in the LIMIT clause for the query.
     */
-    NESTED_LOOP_QUERY_LIMIT= 3,
+    NESTED_LOOP_QUERY_LIMIT = 3,
     /**
        Record has been successfully handled; additionally, there is a cursor and
        the nested loop algorithm produced the number of rows that is specified
        for current cursor fetch operation.
     */
-    NESTED_LOOP_CURSOR_LIMIT= 4
+    NESTED_LOOP_CURSOR_LIMIT = 4
 };
 
 
@@ -138,9 +138,9 @@ class Semijoin_mat_exec : public Sql_alloc
 public:
     Semijoin_mat_exec(TABLE_LIST *sj_nest, bool is_scan, uint table_count,
                       uint mat_table_index, uint inner_table_index)
-        :sj_nest(sj_nest), is_scan(is_scan), table_count(table_count),
-         mat_table_index(mat_table_index), inner_table_index(inner_table_index),
-         table_param(), table(NULL)
+        : sj_nest(sj_nest), is_scan(is_scan), table_count(table_count),
+          mat_table_index(mat_table_index), inner_table_index(inner_table_index),
+          table_param(), table(NULL)
     {}
     ~Semijoin_mat_exec()
     {}
@@ -173,7 +173,7 @@ public:
   being cached, QEP_tmp_buffer is attached to a tmp table.
 */
 
-class QEP_operation :public Sql_alloc
+class QEP_operation : public Sql_alloc
 {
 public:
     // Type of the operation
@@ -189,7 +189,7 @@ public:
     QEP_operation(): join_tab(NULL) {};
     QEP_operation(JOIN_TAB *tab): join_tab(tab) {};
     virtual ~QEP_operation() {};
-    virtual enum_op_type type()= 0;
+    virtual enum_op_type type() = 0;
     /**
       Initialize operation's internal state.  Called once per query execution.
     */
@@ -202,11 +202,11 @@ public:
       @return
         return one of enum_nested_loop_state values.
     */
-    virtual enum_nested_loop_state put_record()= 0;
+    virtual enum_nested_loop_state put_record() = 0;
     /**
       Finalize records sending.
     */
-    virtual enum_nested_loop_state end_send()= 0;
+    virtual enum_nested_loop_state end_send() = 0;
     /**
       Internal state cleanup.
     */
@@ -235,7 +235,7 @@ public:
 
 */
 
-class QEP_tmp_table :public QEP_operation
+class QEP_tmp_table : public QEP_operation
 {
 public:
     QEP_tmp_table(JOIN_TAB *tab) : QEP_operation(tab),
@@ -260,7 +260,7 @@ public:
     /** write_func setter */
     void set_write_func(Next_select_func new_write_func)
     {
-        write_func= new_write_func;
+        write_func = new_write_func;
     }
 
 private:
@@ -278,7 +278,7 @@ enum_nested_loop_state end_send_group(JOIN *join, JOIN_TAB *join_tab,
                                       bool end_of_records);
 enum_nested_loop_state end_write_group(JOIN *join, JOIN_TAB *join_tab,
                                        bool end_of_records);
-enum_nested_loop_state sub_select(JOIN *join,JOIN_TAB *join_tab, bool
+enum_nested_loop_state sub_select(JOIN *join, JOIN_TAB *join_tab, bool
                                   end_of_records);
 enum_nested_loop_state
 evaluate_join_record(JOIN *join, JOIN_TAB *join_tab, int error);
@@ -293,8 +293,8 @@ bool cp_buffer_from_ref(THD *thd, TABLE *table, TABLE_REF *ref);
 int report_handler_error(TABLE *table, int error);
 
 int safe_index_read(JOIN_TAB *tab);
-SORT_FIELD * make_unireg_sortorder(ORDER *order, uint *length,
-                                   SORT_FIELD *sortorder);
+SORT_FIELD *make_unireg_sortorder(ORDER *order, uint *length,
+                                  SORT_FIELD *sortorder);
 void pick_table_access_method(JOIN_TAB *tab);
 
 int join_read_const_table(JOIN_TAB *tab, POSITION *pos);
@@ -325,7 +325,7 @@ bool alloc_group_fields(JOIN *join, ORDER *group);
 bool prepare_sum_aggregators(Item_sum **func_ptr, bool need_distinct);
 bool setup_sum_funcs(THD *thd, Item_sum **func_ptr);
 bool make_group_fields(JOIN *main_join, JOIN *curr_join);
-void disable_sorted_access(JOIN_TAB* join_tab);
+void disable_sorted_access(JOIN_TAB *join_tab);
 bool setup_copy_fields(THD *thd, TMP_TABLE_PARAM *param,
                        Ref_ptr_array ref_pointer_array,
                        List<Item> &res_selected_fields, List<Item> &res_all_fields,

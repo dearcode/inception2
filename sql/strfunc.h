@@ -37,8 +37,8 @@ uint find_type2(const TYPELIB *lib, const char *find, uint length,
 void unhex_type2(TYPELIB *lib);
 uint check_word(TYPELIB *lib, const char *val, const char *end,
                 const char **end_of_word);
-int find_string_in_array(LEX_STRING * const haystack, LEX_STRING * const needle,
-                         CHARSET_INFO * const cs);
+int find_string_in_array(LEX_STRING *const haystack, LEX_STRING *const needle,
+                         CHARSET_INFO *const cs);
 char *flagset_to_string(THD *thd, LEX_STRING *result, ulonglong set,
                         const char *lib[]);
 char *set_to_string(THD *thd, LEX_STRING *result, ulonglong set,

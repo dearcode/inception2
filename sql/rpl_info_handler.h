@@ -22,7 +22,7 @@
 
 enum enum_info_repository
 {
-    INFO_REPOSITORY_FILE= 0,
+    INFO_REPOSITORY_FILE = 0,
     INFO_REPOSITORY_TABLE,
     INFO_REPOSITORY_DUMMY,
     /*
@@ -36,7 +36,7 @@ enum enum_info_repository
   Defines status on the repository.
 */
 enum enum_return_check
-{ REPOSITORY_DOES_NOT_EXIST= 1, REPOSITORY_EXISTS, ERROR_CHECKING_REPOSITORY };
+{ REPOSITORY_DOES_NOT_EXIST = 1, REPOSITORY_EXISTS, ERROR_CHECKING_REPOSITORY };
 
 class Rpl_info_handler
 {
@@ -165,7 +165,7 @@ public:
     /**
        Returns a string corresponding to the type.
     */
-    const char* get_rpl_info_type_str();
+    const char *get_rpl_info_type_str();
 
     /**
       Sets the value of a field to @c value.
@@ -184,7 +184,7 @@ public:
         if (cursor >= ninfo || prv_error)
             return TRUE;
 
-        if (!(prv_error= do_set_info(cursor, value)))
+        if (!(prv_error = do_set_info(cursor, value)))
             cursor++;
 
         return(prv_error);
@@ -196,7 +196,7 @@ public:
         if (cursor >= ninfo || prv_error)
             return TRUE;
 
-        if (!(prv_error= do_set_info(cursor, value, size)))
+        if (!(prv_error = do_set_info(cursor, value, size)))
             cursor++;
 
         return(prv_error);
@@ -222,7 +222,7 @@ public:
         if (cursor >= ninfo || prv_error)
             return TRUE;
 
-        if (!(prv_error= do_get_info(cursor, value, default_value)))
+        if (!(prv_error = do_get_info(cursor, value, default_value)))
             cursor++;
 
         return(prv_error);
@@ -250,7 +250,7 @@ public:
         if (cursor >= ninfo || prv_error)
             return TRUE;
 
-        if (!(prv_error= do_get_info(cursor, value, size, default_value)))
+        if (!(prv_error = do_get_info(cursor, value, size, default_value)))
             cursor++;
 
         return(prv_error);
@@ -275,7 +275,7 @@ public:
         if (cursor >= ninfo || prv_error)
             return TRUE;
 
-        if (!(prv_error= do_get_info(cursor, value, default_value)))
+        if (!(prv_error = do_get_info(cursor, value, default_value)))
             cursor++;
 
         return(prv_error);
@@ -377,49 +377,49 @@ protected:
     Rpl_info_handler(const int nparam);
 
 private:
-    virtual int do_init_info()= 0;
-    virtual int do_init_info(uint instance)= 0;
-    virtual enum_return_check do_check_info()= 0;
-    virtual enum_return_check do_check_info(uint instance)= 0;
-    virtual int do_flush_info(const bool force)= 0;
-    virtual int do_remove_info()= 0;
-    virtual int do_clean_info()= 0;
-    virtual void do_end_info()= 0;
-    virtual int do_prepare_info_for_read()= 0;
-    virtual int do_prepare_info_for_write()= 0;
+    virtual int do_init_info() = 0;
+    virtual int do_init_info(uint instance) = 0;
+    virtual enum_return_check do_check_info() = 0;
+    virtual enum_return_check do_check_info(uint instance) = 0;
+    virtual int do_flush_info(const bool force) = 0;
+    virtual int do_remove_info() = 0;
+    virtual int do_clean_info() = 0;
+    virtual void do_end_info() = 0;
+    virtual int do_prepare_info_for_read() = 0;
+    virtual int do_prepare_info_for_write() = 0;
 
-    virtual bool do_set_info(const int pos, const char *value)= 0;
+    virtual bool do_set_info(const int pos, const char *value) = 0;
     virtual bool do_set_info(const int pos, const uchar *value,
-                             const size_t size)= 0;
-    virtual bool do_set_info(const int pos, const ulong value)= 0;
-    virtual bool do_set_info(const int pos, const int value)= 0;
-    virtual bool do_set_info(const int pos, const float value)= 0;
-    virtual bool do_set_info(const int pos, const Dynamic_ids *value)= 0;
+                             const size_t size) = 0;
+    virtual bool do_set_info(const int pos, const ulong value) = 0;
+    virtual bool do_set_info(const int pos, const int value) = 0;
+    virtual bool do_set_info(const int pos, const float value) = 0;
+    virtual bool do_set_info(const int pos, const Dynamic_ids *value) = 0;
     virtual bool do_get_info(const int pos, char *value,
                              const size_t size,
-                             const char *default_value)= 0;
+                             const char *default_value) = 0;
     virtual bool do_get_info(const int pos, uchar *value,
                              const size_t size,
-                             const uchar *default_value)= 0;
+                             const uchar *default_value) = 0;
     virtual bool do_get_info(const int pos, ulong *value,
-                             const ulong default_value)= 0;
+                             const ulong default_value) = 0;
     virtual bool do_get_info(const int pos, int *value,
-                             const int default_value)= 0;
+                             const int default_value) = 0;
     virtual bool do_get_info(const int pos, float *value,
-                             const float default_value)= 0;
+                             const float default_value) = 0;
     virtual bool do_get_info(const int pos, Dynamic_ids *value,
-                             const Dynamic_ids *default_value)= 0;
-    virtual char* do_get_description_info()= 0;
-    virtual bool do_is_transactional()= 0;
-    virtual bool do_update_is_transactional()= 0;
-    virtual uint do_get_rpl_info_type()= 0;
+                             const Dynamic_ids *default_value) = 0;
+    virtual char *do_get_description_info() = 0;
+    virtual bool do_is_transactional() = 0;
+    virtual bool do_update_is_transactional() = 0;
+    virtual uint do_get_rpl_info_type() = 0;
 
-    Rpl_info_handler(const Rpl_info_handler& handler);
+    Rpl_info_handler(const Rpl_info_handler &handler);
 
-    Rpl_info_handler& operator=(const Rpl_info_handler& handler);
+    Rpl_info_handler &operator=(const Rpl_info_handler &handler);
 };
 #ifndef DBUG_OFF
-extern ulong w_rr;
-extern uint mts_debug_concurrent_access;
+    extern ulong w_rr;
+    extern uint mts_debug_concurrent_access;
 #endif
 #endif /* RPL_INFO_HANDLER_H */

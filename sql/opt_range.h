@@ -37,7 +37,7 @@ class Item_sum;
 
 typedef struct st_key_part
 {
-    uint16           key,part;
+    uint16           key, part;
     /* See KEY_PART_INFO for meaning of the next two: */
     uint16           store_length, length;
     uint8            null_bit;
@@ -51,11 +51,11 @@ typedef struct st_key_part
 } KEY_PART;
 
 
-class QUICK_RANGE :public Sql_alloc
+class QUICK_RANGE : public Sql_alloc
 {
 public:
-    uchar *min_key,*max_key;
-    uint16 min_length,max_length,flag;
+    uchar *min_key, *max_key;
+    uint16 min_length, max_length, flag;
     key_part_map min_keypart_map, // bitmap of used keyparts in min_key
                  max_keypart_map; // bitmap of used keyparts in max_key
 
@@ -85,8 +85,8 @@ public:
     {
         using std::min;
         make_min_endpoint(kr);
-        kr->length= min(kr->length, prefix_length);
-        kr->keypart_map&= keypart_map;
+        kr->length = min(kr->length, prefix_length);
+        kr->keypart_map &= keypart_map;
     }
 
     /**
@@ -100,11 +100,11 @@ public:
     */
     void make_min_endpoint(key_range *kr)
     {
-        kr->key= (const uchar*)min_key;
-        kr->length= min_length;
-        kr->keypart_map= min_keypart_map;
-        kr->flag= ((flag & NEAR_MIN) ? HA_READ_AFTER_KEY :
-                   (flag & EQ_RANGE) ? HA_READ_KEY_EXACT : HA_READ_KEY_OR_NEXT);
+        kr->key = (const uchar *)min_key;
+        kr->length = min_length;
+        kr->keypart_map = min_keypart_map;
+        kr->flag = ((flag & NEAR_MIN) ? HA_READ_AFTER_KEY :
+                    (flag & EQ_RANGE) ? HA_READ_KEY_EXACT : HA_READ_KEY_OR_NEXT);
     }
 
     /**
@@ -126,8 +126,8 @@ public:
     {
         using std::min;
         make_max_endpoint(kr);
-        kr->length= min(kr->length, prefix_length);
-        kr->keypart_map&= keypart_map;
+        kr->length = min(kr->length, prefix_length);
+        kr->keypart_map &= keypart_map;
     }
 
     /**
@@ -141,14 +141,14 @@ public:
     */
     void make_max_endpoint(key_range *kr)
     {
-        kr->key= (const uchar*)max_key;
-        kr->length= max_length;
-        kr->keypart_map= max_keypart_map;
+        kr->key = (const uchar *)max_key;
+        kr->length = max_length;
+        kr->keypart_map = max_keypart_map;
         /*
           We use READ_AFTER_KEY here because if we are reading on a key
           prefix we want to find all keys with this prefix
         */
-        kr->flag= (flag & NEAR_MAX ? HA_READ_BEFORE_KEY : HA_READ_AFTER_KEY);
+        kr->flag = (flag & NEAR_MAX ? HA_READ_BEFORE_KEY : HA_READ_AFTER_KEY);
     }
 };
 
@@ -344,7 +344,7 @@ public:
       This is used by select_describe.
     */
     virtual void add_keys_and_lengths(String *key_names,
-                                      String *used_lengths)=0;
+                                      String *used_lengths) = 0;
 
     /*
       Append text representation of quick select structure (what and how is
@@ -384,7 +384,7 @@ public:
       Print quick select information to DBUG_FILE. Caller is responsible
       for locking DBUG_FILE before this call and unlocking it afterwards.
     */
-    virtual void dbug_dump(int indent, bool verbose)= 0;
+    virtual void dbug_dump(int indent, bool verbose) = 0;
 #endif
 
     /*
@@ -436,11 +436,11 @@ protected:
             struct st_table_ref *ref,
             ha_rows records);
     friend bool get_quick_keys(PARAM *param,
-                               QUICK_RANGE_SELECT *quick,KEY_PART *key,
+                               QUICK_RANGE_SELECT *quick, KEY_PART *key,
                                SEL_ARG *key_tree,
                                uchar *min_key, uint min_key_flag,
                                uchar *max_key, uint max_key_flag);
-    friend QUICK_RANGE_SELECT *get_quick_select(PARAM*,uint idx,
+    friend QUICK_RANGE_SELECT *get_quick_select(PARAM *, uint idx,
             SEL_ARG *key_tree,
             uint mrr_flags,
             uint mrr_buf_size,
@@ -480,7 +480,7 @@ protected:
 public:
     MEM_ROOT alloc;
 
-    QUICK_RANGE_SELECT(THD *thd, TABLE *table,uint index_arg,bool no_alloc,
+    QUICK_RANGE_SELECT(THD *thd, TABLE *table, uint index_arg, bool no_alloc,
                        MEM_ROOT *parent_alloc, bool *create_error);
     ~QUICK_RANGE_SELECT();
 
@@ -517,7 +517,7 @@ public:
     QUICK_SELECT_I *make_reverse(uint used_key_parts_arg);
     void set_handler(handler *file_arg)
     {
-        file= file_arg;
+        file = file_arg;
     }
 private:
     /* Default copy ctor used by QUICK_SELECT_DESC */
@@ -530,8 +530,8 @@ public:
     QUICK_RANGE_SELECT_GEOM(THD *thd, TABLE *table, uint index_arg,
                             bool no_alloc, MEM_ROOT *parent_alloc,
                             bool *create_error)
-        :QUICK_RANGE_SELECT(thd, table, index_arg, no_alloc, parent_alloc,
-                            create_error)
+        : QUICK_RANGE_SELECT(thd, table, index_arg, no_alloc, parent_alloc,
+                             create_error)
     {};
     virtual int get_next();
 };
@@ -639,7 +639,7 @@ public:
     List<QUICK_RANGE_SELECT> quick_selects;
 
     /* quick select that uses clustered primary key (NULL if none) */
-    QUICK_RANGE_SELECT* pk_quick_select;
+    QUICK_RANGE_SELECT *pk_quick_select;
 
     /* true if this select is currently doing a clustered PK scan */
     bool  doing_pk_scan;
@@ -657,13 +657,15 @@ public:
     {
         List_iterator_fast<QUICK_RANGE_SELECT> it(quick_selects);
         QUICK_RANGE_SELECT *quick;
-        bool valid= true;
-        while ((quick= it++)) {
+        bool valid = true;
+
+        while ((quick = it++)) {
             if (!quick->is_valid()) {
-                valid= false;
+                valid = false;
                 break;
             }
         }
+
         return valid;
     }
 
@@ -740,13 +742,15 @@ public:
     {
         List_iterator_fast<QUICK_RANGE_SELECT> it(quick_selects);
         QUICK_RANGE_SELECT *quick;
-        bool valid= true;
-        while ((quick= it++)) {
+        bool valid = true;
+
+        while ((quick = it++)) {
             if (!quick->is_valid()) {
-                valid= false;
+                valid = false;
                 break;
             }
         }
+
         return valid;
     }
 
@@ -821,13 +825,15 @@ public:
     {
         List_iterator_fast<QUICK_SELECT_I> it(quick_selects);
         QUICK_SELECT_I *quick;
-        bool valid= true;
-        while ((quick= it++)) {
+        bool valid = true;
+
+        while ((quick = it++)) {
             if (!quick->is_valid()) {
-                valid= false;
+                valid = false;
                 break;
             }
         }
+
         return valid;
     }
 
@@ -1009,7 +1015,7 @@ private:
 };
 
 
-class SQL_SELECT :public Sql_alloc
+class SQL_SELECT : public Sql_alloc
 {
 public:
     QUICK_SELECT_I *quick;	// If quick-select used
@@ -1021,7 +1027,7 @@ public:
     double read_time;		// Time to read rows
     key_map quick_keys;		// Possible quick keys
     key_map needed_reg;		// Possible quick keys after prev tables.
-    table_map const_tables,read_tables;
+    table_map const_tables, read_tables;
     bool	free_cond;
 
     /**
@@ -1041,7 +1047,7 @@ public:
     void set_quick(QUICK_SELECT_I *new_quick)
     {
         delete quick;
-        quick= new_quick;
+        quick = new_quick;
     }
     bool check_quick(THD *thd, bool force_quick_range, ha_rows limit)
     {
@@ -1050,7 +1056,7 @@ public:
     }
     inline bool skip_record(THD *thd, bool *skip_record)
     {
-        *skip_record= cond ? cond->val_int() == FALSE : FALSE;
+        *skip_record = cond ? cond->val_int() == FALSE : FALSE;
         return thd->is_error();
     }
     int test_quick_select(THD *thd, key_map keys, table_map prev_tables,
@@ -1098,8 +1104,8 @@ SQL_SELECT *make_select(TABLE *head, table_map const_tables,
                         bool allow_null_cond,  int *error);
 
 #ifdef WITH_PARTITION_STORAGE_ENGINE
-bool prune_partitions(THD *thd, TABLE *table, Item *pprune_cond);
-void store_key_image_to_rec(Field *field, uchar *ptr, uint len);
+    bool prune_partitions(THD *thd, TABLE *table, Item *pprune_cond);
+    void store_key_image_to_rec(Field *field, uchar *ptr, uint len);
 #endif
 
 extern String null_string;

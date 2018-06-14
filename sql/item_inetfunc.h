@@ -40,10 +40,10 @@ public:
 
     virtual void fix_length_and_dec()
     {
-        decimals= 0;
-        max_length= 21;
-        maybe_null= 1;
-        unsigned_flag= 1;
+        decimals = 0;
+        max_length = 21;
+        maybe_null = 1;
+        unsigned_flag = 1;
     }
 };
 
@@ -60,7 +60,7 @@ public:
     { }
 
 public:
-    virtual String* val_str(String* str);
+    virtual String *val_str(String *str);
 
     virtual const char *func_name() const
     {
@@ -69,9 +69,9 @@ public:
 
     virtual void fix_length_and_dec()
     {
-        decimals= 0;
+        decimals = 0;
         fix_length_and_charset(3 * 8 + 7, default_charset());
-        maybe_null= 1;
+        maybe_null = 1;
     }
 };
 
@@ -87,7 +87,7 @@ public:
     inline Item_func_inet_bool_base(Item *ip_addr)
         : Item_bool_func(ip_addr)
     {
-        null_value= false;
+        null_value = false;
     }
 
 public:
@@ -137,9 +137,9 @@ public:
 
     virtual void fix_length_and_dec()
     {
-        decimals= 0;
+        decimals = 0;
         fix_length_and_charset(16, &my_charset_bin);
-        maybe_null= 1;
+        maybe_null = 1;
     }
 
 protected:
@@ -166,14 +166,12 @@ public:
 
     virtual void fix_length_and_dec()
     {
-        decimals= 0;
-
+        decimals = 0;
         // max length: IPv6-address -- 16 bytes
         // 16 bytes / 2 bytes per group == 8 groups => 7 delimiter
         // 4 symbols per group
         fix_length_and_charset(8 * 4 + 7, default_charset());
-
-        maybe_null= 1;
+        maybe_null = 1;
     }
 
 protected:

@@ -15,9 +15,9 @@
 
 
 #ifndef CLIENT_SETTINGS_INCLUDED
-#define CLIENT_SETTINGS_INCLUDED
+    #define CLIENT_SETTINGS_INCLUDED
 #else
-#error You have already included an client_settings.h and it should not be included twice
+    #error You have already included an client_settings.h and it should not be included twice
 #endif /* CLIENT_SETTINGS_INCLUDED */
 
 #include <thr_alarm.h>
@@ -46,10 +46,10 @@
 #define mysql_server_end()       mysql_client_plugin_deinit()
 
 #ifdef HAVE_REPLICATION
-C_MODE_START
-void slave_io_thread_detach_vio();
-C_MODE_END
+    C_MODE_START
+    void slave_io_thread_detach_vio();
+    C_MODE_END
 #else
-#define slave_io_thread_detach_vio()
+    #define slave_io_thread_detach_vio()
 #endif
 

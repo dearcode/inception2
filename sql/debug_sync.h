@@ -30,9 +30,9 @@ class THD;
 
 /* Macro to be put in the code at synchronization points. */
 #define DEBUG_SYNC(_thd_, _sync_point_name_)                            \
-          do { if (unlikely(opt_debug_sync_timeout))                    \
-               debug_sync(_thd_, STRING_WITH_LEN(_sync_point_name_));   \
-             } while (0)
+    do { if (unlikely(opt_debug_sync_timeout))                    \
+            debug_sync(_thd_, STRING_WITH_LEN(_sync_point_name_));   \
+    } while (0)
 
 /* Command line option --debug-sync-timeout. See mysqld.cc. */
 extern MYSQL_PLUGIN_IMPORT uint opt_debug_sync_timeout;

@@ -39,7 +39,7 @@ typedef struct st_db_worker_hash_entry
       It is removed from the entry and merged to the coordinator's
       thd->temporary_tables in case of events: slave stops, APH oversize.
     */
-    TABLE* volatile temporary_tables;
+    TABLE *volatile temporary_tables;
 
     /* todo: relax concurrency to mimic record-level locking.
        That is to augmenting the entry with mutex/cond pair
@@ -50,13 +50,13 @@ typedef struct st_db_worker_hash_entry
 } db_worker_hash_entry;
 
 bool init_hash_workers(ulong slave_parallel_workers);
-void destroy_hash_workers(Relay_log_info*);
+void destroy_hash_workers(Relay_log_info *);
 Slave_worker *map_db_to_worker(const char *dbname, Relay_log_info *rli,
                                db_worker_hash_entry **ptr_entry,
                                bool need_temp_tables, Slave_worker *w);
 Slave_worker *get_least_occupied_worker(DYNAMIC_ARRAY *workers);
 int wait_for_workers_to_finish(Relay_log_info const *rli,
-                               Slave_worker *ignore= NULL);
+                               Slave_worker *ignore = NULL);
 
 #define SLAVE_INIT_DBS_IN_GROUP 4     // initial allocation for CGEP dynarray
 
@@ -85,12 +85,13 @@ public:
     volatile ulong len;   // actual length
     bool inited_queue;
 
-    circular_buffer_queue(uint el_size, ulong max, uint alloc_inc= 0) :
+    circular_buffer_queue(uint el_size, ulong max, uint alloc_inc = 0) :
         size(max), avail(0), entry(max), len(0), inited_queue(FALSE)
     {
-        DBUG_ASSERT(size < (ulong) -1);
+        DBUG_ASSERT(size < (ulong) - 1);
+
         if (!my_init_dynamic_array(&Q, el_size, size, alloc_inc))
-            inited_queue= TRUE;
+            inited_queue = TRUE;
     }
     circular_buffer_queue () : inited_queue(FALSE) {}
     ~circular_buffer_queue ()
@@ -122,7 +123,7 @@ public:
     /**
        return the value of @c data member of the head of the queue.
     */
-    void* head_queue();
+    void *head_queue();
     bool   gt(ulong i, ulong k); // comparision of ordering of two entities
     /* index is within the valid range */
     bool in(ulong k)
@@ -167,9 +168,9 @@ typedef struct st_slave_job_group
     /* checkpoint coord are reset by periodical and special (Rotate event) CP:s */
     uint  checkpoint_seqno;
     my_off_t checkpoint_log_pos; // T-event lop_pos filled by W for CheckPoint
-    char*    checkpoint_log_name;
+    char    *checkpoint_log_name;
     my_off_t checkpoint_relay_log_pos; // T-event lop_pos filled by W for CheckPoint
-    char*    checkpoint_relay_log_name;
+    char    *checkpoint_relay_log_name;
     volatile uchar done;  // Flag raised by W,  read and reset by Coordinator
     ulong    shifted;     // shift the last CP bitmap at receiving a new CP
     time_t   ts;          // Group's timestampt to update Seconds_behind_master
@@ -180,18 +181,18 @@ typedef struct st_slave_job_group
     */
     void reset(my_off_t master_pos, ulonglong seqno)
     {
-        master_log_pos= master_pos;
-        group_master_log_pos= group_relay_log_pos= 0;
-        group_master_log_name= NULL; // todo: remove
-        group_relay_log_name= NULL;
-        worker_id= MTS_WORKER_UNDEF;
-        total_seqno= seqno;
-        checkpoint_log_name= NULL;
-        checkpoint_log_pos= 0;
-        checkpoint_relay_log_name= NULL;
-        checkpoint_relay_log_pos= 0;
-        checkpoint_seqno= (uint) -1;
-        done= 0;
+        master_log_pos = master_pos;
+        group_master_log_pos = group_relay_log_pos = 0;
+        group_master_log_name = NULL; // todo: remove
+        group_relay_log_name = NULL;
+        worker_id = MTS_WORKER_UNDEF;
+        total_seqno = seqno;
+        checkpoint_log_name = NULL;
+        checkpoint_log_pos = 0;
+        checkpoint_relay_log_name = NULL;
+        checkpoint_relay_log_pos = 0;
+        checkpoint_seqno = (uint) - 1;
+        done = 0;
     }
 } Slave_job_group;
 
@@ -221,21 +222,24 @@ public:
     ulong assigned_group_index;
 
     Slave_committed_queue (const char *log, uint el_size, ulong max, uint n,
-                           uint inc= 0)
+                           uint inc = 0)
         : circular_buffer_queue(el_size, max, inc), inited(FALSE)
     {
         uint k;
-        ulonglong l= 0;
+        ulonglong l = 0;
 
-        if (max >= (ulong) -1 || !circular_buffer_queue::inited_queue)
+        if (max >= (ulong) - 1 || !circular_buffer_queue::inited_queue)
             return;
         else
-            inited= TRUE;
+            inited = TRUE;
+
         my_init_dynamic_array(&last_done, sizeof(lwm.total_seqno), n, 0);
-        for (k= 0; k < n; k++)
-            insert_dynamic(&last_done, (uchar*) &l);  // empty for each Worker
-        lwm.group_relay_log_name= (char *) my_malloc(FN_REFLEN + 1, MYF(0));
-        lwm.group_relay_log_name[0]= 0;
+
+        for (k = 0; k < n; k++)
+            insert_dynamic(&last_done, (uchar *) &l); // empty for each Worker
+
+        lwm.group_relay_log_name = (char *) my_malloc(FN_REFLEN + 1, MYF(0));
+        lwm.group_relay_log_name[0] = 0;
     }
 
     ~Slave_committed_queue ()
@@ -248,7 +252,7 @@ public:
     }
 
 #ifndef DBUG_OFF
-    bool count_done(Relay_log_info* rli);
+    bool count_done(Relay_log_info *rli);
 #endif
 
     /* Checkpoint routine refreshes the queue */
@@ -259,9 +263,9 @@ public:
        returns a pointer to Slave_job_group struct instance as indexed by arg
        in the circular buffer dyn-array
     */
-    Slave_job_group* get_job_group(ulong ind)
+    Slave_job_group *get_job_group(ulong ind)
     {
-        return (Slave_job_group*) dynamic_array_ptr(&Q, ind);
+        return (Slave_job_group *) dynamic_array_ptr(&Q, ind);
     }
 
     /**
@@ -270,7 +274,7 @@ public:
     */
     ulong en_queue(void *item)
     {
-        return assigned_group_index= circular_buffer_queue::en_queue(item);
+        return assigned_group_index = circular_buffer_queue::en_queue(item);
     }
 
 };
@@ -292,7 +296,7 @@ class Slave_worker : public Relay_log_info
 public:
     Slave_worker(Relay_log_info *rli
 #ifdef HAVE_PSI_INTERFACE
-                 ,PSI_mutex_key *param_key_info_run_lock,
+                 , PSI_mutex_key *param_key_info_run_lock,
                  PSI_mutex_key *param_key_info_data_lock,
                  PSI_mutex_key *param_key_info_sleep_lock,
                  PSI_mutex_key *param_key_info_data_cond,
@@ -360,8 +364,8 @@ public:
     ulong checkpoint_seqno;   // the most significant ON bit in group_executed
     enum en_running_state
     {
-        NOT_RUNNING= 0,
-        RUNNING= 1,
+        NOT_RUNNING = 0,
+        RUNNING = 1,
         ERROR_LEAVING,         // is set by Worker
         KILLED                 // is set by Coordinator
     };
@@ -371,11 +375,11 @@ public:
     */
     en_running_state volatile running_status;
 
-    int init_worker(Relay_log_info*, ulong);
+    int init_worker(Relay_log_info *, ulong);
     int rli_init_info(bool);
-    int flush_info(bool force= FALSE);
+    int flush_info(bool force = FALSE);
     static size_t get_number_worker_fields();
-    void slave_worker_ends_group(Log_event*, int);
+    void slave_worker_ends_group(Log_event *, int);
     bool commit_positions(Log_event *evt, Slave_job_group *ptr_g, bool force);
     bool reset_recovery_info();
     /**
@@ -388,13 +392,16 @@ public:
     {
         DBUG_ASSERT(!fdle || (running_status == Slave_worker::RUNNING && info_thd));
 #ifndef DBUG_OFF
+
         if (fdle)
             mysql_mutex_assert_owner(&jobs_lock);
+
 #endif
 
         if (fdle)
             adapt_to_master_version(fdle);
-        rli_description_event= fdle;
+
+        rli_description_event = fdle;
     }
 
 protected:
@@ -406,11 +413,11 @@ private:
     void end_info();
     bool read_info(Rpl_info_handler *from);
     bool write_info(Rpl_info_handler *to);
-    Slave_worker& operator=(const Slave_worker& info);
-    Slave_worker(const Slave_worker& info);
+    Slave_worker &operator=(const Slave_worker &info);
+    Slave_worker(const Slave_worker &info);
 };
 
-TABLE* mts_move_temp_table_to_entry(TABLE*, THD*, db_worker_hash_entry*);
-TABLE* mts_move_temp_tables_to_thd(THD*, TABLE*);
+TABLE *mts_move_temp_table_to_entry(TABLE *, THD *, db_worker_hash_entry *);
+TABLE *mts_move_temp_tables_to_thd(THD *, TABLE *);
 #endif // HAVE_REPLICATION
 #endif

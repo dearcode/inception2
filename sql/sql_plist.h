@@ -77,7 +77,7 @@ public:
     I_P_List() : I(&m_first), m_first(NULL) {};
     inline void empty()
     {
-        m_first= NULL;
+        m_first = NULL;
         C::reset();
         I::set_last(&m_first);
     }
@@ -85,23 +85,25 @@ public:
     {
         return (m_first == NULL);
     }
-    inline void push_front(T* a)
+    inline void push_front(T *a)
     {
-        *B::next_ptr(a)= m_first;
+        *B::next_ptr(a) = m_first;
+
         if (m_first)
-            *B::prev_ptr(m_first)= B::next_ptr(a);
+            *B::prev_ptr(m_first) = B::next_ptr(a);
         else
             I::set_last(B::next_ptr(a));
-        m_first= a;
-        *B::prev_ptr(a)= &m_first;
+
+        m_first = a;
+        *B::prev_ptr(a) = &m_first;
         C::inc();
     }
     inline void push_back(T *a)
     {
-        T **last= I::get_last();
-        *B::next_ptr(a)= *last;
-        *last= a;
-        *B::prev_ptr(a)= last;
+        T **last = I::get_last();
+        *B::next_ptr(a) = *last;
+        *last = a;
+        *B::prev_ptr(a) = last;
         I::set_last(B::next_ptr(a));
         C::inc();
     }
@@ -110,28 +112,33 @@ public:
         if (pos == NULL)
             push_front(a);
         else {
-            *B::next_ptr(a)= *B::next_ptr(pos);
-            *B::prev_ptr(a)= B::next_ptr(pos);
-            *B::next_ptr(pos)= a;
+            *B::next_ptr(a) = *B::next_ptr(pos);
+            *B::prev_ptr(a) = B::next_ptr(pos);
+            *B::next_ptr(pos) = a;
+
             if (*B::next_ptr(a)) {
-                T *old_next= *B::next_ptr(a);
-                *B::prev_ptr(old_next)= B::next_ptr(a);
+                T *old_next = *B::next_ptr(a);
+                *B::prev_ptr(old_next) = B::next_ptr(a);
+
             } else
                 I::set_last(B::next_ptr(a));
+
             C::inc();
         }
     }
     inline void remove(T *a)
     {
-        T *next= *B::next_ptr(a);
+        T *next = *B::next_ptr(a);
+
         if (next)
-            *B::prev_ptr(next)= *B::prev_ptr(a);
+            *B::prev_ptr(next) = *B::prev_ptr(a);
         else
             I::set_last(*B::prev_ptr(a));
-        **B::prev_ptr(a)= next;
+
+        **B::prev_ptr(a) = next;
         C::dec();
     }
-    inline T* front()
+    inline T *front()
     {
         return m_first;
     }
@@ -139,9 +146,9 @@ public:
     {
         return m_first;
     }
-    inline T* pop_front()
+    inline T *pop_front()
     {
-        T *result= front();
+        T *result = front();
 
         if (result)
             remove(result);
@@ -152,14 +159,17 @@ public:
     {
         swap_variables(T *, m_first, rhs.m_first);
         I::swap(rhs);
+
         if (m_first)
-            *B::prev_ptr(m_first)= &m_first;
+            *B::prev_ptr(m_first) = &m_first;
         else
             I::set_last(&m_first);
+
         if (rhs.m_first)
-            *B::prev_ptr(rhs.m_first)= &rhs.m_first;
+            *B::prev_ptr(rhs.m_first) = &rhs.m_first;
         else
             I::set_last(&rhs.m_first);
+
         C::swap(rhs);
     }
     typedef B Adapter;
@@ -185,28 +195,30 @@ class I_P_List_iterator
 public:
     I_P_List_iterator(const L &a)
         : list(&a), current(a.m_first) {}
-    I_P_List_iterator(const L &a, T* current_arg)
+    I_P_List_iterator(const L &a, T *current_arg)
         : list(&a), current(current_arg) {}
     inline void init(const L &a)
     {
-        list= &a;
-        current= a.m_first;
+        list = &a;
+        current = a.m_first;
     }
-    inline T* operator++(int)
+    inline T *operator++(int)
     {
-        T *result= current;
+        T *result = current;
+
         if (result)
-            current= *L::Adapter::next_ptr(current);
+            current = *L::Adapter::next_ptr(current);
+
         return result;
     }
-    inline T* operator++()
+    inline T *operator++()
     {
-        current= *L::Adapter::next_ptr(current);
+        current = *L::Adapter::next_ptr(current);
         return current;
     }
     inline void rewind()
     {
-        current= list->m_first;
+        current = list->m_first;
     }
 };
 
@@ -216,14 +228,14 @@ public:
   of T should be used for participating in a intrusive list.
 */
 
-template <typename T, T* T::*next, T** T::*prev>
+template <typename T, T *T::*next, T **T::*prev>
 struct I_P_List_adapter
 {
     static inline T **next_ptr(T *el)
     {
         return &(el->*next);
     }
-    static inline const T* const* next_ptr(const T *el)
+    static inline const T *const *next_ptr(const T *el)
     {
         return &(el->*next);
     }
@@ -261,7 +273,7 @@ protected:
     I_P_List_counter() : m_counter (0) {}
     void reset()
     {
-        m_counter= 0;
+        m_counter = 0;
     }
     void inc()
     {
@@ -314,15 +326,15 @@ protected:
     I_P_List_fast_push_back(T **a) : m_last(a) { };
     void set_last(T **a)
     {
-        m_last= a;
+        m_last = a;
     }
-    T** get_last() const
+    T **get_last() const
     {
         return m_last;
     }
     void swap(I_P_List_fast_push_back<T> &rhs)
     {
-        swap_variables(T**, m_last, rhs.m_last);
+        swap_variables(T **, m_last, rhs.m_last);
     }
 };
 

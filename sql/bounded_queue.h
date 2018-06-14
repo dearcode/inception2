@@ -120,10 +120,13 @@ public:
         // Don't return the extra element to the client code.
         if (queue_is_full((&m_queue)))
             queue_remove(&m_queue, 0);
+
         DBUG_ASSERT(m_queue.elements > 0);
+
         if (m_queue.elements == 0)
             return NULL;
-        return reinterpret_cast<Key_type**>(queue_remove(&m_queue, 0));
+
+        return reinterpret_cast<Key_type **>(queue_remove(&m_queue, 0));
     }
 
     /**
@@ -161,21 +164,21 @@ int Bounded_queue<Element_type, Key_type>::init(ha_rows max_elements,
         Key_type **sort_keys)
 {
     DBUG_ASSERT(sort_keys != NULL);
+    m_sort_keys =      sort_keys;
+    m_compare_length = compare_length;
+    m_keymaker =       keymaker;
+    m_sort_param =     sort_param;
 
-    m_sort_keys=      sort_keys;
-    m_compare_length= compare_length;
-    m_keymaker=       keymaker;
-    m_sort_param=     sort_param;
     // init_queue() takes an uint, and also does (max_elements + 1)
     if (max_elements >= (UINT_MAX - 1))
         return 1;
+
     if (compare == NULL)
-        compare=
+        compare =
             reinterpret_cast<compare_function>(get_ptr_compare(compare_length));
 
     DBUG_EXECUTE_IF("bounded_queue_init_fail",
                     DBUG_SET("+d,simulate_out_of_memory"););
-
     // We allocate space for one extra element, for replace when queue is full.
     return init_queue(&m_queue, (uint) max_elements + 1,
                       0, max_at_top,
@@ -188,16 +191,18 @@ template<typename Element_type, typename Key_type>
 void Bounded_queue<Element_type, Key_type>::push(Element_type *element)
 {
     DBUG_ASSERT(is_initialized());
+
     if (queue_is_full((&m_queue))) {
         // Replace top element with new key, and re-order the queue.
-        Key_type **pq_top= reinterpret_cast<Key_type **>(queue_top(&m_queue));
+        Key_type **pq_top = reinterpret_cast<Key_type **>(queue_top(&m_queue));
         (*m_keymaker)(m_sort_param, *pq_top, element);
         queue_replaced(&m_queue);
+
     } else {
         // Insert new key into the queue.
         (*m_keymaker)(m_sort_param, m_sort_keys[m_queue.elements], element);
         queue_insert(&m_queue,
-                     reinterpret_cast<uchar*>(&m_sort_keys[m_queue.elements]));
+                     reinterpret_cast<uchar *>(&m_sort_keys[m_queue.elements]));
     }
 }
 

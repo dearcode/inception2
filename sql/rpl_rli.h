@@ -161,7 +161,7 @@ public:
      cache_buf
        IO_CACHE used when opening cold relay logs.
      */
-    IO_CACHE cache_buf,*cur_log;
+    IO_CACHE cache_buf, *cur_log;
 
     /*
       Identifies when the recovery process is going on.
@@ -245,12 +245,14 @@ private:
 public:
     int add_logged_gtid(rpl_sidno sidno, rpl_gno gno)
     {
-        int ret= 0;
+        int ret = 0;
         global_sid_lock->assert_some_lock();
         DBUG_ASSERT(sidno <= global_sid_map->get_max_sidno());
         gtid_set.ensure_sidno(sidno);
+
         if (gtid_set._add_gtid(sidno, gno) != RETURN_STATUS_OK)
-            ret= 1;
+            ret = 1;
+
         return ret;
     }
     const Gtid_set *get_gtid_set() const
@@ -258,9 +260,9 @@ public:
         return &gtid_set;
     }
 
-    int init_relay_log_pos(const char* log,
+    int init_relay_log_pos(const char *log,
                            ulonglong pos, bool need_data_lock,
-                           const char** errmsg,
+                           const char **errmsg,
                            bool look_for_description_event);
 
     /*
@@ -269,7 +271,7 @@ public:
       threads, the SQL thread sets it to unblock the I/O thread and make it
       temporarily forget about the constraint.
     */
-    ulonglong log_space_limit,log_space_total;
+    ulonglong log_space_limit, log_space_total;
     bool ignore_log_space_limit;
 
     /*
@@ -289,7 +291,7 @@ public:
     */
     void clear_sql_delay()
     {
-        sql_delay= 0;
+        sql_delay = 0;
     }
 
     /*
@@ -313,11 +315,11 @@ public:
        thread is running).
      */
     enum
-    {UNTIL_NONE= 0, UNTIL_MASTER_POS, UNTIL_RELAY_POS,
-     UNTIL_SQL_BEFORE_GTIDS, UNTIL_SQL_AFTER_GTIDS,
-     UNTIL_SQL_AFTER_MTS_GAPS
+    {   UNTIL_NONE = 0, UNTIL_MASTER_POS, UNTIL_RELAY_POS,
+        UNTIL_SQL_BEFORE_GTIDS, UNTIL_SQL_AFTER_GTIDS,
+        UNTIL_SQL_AFTER_MTS_GAPS
 #ifndef DBUG_OFF
-    , UNTIL_DONE
+        , UNTIL_DONE
 #endif
     }
     until_condition;
@@ -349,8 +351,8 @@ public:
     */
     enum
     {
-        UNTIL_LOG_NAMES_CMP_UNKNOWN= -2, UNTIL_LOG_NAMES_CMP_LESS= -1,
-        UNTIL_LOG_NAMES_CMP_EQUAL= 0, UNTIL_LOG_NAMES_CMP_GREATER= 1
+        UNTIL_LOG_NAMES_CMP_UNKNOWN = -2, UNTIL_LOG_NAMES_CMP_LESS = -1,
+        UNTIL_LOG_NAMES_CMP_EQUAL = 0, UNTIL_LOG_NAMES_CMP_GREATER = 1
     } until_log_names_cmp_result;
 
     char cached_charset[6];
@@ -393,8 +395,8 @@ public:
     */
     inline void notify_group_relay_log_name_update()
     {
-        if (until_condition==UNTIL_RELAY_POS)
-            until_log_names_cmp_result= UNTIL_LOG_NAMES_CMP_UNKNOWN;
+        if (until_condition == UNTIL_RELAY_POS)
+            until_log_names_cmp_result = UNTIL_LOG_NAMES_CMP_UNKNOWN;
     }
 
     /**
@@ -403,21 +405,21 @@ public:
     */
     inline void notify_group_master_log_name_update()
     {
-        if (until_condition==UNTIL_MASTER_POS)
-            until_log_names_cmp_result= UNTIL_LOG_NAMES_CMP_UNKNOWN;
+        if (until_condition == UNTIL_MASTER_POS)
+            until_log_names_cmp_result = UNTIL_LOG_NAMES_CMP_UNKNOWN;
     }
 
     inline void inc_event_relay_log_pos()
     {
-        event_relay_log_pos= future_event_relay_log_pos;
+        event_relay_log_pos = future_event_relay_log_pos;
     }
 
     int inc_group_relay_log_pos(ulonglong log_pos,
                                 bool need_data_lock);
 
-    int wait_for_pos(THD* thd, String* log_name, longlong log_pos,
+    int wait_for_pos(THD *thd, String *log_name, longlong log_pos,
                      longlong timeout);
-    int wait_for_gtid_set(THD* thd, String* gtid, longlong timeout);
+    int wait_for_gtid_set(THD *thd, String *gtid, longlong timeout);
     void close_temporary_tables();
 
     /* Check if UNTIL condition is satisfied. See slave.cc for more. */
@@ -432,21 +434,23 @@ public:
     uint tables_to_lock_count;        /* RBR: Count of tables to lock */
     table_mapping m_table_map;      /* RBR: Mapping table-id to table */
     /* RBR: Record Rows_query log event */
-    Rows_query_log_event* rows_query_ev;
+    Rows_query_log_event *rows_query_ev;
 
     bool get_table_data(TABLE *table_arg, table_def **tabledef_var, TABLE **conv_table_var) const
     {
         DBUG_ASSERT(tabledef_var && conv_table_var);
-        for (TABLE_LIST *ptr= tables_to_lock ; ptr != NULL ; ptr= ptr->next_global)
+
+        for (TABLE_LIST *ptr = tables_to_lock ; ptr != NULL ; ptr = ptr->next_global)
             if (ptr->table == table_arg) {
-                *tabledef_var= &static_cast<RPL_TABLE_LIST*>(ptr)->m_tabledef;
-                *conv_table_var= static_cast<RPL_TABLE_LIST*>(ptr)->m_conv_table;
+                *tabledef_var = &static_cast<RPL_TABLE_LIST *>(ptr)->m_tabledef;
+                *conv_table_var = static_cast<RPL_TABLE_LIST *>(ptr)->m_conv_table;
                 DBUG_PRINT("debug", ("Fetching table data for table %s.%s:"
                                      " tabledef: %p, conv_table: %p",
                                      table_arg->s->db.str, table_arg->s->table_name.str,
                                      *tabledef_var, *conv_table_var));
                 return true;
             }
+
         return false;
     }
 
@@ -462,7 +466,7 @@ public:
     void cleanup_context(THD *, bool);
     void slave_close_thread_tables(THD *);
     void clear_tables_to_lock();
-    int purge_relay_logs(THD *thd, bool just_reset, const char** errmsg);
+    int purge_relay_logs(THD *thd, bool just_reset, const char **errmsg);
 
     /*
       Used to defer stopping the SQL thread to give it a chance
@@ -617,10 +621,8 @@ public:
     */
     inline bool is_parallel_exec() const
     {
-        bool ret= (slave_parallel_workers > 0) && !is_mts_recovery();
-
+        bool ret = (slave_parallel_workers > 0) && !is_mts_recovery();
         DBUG_ASSERT(!ret || workers.elements > 0);
-
         return ret;
     }
 
@@ -660,7 +662,7 @@ public:
        Returns true if the argument event resides in the containter;
        more specifically, the checking is done against the last added event.
     */
-    bool is_deferred_event(Log_event * ev)
+    bool is_deferred_event(Log_event *ev)
     {
         return deferred_events_collecting ? deferred_events->is_last(ev) : false;
     };
@@ -745,7 +747,7 @@ public:
 
     int rli_init_info();
     void end_info();
-    int flush_info(bool force= FALSE);
+    int flush_info(bool force = FALSE);
     int flush_current_log();
     void set_master_info(Master_info *info);
 
@@ -755,10 +757,10 @@ public:
     }
     inline void set_future_event_relay_log_pos(ulonglong log_pos)
     {
-        future_event_relay_log_pos= log_pos;
+        future_event_relay_log_pos = log_pos;
     }
 
-    inline const char* get_group_master_log_name()
+    inline const char *get_group_master_log_name()
     {
         return group_master_log_name;
     }
@@ -768,14 +770,14 @@ public:
     }
     inline void set_group_master_log_name(const char *log_file_name)
     {
-        strmake(group_master_log_name,log_file_name, sizeof(group_master_log_name)-1);
+        strmake(group_master_log_name, log_file_name, sizeof(group_master_log_name) - 1);
     }
     inline void set_group_master_log_pos(ulonglong log_pos)
     {
-        group_master_log_pos= log_pos;
+        group_master_log_pos = log_pos;
     }
 
-    inline const char* get_group_relay_log_name()
+    inline const char *get_group_relay_log_name()
     {
         return group_relay_log_name;
     }
@@ -785,7 +787,7 @@ public:
     }
     inline void set_group_relay_log_name(const char *log_file_name)
     {
-        strmake(group_relay_log_name,log_file_name, sizeof(group_relay_log_name)-1);
+        strmake(group_relay_log_name, log_file_name, sizeof(group_relay_log_name) - 1);
     }
     inline void set_group_relay_log_name(const char *log_file_name, size_t len)
     {
@@ -793,10 +795,10 @@ public:
     }
     inline void set_group_relay_log_pos(ulonglong log_pos)
     {
-        group_relay_log_pos= log_pos;
+        group_relay_log_pos = log_pos;
     }
 
-    inline const char* get_event_relay_log_name()
+    inline const char *get_event_relay_log_name()
     {
         return event_relay_log_name;
     }
@@ -806,17 +808,17 @@ public:
     }
     inline void set_event_relay_log_name(const char *log_file_name)
     {
-        strmake(event_relay_log_name,log_file_name, sizeof(event_relay_log_name)-1);
+        strmake(event_relay_log_name, log_file_name, sizeof(event_relay_log_name) - 1);
     }
     inline void set_event_relay_log_name(const char *log_file_name, size_t len)
     {
-        strmake(event_relay_log_name,log_file_name, len);
+        strmake(event_relay_log_name, log_file_name, len);
     }
     inline void set_event_relay_log_pos(ulonglong log_pos)
     {
-        event_relay_log_pos= log_pos;
+        event_relay_log_pos = log_pos;
     }
-    inline const char* get_rpl_log_name()
+    inline const char *get_rpl_log_name()
     {
         return (group_master_log_name[0] ? group_master_log_name : "FIRST");
     }
@@ -833,7 +835,7 @@ public:
     }
     inline void set_future_group_master_log_pos(ulonglong log_pos)
     {
-        future_group_master_log_pos= log_pos;
+        future_group_master_log_pos = log_pos;
     }
 #endif
 
@@ -853,7 +855,7 @@ public:
     void start_sql_delay(time_t delay_end)
     {
         mysql_mutex_assert_owner(&data_lock);
-        sql_delay_end= delay_end;
+        sql_delay_end = delay_end;
     }
 
     int32 get_sql_delay()
@@ -862,7 +864,7 @@ public:
     }
     void set_sql_delay(time_t _sql_delay)
     {
-        sql_delay= _sql_delay;
+        sql_delay = _sql_delay;
     }
     time_t get_sql_delay_end()
     {
@@ -871,7 +873,7 @@ public:
 
     Relay_log_info(bool is_slave_recovery
 #ifdef HAVE_PSI_INTERFACE
-                   ,PSI_mutex_key *param_key_info_run_lock,
+                   , PSI_mutex_key *param_key_info_run_lock,
                    PSI_mutex_key *param_key_info_data_lock,
                    PSI_mutex_key *param_key_info_sleep_lock,
                    PSI_mutex_key *param_key_info_data_cond,
@@ -898,24 +900,24 @@ public:
     time_t set_row_stmt_start_timestamp()
     {
         if (row_stmt_start_timestamp == 0)
-            row_stmt_start_timestamp= my_time(0);
+            row_stmt_start_timestamp = my_time(0);
 
         return row_stmt_start_timestamp;
     }
 
     void reset_row_stmt_start_timestamp()
     {
-        row_stmt_start_timestamp= 0;
+        row_stmt_start_timestamp = 0;
     }
 
     void set_long_find_row_note_printed()
     {
-        long_find_row_note_printed= true;
+        long_find_row_note_printed = true;
     }
 
     void unset_long_find_row_note_printed()
     {
-        long_find_row_note_printed= false;
+        long_find_row_note_printed = false;
     }
 
     bool is_long_find_row_note_printed()
@@ -978,24 +980,24 @@ private:
       Before the MASTER_DELAY parameter was added (WL#344), relay_log.info
       had 4 lines. Now it has 5 lines.
     */
-    static const int LINES_IN_RELAY_LOG_INFO_WITH_DELAY= 5;
+    static const int LINES_IN_RELAY_LOG_INFO_WITH_DELAY = 5;
 
     /*
       Before the WL#5599, relay_log.info had 5 lines. Now it has 6 lines.
     */
-    static const int LINES_IN_RELAY_LOG_INFO_WITH_WORKERS= 6;
+    static const int LINES_IN_RELAY_LOG_INFO_WITH_WORKERS = 6;
 
     /*
       Before the Id was added (BUG#2334346), relay_log.info
       had 6 lines. Now it has 7 lines.
     */
-    static const int LINES_IN_RELAY_LOG_INFO_WITH_ID= 7;
+    static const int LINES_IN_RELAY_LOG_INFO_WITH_ID = 7;
 
     bool read_info(Rpl_info_handler *from);
     bool write_info(Rpl_info_handler *to);
 
-    Relay_log_info(const Relay_log_info& info);
-    Relay_log_info& operator=(const Relay_log_info& info);
+    Relay_log_info(const Relay_log_info &info);
+    Relay_log_info &operator=(const Relay_log_info &info);
 
     /*
       Runtime state for printing a note when slave is taking
@@ -1012,7 +1014,7 @@ private:
     bool error_on_rli_init_info;
 };
 
-bool mysql_show_relaylog_events(THD* thd);
+bool mysql_show_relaylog_events(THD *thd);
 
 /**
    @param  thd a reference to THD

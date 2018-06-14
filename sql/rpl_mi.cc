@@ -27,37 +27,37 @@ using std::max;
 
 enum
 {
-    LINES_IN_MASTER_INFO_WITH_SSL= 14,
+    LINES_IN_MASTER_INFO_WITH_SSL = 14,
 
     /* 5.1.16 added value of master_ssl_verify_server_cert */
-    LINE_FOR_MASTER_SSL_VERIFY_SERVER_CERT= 15,
+    LINE_FOR_MASTER_SSL_VERIFY_SERVER_CERT = 15,
 
     /* 5.5 added value of master_heartbeat_period */
-    LINE_FOR_MASTER_HEARTBEAT_PERIOD= 16,
+    LINE_FOR_MASTER_HEARTBEAT_PERIOD = 16,
 
     /* MySQL Cluster 6.3 added master_bind */
     LINE_FOR_MASTER_BIND = 17,
 
     /* 6.0 added value of master_ignore_server_id */
-    LINE_FOR_REPLICATE_IGNORE_SERVER_IDS= 18,
+    LINE_FOR_REPLICATE_IGNORE_SERVER_IDS = 18,
 
     /* 6.0 added value of master_uuid */
-    LINE_FOR_MASTER_UUID= 19,
+    LINE_FOR_MASTER_UUID = 19,
 
     /* line for master_retry_count */
-    LINE_FOR_MASTER_RETRY_COUNT= 20,
+    LINE_FOR_MASTER_RETRY_COUNT = 20,
 
     /* line for ssl_crl */
-    LINE_FOR_SSL_CRL= 21,
+    LINE_FOR_SSL_CRL = 21,
 
     /* line for ssl_crl */
-    LINE_FOR_SSL_CRLPATH= 22,
+    LINE_FOR_SSL_CRLPATH = 22,
 
     /* line for auto_position */
-    LINE_FOR_AUTO_POSITION= 23,
+    LINE_FOR_AUTO_POSITION = 23,
 
     /* Number of lines currently used when saving master info file */
-    LINES_IN_MASTER_INFO= LINE_FOR_AUTO_POSITION
+    LINES_IN_MASTER_INFO = LINE_FOR_AUTO_POSITION
 };
 
 /*
@@ -65,7 +65,7 @@ Please every time you add a new field to the mater info, update
 what follows. For now, this is just used to get the number of
 fields.
 */
-const char *info_mi_fields []= {
+const char *info_mi_fields [] = {
     "number_of_lines",
     "master_log_name",
     "master_log_pos",
@@ -103,53 +103,52 @@ Master_info::Master_info(
 #endif
     uint param_id
 )
-    :Rpl_info("I/O"
+    : Rpl_info("I/O"
 #ifdef HAVE_PSI_INTERFACE
-              ,param_key_info_run_lock, param_key_info_data_lock,
-              param_key_info_sleep_lock,
-              param_key_info_data_cond, param_key_info_start_cond,
-              param_key_info_stop_cond, param_key_info_sleep_cond
+               , param_key_info_run_lock, param_key_info_data_lock,
+               param_key_info_sleep_lock,
+               param_key_info_data_cond, param_key_info_start_cond,
+               param_key_info_stop_cond, param_key_info_sleep_cond
 #endif
-              ,param_id
-             ),
-     start_user_configured(false),
-     ssl(0), ssl_verify_server_cert(0),
-     port(MYSQL_PORT), connect_retry(DEFAULT_CONNECT_RETRY),
-     clock_diff_with_master(0), heartbeat_period(0),
-     received_heartbeats(0), last_heartbeat(0), master_id(0),
-     checksum_alg_before_fd(BINLOG_CHECKSUM_ALG_UNDEF),
-     retry_count(master_retry_count), master_gtid_mode(0),
-     mi_description_event(NULL),
-     auto_position(false)
+               , param_id
+              ),
+      start_user_configured(false),
+      ssl(0), ssl_verify_server_cert(0),
+      port(MYSQL_PORT), connect_retry(DEFAULT_CONNECT_RETRY),
+      clock_diff_with_master(0), heartbeat_period(0),
+      received_heartbeats(0), last_heartbeat(0), master_id(0),
+      checksum_alg_before_fd(BINLOG_CHECKSUM_ALG_UNDEF),
+      retry_count(master_retry_count), master_gtid_mode(0),
+      mi_description_event(NULL),
+      auto_position(false)
 {
     host[0] = 0;
     user[0] = 0;
     bind_addr[0] = 0;
-    password[0]= 0;
-    start_password[0]= 0;
-    ssl_ca[0]= 0;
-    ssl_capath[0]= 0;
-    ssl_cert[0]= 0;
-    ssl_cipher[0]= 0;
-    ssl_key[0]= 0;
-    ssl_crl[0]= 0;
-    ssl_crlpath[0]= 0;
-    master_uuid[0]= 0;
-    start_plugin_auth[0]= 0;
-    start_plugin_dir[0]= 0;
-    start_user[0]= 0;
+    password[0] = 0;
+    start_password[0] = 0;
+    ssl_ca[0] = 0;
+    ssl_capath[0] = 0;
+    ssl_cert[0] = 0;
+    ssl_cipher[0] = 0;
+    ssl_key[0] = 0;
+    ssl_crl[0] = 0;
+    ssl_crlpath[0] = 0;
+    master_uuid[0] = 0;
+    start_plugin_auth[0] = 0;
+    start_plugin_dir[0] = 0;
+    start_user[0] = 0;
     relay_log_checksum_alg = BINLOG_CHECKSUM_ALG_OFF;
     tables_to_lock = NULL;
     tables_to_lock_count = 0;
     init_sql_alloc(&lock_tables_mem_root, 4096, 0);
 }
 
-void free_tables_to_lock(Master_info*	mi)
+void free_tables_to_lock(Master_info	*mi)
 {
     RPL_TABLE_LIST *tables_to_lock;
     uint tables_to_lock_count;
     DBUG_ENTER("Relay_log_info::clear_tables_to_lock()");
-
     /**
     When replicating in RBR and MyISAM Merge tables are involved
     open_and_lock_tables (called in do_apply_event) appends the
@@ -162,18 +161,20 @@ void free_tables_to_lock(Master_info*	mi)
     */
     tables_to_lock = mi->tables_to_lock;
     tables_to_lock_count = mi->tables_to_lock_count;
-
 #ifndef DBUG_OFF
-    uint i=0;
-    for (TABLE_LIST *ptr= mi->tables_to_lock ; ptr ; ptr= ptr->next_global, i++) ;
+    uint i = 0;
+
+    for (TABLE_LIST *ptr = mi->tables_to_lock ; ptr ; ptr = ptr->next_global, i++) ;
+
     DBUG_ASSERT(i == mi->tables_to_lock_count);
 #endif
 
     while (tables_to_lock) {
-        uchar* to_free= reinterpret_cast<uchar*>(tables_to_lock);
+        uchar *to_free = reinterpret_cast<uchar *>(tables_to_lock);
+
         if (tables_to_lock->m_tabledef_valid) {
             tables_to_lock->m_tabledef.table_def::~table_def();
-            tables_to_lock->m_tabledef_valid= FALSE;
+            tables_to_lock->m_tabledef_valid = FALSE;
         }
 
         /*
@@ -185,11 +186,12 @@ void free_tables_to_lock(Master_info*	mi)
         if (tables_to_lock->m_conv_table)
             free_blobs(tables_to_lock->m_conv_table);
 
-        tables_to_lock=
-            static_cast<RPL_TABLE_LIST*>(tables_to_lock->next_global);
+        tables_to_lock =
+            static_cast<RPL_TABLE_LIST *>(tables_to_lock->next_global);
         tables_to_lock_count--;
         my_free(to_free);
     }
+
     free_root(&mi->lock_tables_mem_root, MYF(0));
     DBUG_ASSERT(tables_to_lock == NULL && tables_to_lock_count == 0);
     DBUG_VOID_RETURN;
@@ -198,6 +200,7 @@ void free_tables_to_lock(Master_info*	mi)
 Master_info::~Master_info()
 {
     free_tables_to_lock(this);
+
     if (mi_description_event)
         delete mi_description_event;
 }
@@ -211,7 +214,7 @@ than the second
 */
 int change_master_server_id_cmp(ulong *id1, ulong *id2)
 {
-    return *id1 < *id2? -1 : (*id1 > *id2? 1 : 0);
+    return *id1 < *id2 ? -1 : (*id1 > *id2 ? 1 : 0);
 }
 
 /**
@@ -230,21 +233,22 @@ Method is called from the io thread event receiver filtering.
 bool Master_info::shall_ignore_server_id(ulong s_id)
 {
     if (likely(ignore_server_ids->dynamic_ids.elements == 1))
-        return (* (ulong*)
+        return (* (ulong *)
                 dynamic_array_ptr(&(ignore_server_ids->dynamic_ids), 0)) == s_id;
     else
         return bsearch((const ulong *) &s_id,
                        ignore_server_ids->dynamic_ids.buffer,
                        ignore_server_ids->dynamic_ids.elements, sizeof(ulong),
-                       (int (*) (const void*, const void*)) change_master_server_id_cmp)
+                       (int (*) (const void *, const void *)) change_master_server_id_cmp)
                != NULL;
 }
 
 void Master_info::clear_in_memory_info(bool all)
 {
     init_master_log_pos();
+
     if (all) {
-        port= MYSQL_PORT;
+        port = MYSQL_PORT;
         host[0] = 0;
         user[0] = 0;
         password[0] = 0;
@@ -254,23 +258,20 @@ void Master_info::clear_in_memory_info(bool all)
 void Master_info::init_master_log_pos()
 {
     DBUG_ENTER("Master_info::init_master_log_pos");
-
-    master_log_name[0]= 0;
-    master_log_pos= BIN_LOG_HEADER_SIZE;             // skip magic number
-
+    master_log_name[0] = 0;
+    master_log_pos = BIN_LOG_HEADER_SIZE;            // skip magic number
     /* Intentionally init ssl_verify_server_cert to 0, no option available  */
-    ssl_verify_server_cert= 0;
+    ssl_verify_server_cert = 0;
     /*
     always request heartbeat unless master_heartbeat_period is set
     explicitly zero.  Here is the default value for heartbeat period
     if CHANGE MASTER did not specify it.  (no data loss in conversion
     as hb period has a max)
     */
-    heartbeat_period= min<float>(SLAVE_MAX_HEARTBEAT_PERIOD,
-                                 (slave_net_timeout/2.0));
+    heartbeat_period = min<float>(SLAVE_MAX_HEARTBEAT_PERIOD,
+                                  (slave_net_timeout / 2.0));
     DBUG_ASSERT(heartbeat_period > (float) 0.001
                 || heartbeat_period == 0);
-
     DBUG_VOID_RETURN;
 }
 
@@ -282,9 +283,7 @@ void Master_info::end_info()
         DBUG_VOID_RETURN;
 
     handler->end_info();
-
     inited = 0;
-
     DBUG_VOID_RETURN;
 }
 
@@ -320,7 +319,7 @@ calling longlong2str.
 int Master_info::flush_info(bool force)
 {
     DBUG_ENTER("Master_info::flush_info");
-    DBUG_PRINT("enter",("master_pos: %lu", (ulong) master_log_pos));
+    DBUG_PRINT("enter", ("master_pos: %lu", (ulong) master_log_pos));
 
     if (!inited)
         DBUG_RETURN(0);
@@ -340,15 +339,14 @@ int Master_info::flush_info(bool force)
         goto err;
 
     DBUG_RETURN(0);
-
 err:
     sql_print_error("Error writing master configuration.");
     DBUG_RETURN(1);
 }
 
-void Master_info::set_relay_log_info(Relay_log_info* info)
+void Master_info::set_relay_log_info(Relay_log_info *info)
 {
-    rli= info;
+    rli = info;
 }
 
 
@@ -359,53 +357,54 @@ Master_info.
 int Master_info::mi_init_info()
 {
     DBUG_ENTER("Master_info::mi_init_info");
-    enum_return_check check_return= ERROR_CHECKING_REPOSITORY;
+    enum_return_check check_return = ERROR_CHECKING_REPOSITORY;
 
     if (inited)
         DBUG_RETURN(0);
 
-    mysql= 0;
-    file_id= 1;
-    if ((check_return= check_info()) == ERROR_CHECKING_REPOSITORY)
+    mysql = 0;
+    file_id = 1;
+
+    if ((check_return = check_info()) == ERROR_CHECKING_REPOSITORY)
         goto err;
 
     if (handler->init_info())
         goto err;
 
-    if (check_return == REPOSITORY_DOES_NOT_EXIST) {
+    if (check_return == REPOSITORY_DOES_NOT_EXIST)
         init_master_log_pos();
-    } else {
+
+    else {
         if (read_info(handler))
             goto err;
     }
 
-    inited= 1;
+    inited = 1;
+
     if (flush_info(TRUE))
         goto err;
 
     DBUG_RETURN(0);
-
 err:
     handler->end_info();
-    inited= 0;
+    inited = 0;
     sql_print_error("Error reading master configuration.");
     DBUG_RETURN(1);
 }
 
 size_t Master_info::get_number_info_mi_fields()
 {
-    return sizeof(info_mi_fields)/sizeof(info_mi_fields[0]);
+    return sizeof(info_mi_fields) / sizeof(info_mi_fields[0]);
 }
 
 bool Master_info::read_info(Rpl_info_handler *from)
 {
-    int lines= 0;
-    char *first_non_digit= NULL;
-    ulong temp_master_log_pos= 0;
-    int temp_ssl= 0;
-    int temp_ssl_verify_server_cert= 0;
-    int temp_auto_position= 0;
-
+    int lines = 0;
+    char *first_non_digit = NULL;
+    ulong temp_master_log_pos = 0;
+    int temp_ssl = 0;
+    int temp_ssl_verify_server_cert = 0;
+    int temp_auto_position = 0;
     DBUG_ENTER("Master_info::read_info");
 
     /*
@@ -432,16 +431,17 @@ bool Master_info::read_info(Rpl_info_handler *from)
                            (char *) ""))
         DBUG_RETURN(true);
 
-    lines= strtoul(master_log_name, &first_non_digit, 10);
+    lines = strtoul(master_log_name, &first_non_digit, 10);
 
-    if (master_log_name[0]!='\0' &&
-            *first_non_digit=='\0' && lines >= LINES_IN_MASTER_INFO_WITH_SSL) {
+    if (master_log_name[0] != '\0' &&
+            *first_non_digit == '\0' && lines >= LINES_IN_MASTER_INFO_WITH_SSL) {
         /* Seems to be new format => read master log name */
         if (from->get_info(master_log_name, (size_t) sizeof(master_log_name),
                            (char *) ""))
             DBUG_RETURN(true);
+
     } else
-        lines= 7;
+        lines = 7;
 
     if (from->get_info(&temp_master_log_pos,
                        (ulong) BIN_LOG_HEADER_SIZE) ||
@@ -512,7 +512,8 @@ bool Master_info::read_info(Rpl_info_handler *from)
     }
 
     /* Starting from 5.5 the master_retry_count may be in the repository. */
-    retry_count= master_retry_count;
+    retry_count = master_retry_count;
+
     if (lines >= LINE_FOR_MASTER_RETRY_COUNT) {
         if (from->get_info(&retry_count, master_retry_count))
             DBUG_RETURN(true);
@@ -529,10 +530,10 @@ bool Master_info::read_info(Rpl_info_handler *from)
             DBUG_RETURN(true);
     }
 
-    ssl= (my_bool) test(temp_ssl);
-    ssl_verify_server_cert= (my_bool) test(temp_ssl_verify_server_cert);
-    master_log_pos= (my_off_t) temp_master_log_pos;
-    auto_position= test(temp_auto_position);
+    ssl = (my_bool) test(temp_ssl);
+    ssl_verify_server_cert = (my_bool) test(temp_ssl_verify_server_cert);
+    master_log_pos = (my_off_t) temp_master_log_pos;
+    auto_position = test(temp_auto_position);
 
     if (auto_position != 0 && gtid_mode != 3) {
         my_error(ER_AUTO_POSITION_REQUIRES_GTID_MODE_ON, MYF(0));
@@ -540,12 +541,13 @@ bool Master_info::read_info(Rpl_info_handler *from)
     }
 
 #ifndef HAVE_OPENSSL
+
     if (ssl)
         sql_print_warning("SSL information in the master info file "
                           "are ignored because this MySQL slave was "
                           "compiled without SSL support.");
-#endif /* HAVE_OPENSSL */
 
+#endif /* HAVE_OPENSSL */
     DBUG_RETURN(false);
 }
 
@@ -589,47 +591,51 @@ bool Master_info::write_info(Rpl_info_handler *to)
     DBUG_RETURN(FALSE);
 }
 
-bool Master_info::set_password(const char* password_arg,
+bool Master_info::set_password(const char *password_arg,
                                int password_arg_size __attribute__((unused)))
 {
-    bool ret= true;
+    bool ret = true;
     DBUG_ENTER("Master_info::set_password");
 
     if (password_arg && start_user_configured) {
         strmake(start_password, password_arg, sizeof(start_password) - 1);
-        ret= false;
+        ret = false;
+
     } else if (password_arg) {
         strmake(password, password_arg, sizeof(password) - 1);
-        ret= false;
+        ret = false;
     }
+
     DBUG_RETURN(ret);
 }
 
 bool Master_info::get_password(char *password_arg, int *password_arg_size)
 {
-    bool ret= true;
+    bool ret = true;
     DBUG_ENTER("Master_info::get_password");
 
     if (password_arg && start_user_configured) {
-        *password_arg_size= strlen(start_password);
+        *password_arg_size = strlen(start_password);
         strmake(password_arg, start_password, sizeof(start_password) - 1);
-        ret= false;
+        ret = false;
+
     } else if (password_arg) {
-        *password_arg_size= strlen(password);
+        *password_arg_size = strlen(password);
         strmake(password_arg, password, sizeof(password) - 1);
-        ret= false;
+        ret = false;
     }
+
     DBUG_RETURN(ret);
 }
 
 void Master_info::reset_start_info()
 {
     DBUG_ENTER("Master_info::reset_start_info");
-    start_plugin_auth[0]= 0;
-    start_plugin_dir[0]= 0;
-    start_user_configured= false;
-    start_user[0]= 0;
-    start_password[0]= 0;
+    start_plugin_auth[0] = 0;
+    start_plugin_dir[0] = 0;
+    start_user_configured = false;
+    start_user[0] = 0;
+    start_password[0] = 0;
     DBUG_VOID_RETURN;
 }
 #endif /* HAVE_REPLICATION */
