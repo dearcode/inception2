@@ -745,6 +745,189 @@ int mysql_not_need_data_source(THD *thd)
     DBUG_RETURN(FALSE);
 }
 
+int mysql_db_struct_copy(THD *thd)
+{
+    char cmd[1024];
+    char buf[512];
+    char tmp_file[512];
+    FILE *res_file;
+
+    DBUG_ENTER("mysql_db_struct_copy");
+
+    if (!*thd->thd_sinfo->db)
+        DBUG_RETURN(false);
+
+    sprintf(tmp_file, "/tmp/%s_%d_%s.sql", thd->thd_sinfo->host, thd->thd_sinfo->port, thd->thd_sinfo->db);
+
+    sprintf(cmd, "mysqldump --skip-triggers --skip-lock-tables --single-transaction --set-gtid-purged=OFF -d -h%s -P%d -u%s -p%s %s > %s",
+            thd->thd_sinfo->host, thd->thd_sinfo->port, thd->thd_sinfo->user, thd->thd_sinfo->password, thd->thd_sinfo->db, tmp_file);
+
+    DBUG_PRINT("mysql_db_struct_copy", ("cmd:%s", cmd));
+    if (!(res_file = popen(cmd, "r")))
+        DBUG_RETURN(false);
+
+    while (fgets(buf, sizeof(buf), res_file))
+        fprintf(stdout, "%s", buf);
+
+    pclose(res_file);
+
+    DBUG_RETURN(true);
+}
+
+int mysql_db_struct_srouce(THD *thd, int port)
+{
+    char cmd[1024];
+    char buf[512];
+    char tmp_file[512];
+    FILE *res_file;
+
+    DBUG_ENTER("mysql_db_struct_srouce");
+
+    if (!*thd->thd_sinfo->db)
+        DBUG_RETURN(false);
+
+    sprintf(tmp_file, "/tmp/%s_%d_%s.sql", thd->thd_sinfo->host, thd->thd_sinfo->port, thd->thd_sinfo->db);
+
+    sprintf(cmd, "mysql -h%s -P%d -u%s -p%s -D%s -e \"source %s\"",
+             remote_backup_host, port, remote_system_user, remote_system_password, thd->thd_sinfo->db, tmp_file);
+
+    DBUG_PRINT("mysql_db_struct_srouce", ("cmd:%s", cmd));
+
+    if (!(res_file = popen(cmd, "r")))
+        DBUG_RETURN(false);
+
+    while (fgets(buf, sizeof(buf), res_file))
+        fprintf(stdout, "%s", buf);
+
+    pclose(res_file);
+
+    DBUG_RETURN(true);
+}
+
+int init_connection(MYSQL *mysql,int port)
+{
+    ulong client_flag = CLIENT_REMEMBER_OPTIONS;
+    uint net_timeout = 3600 * 24;
+    bool reconnect = TRUE;
+
+    mysql_init(mysql);
+    mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, (char *) &net_timeout);
+    mysql_options(mysql, MYSQL_OPT_READ_TIMEOUT, (char *) &net_timeout);
+    mysql_options(mysql, MYSQL_OPT_WRITE_TIMEOUT, (char *) &net_timeout);
+    mysql_options(mysql, MYSQL_SET_CHARSET_NAME, system_charset_info->csname);
+    mysql_options(mysql, MYSQL_SET_CHARSET_DIR, (char *) charsets_dir);
+    mysql_options(mysql, MYSQL_OPT_RECONNECT, (bool *)&reconnect);
+
+    if (mysql_real_connect(mysql, remote_backup_host, remote_system_user, remote_system_password, NULL, port, NULL, client_flag) == 0) {
+        my_message(mysql_errno(mysql), mysql_error(mysql), MYF(0));
+        mysql_close(mysql);
+        return false;
+    }
+
+    return true;
+}
+
+int local_server_port(char *server_version)
+{
+    if (!strncmp(server_version, "5.5", 3)) {
+        return 5500;
+    }
+
+    if (!strncmp(server_version, "5.6", 3)) {
+        return 5600;
+    }
+
+    if (!strncmp(server_version, "5.7", 3)) {
+        return 5700;
+    }
+
+    if (!strncmp(server_version, "8.0", 3)) {
+        return 8000;
+    }
+
+    return 5700;
+}
+
+
+
+//mysql_result_recheck 重新检查返回结果，如果有需要到预执行的，就再到预执行上跑一遍.
+int mysql_result_recheck(THD *thd)
+{
+    bool has_err = true;
+    char sql[128];
+    MYSQL *remote, *preflight;
+    sql_cache_node_t *sql_cache_node;
+    int port;
+
+    DBUG_ENTER("mysql_result_recheck");
+
+    for (sql_cache_node = LIST_GET_FIRST(thd->sql_cache->field_lst); sql_cache_node != NULL; sql_cache_node = LIST_GET_NEXT(link, sql_cache_node)) {
+       if (sql_cache_node->errlevel == INCEPTION_PREFLIGHT) {
+           break;
+       }
+    }
+
+    if (sql_cache_node == NULL) {
+        DBUG_RETURN(TRUE);
+    }
+
+    mysql_db_struct_copy(thd);
+
+    if (!(remote = thd->get_audit_connection())) {
+        goto fin_return;
+    }
+
+    port = local_server_port(remote->server_version);
+
+    preflight = (MYSQL *)my_malloc(sizeof(MYSQL), MYF(MY_ZEROFILL));
+
+    if (!init_connection(preflight, port)) {
+        goto fin_return;
+    }
+
+    sprintf(sql, "create database `%s`", thd->thd_sinfo->db);
+
+    if (mysql_real_query(preflight, sql, strlen(sql))) {
+        DBUG_PRINT("mysql_result_recheck", ("create database:%s, errno:%d, error:%s", thd->thd_sinfo->db, mysql_errno(preflight), mysql_error(preflight)));
+        goto fin_return;
+    }
+
+    if (!mysql_db_struct_srouce(thd, port)) {
+        goto fin_return;
+    }
+
+    for (sql_cache_node = LIST_GET_FIRST(thd->sql_cache->field_lst); sql_cache_node != NULL; sql_cache_node = LIST_GET_NEXT(link, sql_cache_node)) {
+        if (mysql_real_query(preflight, sql_cache_node->sql_statement, strlen(sql_cache_node->sql_statement))) {
+            DBUG_PRINT("mysql_result_recheck", ("errno:%d, error:%s", mysql_errno(preflight), mysql_error(preflight)));
+            goto fin_return;
+        }
+    }
+
+    sprintf(sql, "drop database `%s`", thd->thd_sinfo->db);
+    if (mysql_real_query(preflight, sql, strlen(sql))) {
+        DBUG_PRINT("mysql_result_recheck", ("drop database:%s, errno:%d, error:%s", thd->thd_sinfo->db, mysql_errno(preflight), mysql_error(preflight)));
+    }
+
+    has_err = false;
+
+fin_return:
+    if (preflight) {
+        mysql_close(preflight);
+    }
+
+    for (sql_cache_node = LIST_GET_FIRST(thd->sql_cache->field_lst); sql_cache_node != NULL; sql_cache_node = LIST_GET_NEXT(link, sql_cache_node)) {
+       if (sql_cache_node->errlevel == INCEPTION_PREFLIGHT) {
+           if (has_err) {
+               sql_cache_node->errlevel = INCEPTION_ERROR;
+           }else {
+               sql_cache_node->errlevel = INCEPTION_WARRING;
+           }
+       }
+    }
+
+    DBUG_RETURN(has_err);
+}
+
 int mysql_send_all_results(THD *thd)
 {
     sql_cache_node_t *sql_cache_node;
@@ -754,6 +937,9 @@ int mysql_send_all_results(THD *thd)
     char tmp_buf[256];
     DBUG_ENTER("mysql_send_all_results");
     thd->thread_state = INCEPTION_STATE_SEND;
+
+    if (inception_get_type(thd) == INCEPTION_TYPE_CHECK)
+        mysql_result_recheck(thd);
 
     if (mysql_not_need_data_source(thd))
         DBUG_RETURN(false);
@@ -9177,7 +9363,8 @@ int mysql_osc_execute_abort_check(THD *thd, sql_cache_node_t *sql_cache_node)
 }
 
 
-int mysql_execute_alter_table_osc(THD *thd, MYSQL *mysql, char *statement, sql_cache_node_t *sql_cache_node)
+
+int mysql_execute_alter_table_osc(THD *thd, char *statement, sql_cache_node_t *sql_cache_node)
 {
     char cmd_line[100];
     int ret;
@@ -9371,7 +9558,7 @@ int mysql_execute_statement(THD *thd, MYSQL *mysql, char *statement, sql_cache_n
     timer = start_timer();
 
     if (sql_cache_node->use_osc) {
-        if (mysql_execute_alter_table_osc(thd, mysql, statement, sql_cache_node)) {
+        if (mysql_execute_alter_table_osc(thd, statement, sql_cache_node)) {
             sprintf(sql_cache_node->execute_time, "%.3f", (double)(start_timer() - timer) / CLOCKS_PER_SEC);
             DBUG_RETURN(true);
         }
@@ -9680,7 +9867,9 @@ int mysql_execute_commit(THD *thd)
     }
 
     err = FALSE;
+
 error:
+
     mysql_send_all_results(thd);
     thd->thread_state = INCEPTION_STATE_DEINIT;
     mysql_free_all_table_definition(thd);
@@ -10230,6 +10419,7 @@ int mysql_process_command(THD *thd, Parser_state *parser_state)
     if (inception_get_type(thd) == INCEPTION_TYPE_PRINT)
         DBUG_RETURN(mysql_print_command(thd));
 
+
     DBUG_RETURN(mysql_check_command(thd));
 }
 
@@ -10260,6 +10450,7 @@ void mysql_parse(THD *thd, uint length, Parser_state *parser_state)
 
     if (err != ER_NO && err != ER_WARNING && (inception_get_type(thd) == INCEPTION_TYPE_CHECK || inception_get_type(thd) == INCEPTION_TYPE_EXECUTE))
         mysql_cache_one_sql(thd);
+
 
     thd->end_statement();
     thd->cleanup_after_query();

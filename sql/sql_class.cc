@@ -1067,25 +1067,26 @@ bool THD::init_audit_connection()
 
 MYSQL *THD::get_audit_connection()
 {
+    DBUG_ENTER("THD::get_audit_connection");
     //如果没连接过，直接连接，返回
     if (!audit_conn_inited) {
         if (init_audit_connection() == FALSE)
-            return NULL;
+            DBUG_RETURN(NULL);
 
-        return &audit_conn.mysql;
+        DBUG_RETURN(&audit_conn.mysql);
     }
 
     //如果连接过，变更了用户名、密码或者ip端口信息都没变化，就直接返回.
     if (!strcmp(audit_conn.user, thd_sinfo->user) && !strcmp(audit_conn.passwd, thd_sinfo->password) && !strcmp(audit_conn.host, thd_sinfo->host) && audit_conn.port == thd_sinfo->port)
-        return &audit_conn.mysql;
+        DBUG_RETURN(&audit_conn.mysql);
 
     //有变化就关了重新连接.
     mysql_close(&audit_conn.mysql);
 
     if (init_audit_connection() == FALSE)
-        return NULL;
+        DBUG_RETURN(NULL);
 
-    return &audit_conn.mysql;
+    DBUG_RETURN(&audit_conn.mysql);
 }
 
 bool THD::init_backup_connection()
@@ -1102,8 +1103,7 @@ bool THD::init_backup_connection()
     mysql_options(mysql, MYSQL_SET_CHARSET_DIR, (char *) charsets_dir);
     mysql_options(mysql, MYSQL_OPT_RECONNECT, (bool *)&reconnect);
 
-    if (mysql_real_connect(mysql, remote_backup_host, remote_system_user,
-                           remote_system_password, NULL, remote_backup_port, NULL, client_flag) == 0) {
+    if (mysql_real_connect(mysql, remote_backup_host, remote_system_user, remote_system_password, NULL, remote_backup_port, NULL, client_flag) == 0) {
         my_message(mysql_errno(mysql), mysql_error(mysql), MYF(0));
         mysql_close(mysql);
         return FALSE;

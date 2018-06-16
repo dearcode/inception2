@@ -41,9 +41,9 @@ enum enum_mysql_completiontype
 
 #define INCEPTION_NOERR                 0
 #define INCEPTION_WARRING               1
-#define INCEPTION_PREFLIGHT             2
-#define INCEPTION_MANUAL                3
-#define INCEPTION_ERROR                 4
+#define INCEPTION_MANUAL                2
+#define INCEPTION_ERROR                 3
+#define INCEPTION_PREFLIGHT             4
 
 #define INCEPTION_STATE_INIT            1
 #define INCEPTION_STATE_CHECKING        2

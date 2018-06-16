@@ -107,66 +107,55 @@ process::process ( THD *thd_in, sql_cache_node_t *sql_cache_node_in, char **argv
     int const child_end  (parent_end == PIPE_READ ? PIPE_WRITE : PIPE_READ);
     int const close_fd   (parent_end == PIPE_READ ? STDOUT_FD : STDIN_FD);
     posix_spawnattr_t attr;
-    err_ = posix_spawnattr_init (&attr);
 
+    err_ = posix_spawnattr_init (&attr);
     if (err_) {
-        sprintf(errmsg, "posix_spawnattr_init() failed: %d (%s)",
-                err_, strerror(err_));
+        sprintf(errmsg, "posix_spawnattr_init() failed: %d (%s)", err_, strerror(err_));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         goto cleanup_pipe;
     }
 
     err_ = posix_spawnattr_setflags (&attr, POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_USEVFORK);
-
     if (err_) {
-        sprintf(errmsg, "posix_spawnattr_setflags() failed: %d (%s)",
-                err_, strerror(err_));
+        sprintf(errmsg, "posix_spawnattr_setflags() failed: %d (%s)", err_, strerror(err_));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         goto cleanup_attr;
     }
 
     posix_spawn_file_actions_t fact;
-    err_ = posix_spawn_file_actions_init (&fact);
-
+    err_ = posix_spawn_file_actions_init(&fact);
     if (err_) {
-        sprintf(errmsg, "posix_spawn_file_actions_init() failed: %d (%s)",
-                err_, strerror(err_));
+        sprintf(errmsg, "posix_spawn_file_actions_init() failed: %d (%s)", err_, strerror(err_));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         goto cleanup_attr;
     }
 
     // close child's stdout|stdin depending on what we returning
     //需要把错误输出重定向到标准输出中，所以在这里设置一下
-    if ((err_ = posix_spawn_file_actions_addclose (&fact, close_fd)) ||
-            (err_ = posix_spawn_file_actions_addclose (&fact, 2))) {
-        sprintf(errmsg, "posix_spawn_file_actions_addclose() failed: %d (%s)",
-                err_, strerror(err_));
+    if ((err_ = posix_spawn_file_actions_addclose (&fact, close_fd)) || (err_ = posix_spawn_file_actions_addclose (&fact, 2))) {
+        sprintf(errmsg, "posix_spawn_file_actions_addclose() failed: %d (%s)", err_, strerror(err_));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         goto cleanup_fact;
     }
 
     // substitute our pipe descriptor in place of the closed one
     //需要把错误输出重定向到标准输出中，所以在这里设置一下
-    if ((err_ = posix_spawn_file_actions_adddup2 (&fact, pipe_fds[child_end], close_fd)) ||
-            (err_ = posix_spawn_file_actions_adddup2 (&fact, pipe_fds[child_end], 2))) {
-        sprintf(errmsg, "posix_spawn_file_actions_addup2() failed: %d (%s)",
-                err_, strerror(err_));
+    if ((err_ = posix_spawn_file_actions_adddup2 (&fact, pipe_fds[child_end], close_fd)) || (err_ = posix_spawn_file_actions_adddup2 (&fact, pipe_fds[child_end], 2))) {
+        sprintf(errmsg, "posix_spawn_file_actions_addup2() failed: %d (%s)", err_, strerror(err_));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         goto cleanup_fact;
     }
 
     err_ = posix_spawnp (&pid_, argv[0], &fact, &attr, argv, environ);
-
     if (err_) {
-        sprintf(errmsg, "posix_spawnp(%s) failed: %d (%s)",
-                argv[0], err_, strerror(err_));
+        sprintf(errmsg, "posix_spawnp(%s) failed: %d (%s)", argv[0], err_, strerror(err_));
+        printf("%s\n", errmsg);
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
         pid_ = 0; // just to make sure it was not messed up in the call
         goto cleanup_fact;
     }
 
     io_ = fdopen (pipe_fds[parent_end], type);
-
     if (io_) {
         pipe_fds[parent_end] = -1; // skip close on cleanup
 
@@ -181,8 +170,7 @@ cleanup_fact:
     err = posix_spawn_file_actions_destroy (&fact);
 
     if (err) {
-        sprintf(errmsg, "posix_spawn_file_actions_destroy() failed: %d (%s)\n",
-                err, strerror(err));
+        sprintf(errmsg, "posix_spawn_file_actions_destroy() failed: %d (%s)\n", err, strerror(err));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
     }
 
@@ -190,8 +178,7 @@ cleanup_attr:
     err = posix_spawnattr_destroy (&attr);
 
     if (err) {
-        sprintf(errmsg, "posix_spawnattr_destroy() failed: %d (%s)",
-                err, strerror(err));
+        sprintf(errmsg, "posix_spawnattr_destroy() failed: %d (%s)", err, strerror(err));
         mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
     }
 
@@ -232,8 +219,7 @@ int process::wait ()
         if (-1 == waitpid(pid_, &status, 0)) {
             err_ = errno;
             assert (err_);
-            sprintf(errmsg, "Waiting for process failed: %s, PID(%ld): %d (%s)",
-                    "pt-online-schema-change", (long)pid_, err_, strerror (err_));
+            sprintf(errmsg, "Waiting for process failed: %s, PID(%ld): %d (%s)", "pt-online-schema-change", (long)pid_, err_, strerror (err_));
             mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
 
         } else {
@@ -258,8 +244,7 @@ int process::wait ()
                     break; /* No such file or directory */
                 }
 
-                sprintf(errmsg, "Process completed with error: %s: %d (%s)",
-                        "pt-online-schema-change", err_, strerror(err_));
+                sprintf(errmsg, "Process completed with error: %s: %d (%s)", "pt-online-schema-change", err_, strerror(err_));
                 mysql_errmsg_append_without_errno(thd, sql_cache_node, errmsg);
             }
 
@@ -283,6 +268,8 @@ int process::wait ()
 int process::killpid ()
 {
     if (pid_)
-        kill(pid_, SIGKILL);
+        return kill(pid_, SIGKILL);
+
+    return 0;
 }
 
