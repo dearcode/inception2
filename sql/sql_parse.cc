@@ -4452,7 +4452,7 @@ int mysql_check_create_table(THD *thd)
         }
     }
 
-    if (create_info_ptr->db_type != (handlerton *) DB_TYPE_INNODB) {
+    if ((create_info_ptr->db_type != (handlerton *) DB_TYPE_INNODB) && (create_info_ptr->db_type != (handlerton *) DB_TYPE_TOKUDB) && (create_info_ptr->db_type != (handlerton *) DB_TYPE_ROCKSDB)) {
         my_error(ER_TABLE_MUST_INNODB, MYF(0), create_table->table_name);
         mysql_errmsg_append(thd);
     }
@@ -5490,7 +5490,7 @@ int mysql_check_alter_option(THD *thd)
 
     while (create_info.used_fields) {
         if (create_info.used_fields & HA_CREATE_USED_ENGINE) {
-            if (create_info.db_type != (handlerton *) DB_TYPE_INNODB) {
+            if ((create_info.db_type != (handlerton *) DB_TYPE_INNODB) && (create_info.db_type != (handlerton *) DB_TYPE_TOKUDB) && (create_info.db_type != (handlerton *) DB_TYPE_ROCKSDB)) {
                 my_error(ER_TABLE_MUST_INNODB, MYF(0), thd->lex->query_tables->table_name);
                 mysql_errmsg_append(thd);
             }

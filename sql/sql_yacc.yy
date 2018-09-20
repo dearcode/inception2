@@ -5989,12 +5989,12 @@ storage_engines:
               THD *thd= YYTHD;
 			  if ($1.length > 0 && strcasecmp($1.str, "tokudb") == 0) {
                 $$ = (handlerton *) DB_TYPE_TOKUDB;
-              }else if ($1.length > 0 && strcasecmp($1.str, "rocksdb") != 0) {
+              }else if ($1.length > 0 && strcasecmp($1.str, "rocksdb") == 0) {
                 $$ = (handlerton *)DB_TYPE_ROCKSDB;
-              }else if ($1.length == 0 || strcasecmp($1.str, "innodb") != 0) {
-                $$ = (handlerton *)DB_TYPE_MISAM;
-              }else
+              }else if ($1.length > 0 && strcasecmp($1.str, "innodb") == 0) {
          	    $$ = (handlerton *)DB_TYPE_INNODB;
+              }else
+                $$ = (handlerton *)DB_TYPE_MYISAM;
           }
         ;
 
