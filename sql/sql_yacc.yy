@@ -5057,19 +5057,6 @@ partitioning:
 have_partitioning:
           /* empty */
           {
-#ifdef WITH_PARTITION_STORAGE_ENGINE
-            LEX_STRING partition_name={C_STRING_WITH_LEN("partition")};
-            if (!plugin_is_ready(&partition_name, MYSQL_STORAGE_ENGINE_PLUGIN))
-            {
-              my_error(ER_OPTION_PREVENTS_STATEMENT, MYF(0),
-                      "--skip-partition");
-              MYSQL_YYABORT;
-            }
-#else
-            my_error(ER_FEATURE_DISABLED, MYF(0), "partitioning",
-                    "--with-plugin-partition");
-            MYSQL_YYABORT;
-#endif
           }
         ;
 
@@ -6000,9 +5987,13 @@ storage_engines:
           ident_or_text
           {
               THD *thd= YYTHD;
-			  if ($1.length == 0 || strcasecmp($1.str, "innodb") != 0)
+			  if ($1.length > 0 && strcasecmp($1.str, "tokudb") == 0) {
+                $$ = (handlerton *) DB_TYPE_TOKUDB;
+              }else if ($1.length > 0 && strcasecmp($1.str, "rocksdb") != 0) {
+                $$ = (handlerton *)DB_TYPE_ROCKSDB;
+              }else if ($1.length == 0 || strcasecmp($1.str, "innodb") != 0) {
                 $$ = (handlerton *)DB_TYPE_MISAM;
-              else
+              }else
          	    $$ = (handlerton *)DB_TYPE_INNODB;
           }
         ;

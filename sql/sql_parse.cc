@@ -938,8 +938,10 @@ int mysql_send_all_results(THD *thd)
     DBUG_ENTER("mysql_send_all_results");
     thd->thread_state = INCEPTION_STATE_SEND;
 
+    /*
     if (inception_get_type(thd) == INCEPTION_TYPE_CHECK)
         mysql_result_recheck(thd);
+        */
 
     if (mysql_not_need_data_source(thd))
         DBUG_RETURN(false);
@@ -1951,7 +1953,7 @@ int mysql_get_err_level_by_errno(THD *thd)
 
     //mysql原生ERROR
     default:
-        return INCEPTION_ERROR;
+        return INCEPTION_PREFLIGHT;
     }
 }
 
