@@ -1927,7 +1927,6 @@ int mysql_get_err_level_by_errno(THD *thd)
     case ER_PARSE_ERROR:
     case ER_SYNTAX_ERROR:
     case ER_END_WITH_SEMICOLON:
-    case ER_INDEX_USE_ALTER_TABLE:
     case ER_INVALID_GROUP_FUNC_USE:
     case ER_TABLE_NOT_EXISTED_ERROR:
     case ER_UNKNOWN_TABLE:
@@ -1949,6 +1948,7 @@ int mysql_get_err_level_by_errno(THD *thd)
     case ER_COLUMN_HAVE_NO_COMMENT:
     case ER_TABLE_MUST_HAVE_COMMENT:
     case ER_TABLE_MUST_HAVE_PK:
+    case ER_INDEX_USE_ALTER_TABLE:
         return INCEPTION_ERROR;
 
     //mysql原生ERROR
