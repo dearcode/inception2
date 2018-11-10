@@ -263,6 +263,7 @@ struct source_info_struct
     char        *host;
     char        *password;
     char        *user;
+    char        *db;
     uint        port;
     uint        check;//check or execute
     uint        execute;

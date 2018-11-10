@@ -5069,6 +5069,12 @@ struct my_option my_isql_options[] = {
     },
 
     {
+        "db", 0, "db name.",
+        &global_source.db, &global_source.db, 0,
+        GET_STR_ALLOC,	REQUIRED_ARG, 0, 0, 0, 0, 0, 0
+    },
+
+    {
         "port", 0, "mysql server's port.",
         &global_source.port, &global_source.port, 0,
         GET_INT,	REQUIRED_ARG, 0, 0, 0, 0, 0, 0

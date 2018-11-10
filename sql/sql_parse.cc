@@ -2455,6 +2455,10 @@ int thd_parse_options(THD *thd, char *sql)
         strcpy(thd->thd_sinfo->password, global_source.password);
     }
 
+    if (global_source.db != NULL) {
+        strcpy(thd->thd_sinfo->db, global_source.db);
+    }
+
     if (global_source.query_print == 1)
         thd->thd_sinfo->optype = INCEPTION_TYPE_PRINT;
     else if (global_source.split == 1)
